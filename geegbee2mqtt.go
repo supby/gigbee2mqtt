@@ -19,7 +19,7 @@ func main() {
 		BaudRate: 115200,
 	}
 
-	port, err := serial.Open("/dev/ttyUSB0", mode)
+	port, err := serial.Open("/dev/ttyACM0", mode)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -44,7 +44,14 @@ func main() {
 	z := zstack.New(port, t)
 
 	/* Generate random Zigbee network, on default channel (15) */
-	netCfg, _ := zigbee.GenerateNetworkConfiguration()
+	//netCfg, _ := zigbee.GenerateNetworkConfiguration()
+
+	netCfg := zigbee.NetworkConfiguration{
+		PANID:         6754,
+		ExtendedPANID: zigbee.ExtendedPANID(btoi64([]byte{221, 221, 221, 221, 221, 221, 221, 221})),
+		NetworkKey:    zigbee.NetworkKey{0x01, 0x03, 0x05, 0x07, 0x09, 0x0B, 0x0D, 0x0F, 0x00, 0x02, 0x04, 0x06, 0x08, 0x0A, 0x0C, 0x0D},
+		Channel:       11,
+	}
 
 	/* Obtain context for timeout of initialisation. */
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
@@ -52,4 +59,70 @@ func main() {
 
 	/* Initialise ZStack and CC253X */
 	err = z.Initialise(ctx, netCfg)
+
+	//err2 := z.PermitJoin(ctx, true)
+
+	for {
+		ctx := context.Background()
+		event, err := z.ReadEvent(ctx)
+
+		if err != nil {
+			return
+		}
+
+		switch e := event.(type) {
+		case zigbee.NodeJoinEvent:
+			log.Printf("join: %v\n", e.Node)
+			go exploreDevice(z, e.Node)
+		case zigbee.NodeLeaveEvent:
+			log.Printf("leave: %v\n", e.Node)
+		case zigbee.NodeUpdateEvent:
+			log.Printf("update: %v\n", e.Node)
+		case zigbee.NodeIncomingMessageEvent:
+			log.Printf("message: %v\n", e)
+		}
+	}
+}
+
+func exploreDevice(z *zstack.ZStack, node zigbee.Node) {
+	log.Printf("node %v: querying", node.IEEEAddress)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Minute)
+	defer cancel()
+
+	descriptor, err := z.QueryNodeDescription(ctx, node.IEEEAddress)
+
+	if err != nil {
+		log.Printf("failed to get node descriptor: %v", err)
+		return
+	}
+
+	log.Printf("node %v: descriptor: %+v", node.IEEEAddress, descriptor)
+
+	endpoints, err := z.QueryNodeEndpoints(ctx, node.IEEEAddress)
+
+	if err != nil {
+		log.Printf("failed to get node endpoints: %v", err)
+		return
+	}
+
+	log.Printf("node %v: endpoints: %+v", node.IEEEAddress, endpoints)
+
+	for _, endpoint := range endpoints {
+		endpointDes, err := z.QueryNodeEndpointDescription(ctx, node.IEEEAddress, endpoint)
+
+		if err != nil {
+			log.Printf("failed to get node endpoint description: %v / %d", err, endpoint)
+		} else {
+			log.Printf("node %v: endpoint: %d desc: %+v", node.IEEEAddress, endpoint, endpointDes)
+		}
+	}
+}
+
+func btoi64(val []byte) uint64 {
+	r := uint64(0)
+	for i := uint64(0); i < 8; i++ {
+		r |= uint64(val[i]) << (8 * i)
+	}
+	return r
 }
