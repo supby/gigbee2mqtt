@@ -59,9 +59,18 @@ func main() {
 
 	/* Initialise ZStack and CC253X */
 	err = z.Initialise(ctx, netCfg)
+	if err != nil {
+		log.Printf("Errir init ZStack: %v\n", err)
+		return
+	}
 
-	//err2 := z.PermitJoin(ctx, true)
+	err = z.PermitJoin(ctx, true)
+	if err != nil {
+		log.Printf("Error permit join: %v\n", err)
+		return
+	}
 
+	log.Println("Start event loop ====")
 	for {
 		ctx := context.Background()
 		event, err := z.ReadEvent(ctx)
@@ -87,7 +96,7 @@ func main() {
 func exploreDevice(z *zstack.ZStack, node zigbee.Node) {
 	log.Printf("node %v: querying", node.IEEEAddress)
 
-	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Minute)
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Minute)
 	defer cancel()
 
 	descriptor, err := z.QueryNodeDescription(ctx, node.IEEEAddress)
