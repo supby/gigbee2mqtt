@@ -2,6 +2,7 @@ package db
 
 import (
 	"encoding/json"
+	"log"
 	"os"
 	"time"
 )
@@ -31,7 +32,20 @@ func Init(filename string) *DB {
 	return &ret
 }
 
-func (db *DB) Save() {
+func (db *DB) SaveNode(node Node) {
+	for i, n := range db.Nodes {
+		if n.IEEEAddress == node.IEEEAddress {
+			db.Nodes[i] = node
+			break
+		}
+	}
+
+	db.save()
+}
+
+func (db *DB) save() {
+	log.Println("Saving node to DB")
+
 	res, _ := json.Marshal(db)
 	os.WriteFile(db.filename, res, 0644)
 }
@@ -48,4 +62,6 @@ func (db *DB) load() {
 	json.Unmarshal(jsonBuf, &loadedDB)
 
 	db.Nodes = loadedDB.Nodes
+
+	log.Printf("[DB] %v nodes are loaded from DB\n", len(db.Nodes))
 }
