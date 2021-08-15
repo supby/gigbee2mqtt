@@ -5,6 +5,8 @@ import (
 	"log"
 	"time"
 
+	"github.com/shimmeringbee/zcl"
+	"github.com/shimmeringbee/zcl/commands/global"
 	"github.com/shimmeringbee/zigbee"
 	"github.com/supby/gigbee2mqtt/configuration"
 	"github.com/supby/gigbee2mqtt/db"
@@ -20,11 +22,13 @@ import (
 // payload '{"cluster":"ssIasZone","data":{"batteryPercentageRemaining":200,"batteryVoltage":30,"zoneStatus":1},"device":{"friendlyName":"0x00124b000724ae04","ieeeAddr":"0x00124b000724ae04","model":"unknown","networkAddress":31211,"type":"Unknown"},"endpoint":{"ID":1,"_binds":[],"_configuredReportings":[],"clusters":{"genPowerCfg":{"attributes":{"batteryPercentageRemaining":200,"batteryVoltage":30}},"ssIasZone":{"attributes":{"zoneStatus":1}}},"deviceIeeeAddress":"0x00124b000724ae04","deviceNetworkAddress":31211,"inputClusters":[],"meta":{},"outputClusters":[]},"groupID":0,"linkquality":52,"meta":{"frameControl":{"direction":1,"disableDefaultResponse":true,"frameType":0,"manufacturerSpecific":false,"reservedBits":0},"manufacturerCode":null,"zclTransactionSequenceNumber":219},"type":"attributeReport"}'
 
 func main() {
+	cfg := configuration.Init("./configuration.yaml")
+
 	mode := &serial.Mode{
-		BaudRate: 115200,
+		BaudRate: int(cfg.SerialConfiguration.BaudRate),
 	}
 
-	port, err := serial.Open("/dev/ttyACM0", mode)
+	port, err := serial.Open(cfg.SerialConfiguration.PortName, mode)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -39,14 +43,11 @@ func main() {
 	/* Create a new ZStack struct. */
 	z := zstack.New(port, t)
 
-	/* Generate random Zigbee network, on default channel (15) */
-	//netCfg, _ := zigbee.GenerateNetworkConfiguration()
-	cfg := configuration.Init("./configuration.yaml")
 	netCfg := zigbee.NetworkConfiguration{
-		PANID:         zigbee.PANID(cfg.NetworkConfiguration.PANID),
-		ExtendedPANID: zigbee.ExtendedPANID(cfg.NetworkConfiguration.ExtendedPANID),
-		NetworkKey:    cfg.NetworkConfiguration.NetworkKey,
-		Channel:       cfg.NetworkConfiguration.Channel,
+		PANID:         zigbee.PANID(cfg.ZNetworkConfiguration.PANID),
+		ExtendedPANID: zigbee.ExtendedPANID(cfg.ZNetworkConfiguration.ExtendedPANID),
+		NetworkKey:    cfg.ZNetworkConfiguration.NetworkKey,
+		Channel:       cfg.ZNetworkConfiguration.Channel,
 	}
 
 	/* Obtain context for timeout of initialisation. */
@@ -59,14 +60,19 @@ func main() {
 		log.Fatal(err)
 	}
 
-	err = z.PermitJoin(ctx, true)
-	if err != nil {
-		log.Printf("Error permit join: %v\n", err)
+	if cfg.PermitJoin {
+		err = z.PermitJoin(ctx, true)
+		if err != nil {
+			log.Printf("Error permit join: %v\n", err)
+		}
 	}
 
 	if err := z.RegisterAdapterEndpoint(ctx, 1, zigbee.ProfileHomeAutomation, 1, 1, []zigbee.ClusterID{}, []zigbee.ClusterID{}); err != nil {
 		log.Fatal(err)
 	}
+
+	zclCommandRegistry := zcl.NewCommandRegistry()
+	global.Register(zclCommandRegistry)
 
 	log.Println("Start event loop ====")
 	for {
@@ -88,8 +94,22 @@ func main() {
 			go saveNodeDB(e.Node, db1)
 		case zigbee.NodeIncomingMessageEvent:
 			log.Printf("message: %v\n", e)
+			go saveNodeDB(e.Node, db1)
+			go processIncomingMessage(e.IncomingMessage, zclCommandRegistry)
 		}
 	}
+}
+
+func processIncomingMessage(msg zigbee.IncomingMessage, zclCommandRegistry *zcl.CommandRegistry) {
+	message, err := zclCommandRegistry.Unmarshal(msg.ApplicationMessage)
+	if err != nil {
+		log.Printf("Error parse incomming message: %v\n", err)
+		return
+	}
+
+	log.Printf("Incomming message received: %v\n", message)
+
+	//msg.ApplicationMessage.
 }
 
 func saveNodeDB(znode zigbee.Node, dbObj *db.DB) {
