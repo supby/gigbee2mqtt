@@ -107,7 +107,16 @@ func processIncomingMessage(msg zigbee.IncomingMessage, zclCommandRegistry *zcl.
 		return
 	}
 
-	log.Printf("Incomming message received: %v\n", message)
+	log.Printf("Incomming command of type [%T] is received: %v\n", message.Command, message.Command)
+
+	switch cmd := message.Command.(type) {
+	case *global.ReportAttributes:
+		// res, _ := json.Marshal(cmd.Records[0].)
+		// log.Printf("Incomming message JSON: %v\n", res)
+		for _, r := range cmd.Records {
+			log.Printf("AttrId: %v, DataType: %v, Value: %v\n", r.Identifier, r.DataTypeValue.DataType, r.DataTypeValue.Value)
+		}
+	}
 
 	//msg.ApplicationMessage.
 }
