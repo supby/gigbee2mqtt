@@ -1,0 +1,2624 @@
+{
+    "genBasic": {
+      "id": 0,
+      "attributes": {
+        "zclVersion": { "id": 0, "type": "uint8" },
+        "appVersion": { "id": 1, "type": "uint8" },
+        "stackVersion": { "id": 2, "type": "uint8" },
+        "hwVersion": { "id": 3, "type": "uint8" },
+        "manufacturerName": { "id": 4, "type": "string" },
+        "modelId": { "id": 5, "type": "string" },
+        "dateCode": { "id": 6, "type": "string" },
+        "powerSource": { "id": 7, "type": "enum8" },
+        "appProfileVersion": { "id": 8, "type": "enum8" },
+        "swBuildId": { "id": 16384, "type": "string" },
+        "locationDesc": { "id": 16, "type": "string" },
+        "physicalEnv": { "id": 17, "type": "enum8" },
+        "deviceEnabled": { "id": 18, "type": "boolean" },
+        "alarmMask": { "id": 19, "type": "map8" },
+        "disableLocalConfig": { "id": 20, "type": "map8" }
+      },
+      "cmd": { "resetFactDefault": { "id": 0, "params": [] } }
+    },
+    "genPowerCfg": {
+      "id": 1,
+      "attributes": {
+        "mainsVoltage": { "id": 0, "type": "uint16" },
+        "mainsFrequency": { "id": 1, "type": "uint8" },
+        "mainsAlarmMask": { "id": 16, "type": "map8" },
+        "mainsVoltMinThres": { "id": 17, "type": "uint16" },
+        "mainsVoltMaxThres": { "id": 18, "type": "uint16" },
+        "mainsVoltageDwellTripPoint": { "id": 19, "type": "uint16" },
+        "batteryVoltage": { "id": 32, "type": "uint8" },
+        "batteryPercentageRemaining": { "id": 33, "type": "uint8" },
+        "batteryManufacturer": { "id": 48, "type": "string" },
+        "batterySize": { "id": 49, "type": "enum8" },
+        "batteryAHrRating": { "id": 50, "type": "uint16" },
+        "batteryQuantity": { "id": 51, "type": "uint8" },
+        "batteryRatedVoltage": { "id": 52, "type": "uint8" },
+        "batteryAlarmMask": { "id": 53, "type": "map8" },
+        "batteryVoltMinThres": { "id": 54, "type": "uint8" },
+        "batteryVoltThres1": { "id": 55, "type": "uint8" },
+        "batteryVoltThres2": { "id": 56, "type": "uint8" },
+        "batteryVoltThres3": { "id": 57, "type": "uint8" },
+        "batteryPercentMinThres": { "id": 58, "type": "uint8" },
+        "batteryPercentThres1": { "id": 59, "type": "uint8" },
+        "batteryPercentThres2": { "id": 60, "type": "uint8" },
+        "batteryPercentThres3": { "id": 61, "type": "uint8" },
+        "batteryAlarmState": { "id": 62, "type": "map32" }
+      }
+    },
+    "genDeviceTempCfg": {
+      "id": 2,
+      "attributes": {
+        "currentTemperature": { "id": 0, "type": "int16" },
+        "minTempExperienced": { "id": 1, "type": "int16" },
+        "maxTempExperienced": { "id": 2, "type": "int16" },
+        "overTempTotalDwell": { "id": 3, "type": "uint16" },
+        "devTempAlarmMask": { "id": 16, "type": "map8" },
+        "lowTempThres": { "id": 17, "type": "int16" },
+        "highTempThres": { "id": 18, "type": "int16" },
+        "lowTempDwellTripPoint": { "id": 19, "type": "uint24" },
+        "highTempDwellTripPoint": { "id": 20, "type": "uint24" }
+      }
+    },
+    "genIdentify": {
+      "id": 3,
+      "attributes": {
+        "identifyTime": { "id": 0, "type": "uint16" },
+        "identifyCommissionState": { "id": 1, "type": "unknown" }
+      },
+      "cmd": {
+        "identify": { "id": 0, "params": [["identifytime", "uint16"]] },
+        "identifyQuery": { "id": 1, "params": [] },
+        "ezModeInvoke": { "id": 2, "params": [["action", "uint8"]] },
+        "updateCommissionState": {
+          "id": 3,
+          "params": [["action", "uint8"], ["commstatemask", "uint8"]]
+        },
+        "triggerEffect": {
+          "id": 64,
+          "params": [["effectid", "uint8"], ["effectvariant", "uint8"]]
+        }
+      },
+      "cmdRsp": {
+        "identifyQueryRsp": { "id": 0, "params": [["timeout", "uint16"]] }
+      }
+    },
+    "genGroups": {
+      "id": 4,
+      "attributes": { "nameSupport": { "id": 0, "type": "map8" } },
+      "cmd": {
+        "add": {
+          "id": 0,
+          "params": [["groupid", "uint16"], ["groupname", "string"]]
+        },
+        "view": { "id": 1, "params": [["groupid", "uint16"]] },
+        "getMembership": {
+          "id": 2,
+          "params": [["groupcount", "preLenUint8"], ["grouplist", "dynUint16"]]
+        },
+        "remove": { "id": 3, "params": [["groupid", "uint16"]] },
+        "removeAll": { "id": 4, "params": [] },
+        "addIfIdentifying": {
+          "id": 5,
+          "params": [["groupid", "uint16"], ["groupname", "string"]]
+        }
+      },
+      "cmdRsp": {
+        "addRsp": {
+          "id": 0,
+          "params": [["status", "uint8"], ["groupid", "uint16"]]
+        },
+        "viewRsp": {
+          "id": 1,
+          "params": [
+            ["status", "uint8"],
+            ["groupid", "uint16"],
+            ["groupname", "string"]
+          ]
+        },
+        "getMembershipRsp": {
+          "id": 2,
+          "params": [
+            ["capacity", "uint8"],
+            ["groupcount", "preLenUint8"],
+            ["grouplist", "dynUint16"]
+          ]
+        },
+        "removeRsp": {
+          "id": 3,
+          "params": [["status", "uint8"], ["groupid", "uint16"]]
+        }
+      }
+    },
+    "genScenes": {
+      "id": 5,
+      "attributes": {
+        "count": { "id": 0, "type": "uint8" },
+        "currentScene": { "id": 1, "type": "uint8" },
+        "currentGroup": { "id": 2, "type": "uint16" },
+        "sceneValid": { "id": 3, "type": "boolean" },
+        "nameSupport": { "id": 4, "type": "map8" },
+        "lastCfgBy": { "id": 5, "type": "ieeeAddr" }
+      },
+      "cmd": {
+        "add": {
+          "id": 0,
+          "params": [
+            ["groupid", "uint16"],
+            ["sceneid", "uint8"],
+            ["transtime", "uint16"],
+            ["scenename", "string"],
+            ["extensionfieldsets", "extfieldsets"]
+          ]
+        },
+        "view": {
+          "id": 1,
+          "params": [["groupid", "uint16"], ["sceneid", "uint8"]]
+        },
+        "remove": {
+          "id": 2,
+          "params": [["groupid", "uint16"], ["sceneid", "uint8"]]
+        },
+        "removeAll": { "id": 3, "params": [["groupid", "uint16"]] },
+        "store": {
+          "id": 4,
+          "params": [["groupid", "uint16"], ["sceneid", "uint8"]]
+        },
+        "recall": {
+          "id": 5,
+          "params": [["groupid", "uint16"], ["sceneid", "uint8"]]
+        },
+        "getSceneMembership": { "id": 6, "params": [["groupid", "uint16"]] },
+        "enhancedAdd": {
+          "id": 64,
+          "params": [
+            ["groupid", "uint16"],
+            ["sceneid", "uint8"],
+            ["transtime", "uint16"],
+            ["scenename", "string"],
+            ["extensionfieldsets", "extfieldsets"]
+          ]
+        },
+        "enhancedView": {
+          "id": 65,
+          "params": [["groupid", "uint16"], ["sceneid", "uint8"]]
+        },
+        "copy": {
+          "id": 66,
+          "params": [
+            ["mode", "uint8"],
+            ["groupidfrom", "uint16"],
+            ["sceneidfrom", "uint8"],
+            ["groupidto", "uint16"],
+            ["sceneidto", "uint8"]
+          ]
+        }
+      },
+      "cmdRsp": {
+        "addRsp": {
+          "id": 0,
+          "params": [
+            ["status", "uint8"],
+            ["groupId", "uint16"],
+            ["sceneId", "uint8"]
+          ]
+        },
+        "viewRsp": {
+          "id": 1,
+          "params": [
+            ["status", "uint8"],
+            ["groupid", "uint16"],
+            ["sceneid", "uint8"],
+            ["transtime", "uint16"],
+            ["scenename", "string"],
+            ["extensionfieldsets", "extfieldsets"]
+          ]
+        },
+        "removeRsp": {
+          "id": 2,
+          "params": [
+            ["status", "uint8"],
+            ["groupid", "uint16"],
+            ["sceneid", "uint8"]
+          ]
+        },
+        "removeAllRsp": {
+          "id": 3,
+          "params": [["status", "uint8"], ["groupid", "uint16"]]
+        },
+        "storeRsp": {
+          "id": 4,
+          "params": [
+            ["status", "uint8"],
+            ["groupid", "uint16"],
+            ["sceneid", "uint8"]
+          ]
+        },
+        "getSceneMembershipRsp": {
+          "id": 6,
+          "params": [
+            ["status", "uint8"],
+            ["capacity", "uint8"],
+            ["groupid", "uint16"],
+            ["scenecount", "preLenUint8"],
+            ["scenelist", "dynUint8"]
+          ]
+        },
+        "enhancedAddRsp": { "id": 64, "params": [] },
+        "enhancedViewRsp": {
+          "id": 65,
+          "params": [
+            ["status", "uint8"],
+            ["groupid", "uint16"],
+            ["sceneid", "uint8"],
+            ["transtime", "uint16"],
+            ["scenename", "string"],
+            ["extensionfieldsets", "extfieldsets"]
+          ]
+        },
+        "copyRsp": {
+          "id": 66,
+          "params": [
+            ["status", "uint8"],
+            ["groupidfrom", "uint16"],
+            ["sceneidfrom", "uint8"]
+          ]
+        }
+      }
+    },
+    "genOnOff": {
+      "id": 6,
+      "attributes": {
+        "onOff": { "id": 0, "type": "boolean" },
+        "globalSceneCtrl": { "id": 16384, "type": "boolean" },
+        "onTime": { "id": 16385, "type": "uint16" },
+        "offWaitTime": { "id": 16386, "type": "uint16" }
+      },
+      "cmd": {
+        "off": { "id": 0, "params": [] },
+        "on": { "id": 1, "params": [] },
+        "toggle": { "id": 2, "params": [] },
+        "offWithEffect": {
+          "id": 64,
+          "params": [["effectid", "uint8"], ["effectvariant", "uint8"]]
+        },
+        "onWithRecallGlobalScene": { "id": 65, "params": [] },
+        "onWithTimedOff": {
+          "id": 66,
+          "params": [
+            ["ctrlbits", "uint8"],
+            ["ctrlbyte", "uint8"],
+            ["ontime", "uint16"],
+            ["offwaittime", "uint16"]
+          ]
+        }
+      }
+    },
+    "genOnOffSwitchCfg": {
+      "id": 7,
+      "attributes": {
+        "switchType": { "id": 0, "type": "enum8" },
+        "switchMultiFunction": { "id": 2, "type": "unknown" },
+        "switchActions": { "id": 16, "type": "enum8" }
+      }
+    },
+    "genLevelCtrl": {
+      "id": 8,
+      "attributes": {
+        "currentLevel": { "id": 0, "type": "uint8" },
+        "remainingTime": { "id": 1, "type": "uint16" },
+        "onOffTransitionTime": { "id": 16, "type": "uint16" },
+        "onLevel": { "id": 17, "type": "uint8" },
+        "onTransitionTime": { "id": 18, "type": "uint16" },
+        "offTransitionTime": { "id": 19, "type": "uint16" },
+        "defaultMoveRate": { "id": 20, "type": "uint16" }
+      },
+      "cmd": {
+        "moveToLevel": {
+          "id": 0,
+          "params": [["level", "uint8"], ["transtime", "uint16"]]
+        },
+        "move": { "id": 1, "params": [["movemode", "uint8"], ["rate", "uint8"]] },
+        "step": {
+          "id": 2,
+          "params": [
+            ["stepmode", "uint8"],
+            ["stepsize", "uint8"],
+            ["transtime", "uint16"]
+          ]
+        },
+        "stop": { "id": 3, "params": [] },
+        "moveToLevelWithOnOff": {
+          "id": 4,
+          "params": [["level", "uint8"], ["transtime", "uint16"]]
+        },
+        "moveWithOnOff": {
+          "id": 5,
+          "params": [["movemode", "uint8"], ["rate", "uint8"]]
+        },
+        "stepWithOnOff": {
+          "id": 6,
+          "params": [
+            ["stepmode", "uint8"],
+            ["stepsize", "uint8"],
+            ["transtime", "uint16"]
+          ]
+        },
+        "stopWithOnOff": { "id": 7, "params": [] }
+      }
+    },
+    "genAlarms": {
+      "id": 9,
+      "attributes": { "alarmCount": { "id": 0, "type": "uint16" } },
+      "cmd": {
+        "reset": {
+          "id": 0,
+          "params": [["alarmcode", "uint8"], ["clusterid", "uint16"]]
+        },
+        "resetAll": { "id": 1, "params": [] },
+        "getAlarm": { "id": 2, "params": [] },
+        "resetLog": { "id": 3, "params": [] },
+        "publishEventLog": { "id": 4, "params": [] }
+      },
+      "cmdRsp": {
+        "alarm": {
+          "id": 0,
+          "params": [["alarmcode", "uint8"], ["clusterid", "uint16"]]
+        },
+        "getRsp": {
+          "id": 1,
+          "params": [
+            ["status", "uint8"],
+            ["alarmcode", "uint8"],
+            ["clusterid", "uint16"],
+            ["timestamp", "uint32"]
+          ]
+        },
+        "getEventLog": { "id": 2, "params": [] }
+      }
+    },
+    "genTime": {
+      "id": 10,
+      "attributes": {
+        "time": { "id": 0, "type": "utc" },
+        "timeStatus": { "id": 1, "type": "map8" },
+        "timeZone": { "id": 2, "type": "int32" },
+        "dstStart": { "id": 3, "type": "uint32" },
+        "dstEnd": { "id": 4, "type": "uint32" },
+        "dstShift": { "id": 5, "type": "int32" },
+        "standardTime": { "id": 6, "type": "uint32" },
+        "localTime": { "id": 7, "type": "uint32" },
+        "lastSetTime": { "id": 8, "type": "utc" },
+        "validUntilTime": { "id": 9, "type": "utc" }
+      }
+    },
+    "genRssiLocation": {
+      "id": 11,
+      "attributes": {
+        "type": { "id": 0, "type": "data8" },
+        "method": { "id": 1, "type": "enum8" },
+        "age": { "id": 2, "type": "uint16" },
+        "qualityMeasure": { "id": 3, "type": "uint8" },
+        "numOfDevices": { "id": 4, "type": "uint8" },
+        "coordinate1": { "id": 16, "type": "int16" },
+        "coordinate2": { "id": 17, "type": "int16" },
+        "coordinate3": { "id": 18, "type": "int16" },
+        "power": { "id": 19, "type": "int16" },
+        "pathLossExponent": { "id": 20, "type": "uint16" },
+        "reportingPeriod": { "id": 21, "type": "uint16" },
+        "calcPeriod": { "id": 22, "type": "uint16" },
+        "numRSSIMeasurements": { "id": 23, "type": "uint16" }
+      },
+      "cmd": {
+        "setAbsolute": {
+          "id": 0,
+          "params": [
+            ["coord1", "int16"],
+            ["coord2", "int16"],
+            ["coord3", "int16"],
+            ["power", "int16"],
+            ["pathlossexponent", "uint16"]
+          ]
+        },
+        "setDevCfg": {
+          "id": 1,
+          "params": [
+            ["power", "int16"],
+            ["pathlossexponent", "uint16"],
+            ["calperiod", "uint16"],
+            ["numrssimeasurements", "uint8"],
+            ["reportingperiod", "uint16"]
+          ]
+        },
+        "getDevCfg": { "id": 2, "params": [["targetaddr", "ieeeAddr"]] },
+        "getData": {
+          "id": 3,
+          "params": [
+            ["getdatainfo", "uint8"],
+            ["numrsp", "uint8"],
+            ["targetaddr", "ieeeAddr"]
+          ]
+        },
+        "rssiRsp": {
+          "id": 4,
+          "params": [
+            ["replyingdev", "ieeeAddr"],
+            ["coord1", "int16"],
+            ["coord2", "int16"],
+            ["coord3", "int16"],
+            ["rssi", "int8"],
+            ["numrssimeasurements", "uint8"]
+          ]
+        },
+        "sendPings": {
+          "id": 5,
+          "params": [
+            ["targetaddr", "ieeeAddr"],
+            ["numrssimeasurements", "uint8"],
+            ["calperiod", "uint16"]
+          ]
+        },
+        "anchorNodeAnnounce": {
+          "id": 6,
+          "params": [
+            ["anchornodeaddr", "ieeeAddr"],
+            ["coord1", "int16"],
+            ["coord2", "int16"],
+            ["coord3", "int16"]
+          ]
+        }
+      },
+      "cmdRsp": {
+        "devCfgRsp": {
+          "id": 0,
+          "params": [
+            ["status", "uint8"],
+            ["power", "int16"],
+            ["pathlossexp", "uint16"],
+            ["calperiod", "uint16"],
+            ["numrssimeasurements", "uint8"],
+            ["reportingperiod", "uint16"]
+          ]
+        },
+        "dataRsp": {
+          "id": 1,
+          "params": [
+            ["status", "uint8"],
+            ["locationtype", "uint8"],
+            ["coord1", "int16"],
+            ["coord2", "int16"],
+            ["coord3", "int16"],
+            ["power", "int16"],
+            ["pathlossexp", "uint16"],
+            ["locationmethod", "uint8"],
+            ["qualitymeasure", "uint8"],
+            ["locationage", "uint16"]
+          ]
+        },
+        "dataNotif": {
+          "id": 2,
+          "params": [
+            ["locationtype", "uint8"],
+            ["coord1", "int16"],
+            ["coord2", "int16"],
+            ["coord3", "int16"],
+            ["power", "int16"],
+            ["pathlossexp", "uint16"],
+            ["locationmethod", "uint8"],
+            ["qualitymeasure", "uint8"],
+            ["locationage", "uint16"]
+          ]
+        },
+        "compactDataNotif": {
+          "id": 3,
+          "params": [
+            ["locationtype", "uint8"],
+            ["coord1", "int16"],
+            ["coord2", "int16"],
+            ["coord3", "int16"],
+            ["qualitymeasure", "uint8"],
+            ["locationage", "uint16"]
+          ]
+        },
+        "rssiPing": { "id": 4, "params": [["locationtype", "uint8"]] },
+        "rssiReq": { "id": 5, "params": [] },
+        "reportRssiMeas": {
+          "id": 6,
+          "params": [
+            ["reportingaddr", "ieeeAddr"],
+            ["numofneighbors", "preLenUint8"],
+            ["neighborsinfo", "neighborsInfo"]
+          ]
+        },
+        "reqOwnLocation": { "id": 7, "params": [["reqaddr", "ieeeAddr"]] }
+      }
+    },
+    "genAnalogInput": {
+      "id": 12,
+      "attributes": {
+        "description": { "id": 28, "type": "string" },
+        "maxPresentValue": { "id": 65, "type": "single" },
+        "minPresentValue": { "id": 69, "type": "single" },
+        "outOfService": { "id": 81, "type": "boolean" },
+        "presentValue": { "id": 85, "type": "single" },
+        "reliability": { "id": 103, "type": "enum8" },
+        "resolution": { "id": 106, "type": "single" },
+        "statusFlags": { "id": 111, "type": "map8" },
+        "engineeringUnits": { "id": 117, "type": "enum16" },
+        "applicationType": { "id": 256, "type": "uint32" }
+      }
+    },
+    "genAnalogOutput": {
+      "id": 13,
+      "attributes": {
+        "description": { "id": 28, "type": "string" },
+        "maxPresentValue": { "id": 65, "type": "single" },
+        "minPresentValue": { "id": 69, "type": "single" },
+        "outOfService": { "id": 81, "type": "boolean" },
+        "presentValue": { "id": 85, "type": "single" },
+        "priorityArray": { "id": 87, "type": "array" },
+        "reliability": { "id": 103, "type": "enum8" },
+        "relinquishDefault": { "id": 104, "type": "single" },
+        "resolution": { "id": 106, "type": "single" },
+        "statusFlags": { "id": 111, "type": "map8" },
+        "engineeringUnits": { "id": 117, "type": "enum16" },
+        "applicationType": { "id": 256, "type": "uint32" }
+      }
+    },
+    "genAnalogValue": {
+      "id": 14,
+      "attributes": {
+        "description": { "id": 28, "type": "string" },
+        "outOfService": { "id": 81, "type": "boolean" },
+        "presentValue": { "id": 85, "type": "single" },
+        "priorityArray": { "id": 87, "type": "array" },
+        "reliability": { "id": 103, "type": "enum8" },
+        "relinquishDefault": { "id": 104, "type": "single" },
+        "statusFlags": { "id": 111, "type": "map8" },
+        "engineeringUnits": { "id": 117, "type": "enum16" },
+        "applicationType": { "id": 256, "type": "uint32" }
+      }
+    },
+    "genBinaryInput": {
+      "id": 15,
+      "attributes": {
+        "activeText": { "id": 4, "type": "string" },
+        "description": { "id": 28, "type": "string" },
+        "inactiveText": { "id": 46, "type": "string" },
+        "outOfService": { "id": 81, "type": "boolean" },
+        "polarity": { "id": 84, "type": "enum8" },
+        "presentValue": { "id": 85, "type": "boolean" },
+        "reliability": { "id": 103, "type": "enum8" },
+        "statusFlags": { "id": 111, "type": "map8" },
+        "applicationType": { "id": 256, "type": "uint32" }
+      }
+    },
+    "genBinaryOutput": {
+      "id": 16,
+      "attributes": {
+        "activeText": { "id": 4, "type": "string" },
+        "description": { "id": 28, "type": "string" },
+        "inactiveText": { "id": 46, "type": "string" },
+        "minimumOffTime": { "id": 66, "type": "uint32" },
+        "minimumOnTime": { "id": 67, "type": "uint32" },
+        "outOfService": { "id": 81, "type": "boolean" },
+        "polarity": { "id": 84, "type": "enum8" },
+        "presentValue": { "id": 85, "type": "boolean" },
+        "priorityArray": { "id": 87, "type": "array" },
+        "reliability": { "id": 103, "type": "enum8" },
+        "relinquishDefault": { "id": 104, "type": "boolean" },
+        "statusFlags": { "id": 111, "type": "map8" },
+        "applicationType": { "id": 256, "type": "uint32" }
+      }
+    },
+    "genBinaryValue": {
+      "id": 17,
+      "attributes": {
+        "activeText": { "id": 4, "type": "string" },
+        "description": { "id": 28, "type": "string" },
+        "inactiveText": { "id": 46, "type": "string" },
+        "minimumOffTime": { "id": 66, "type": "uint32" },
+        "minimumOnTime": { "id": 67, "type": "uint32" },
+        "outOfService": { "id": 81, "type": "boolean" },
+        "presentValue": { "id": 85, "type": "boolean" },
+        "priorityArray": { "id": 87, "type": "array" },
+        "reliability": { "id": 103, "type": "enum8" },
+        "relinquishDefault": { "id": 104, "type": "boolean" },
+        "statusFlags": { "id": 111, "type": "map8" },
+        "applicationType": { "id": 256, "type": "uint32" }
+      }
+    },
+    "genMultistateInput": {
+      "id": 18,
+      "attributes": {
+        "stateText": { "id": 14, "type": "array" },
+        "description": { "id": 28, "type": "string" },
+        "numberOfStates": { "id": 74, "type": "uint16" },
+        "outOfService": { "id": 81, "type": "boolean" },
+        "presentValue": { "id": 85, "type": "uint16" },
+        "reliability": { "id": 103, "type": "enum8" },
+        "statusFlags": { "id": 111, "type": "map8" },
+        "applicationType": { "id": 256, "type": "uint32" }
+      }
+    },
+    "genMultistateOutput": {
+      "id": 19,
+      "attributes": {
+        "stateText": { "id": 14, "type": "array" },
+        "description": { "id": 28, "type": "string" },
+        "numberOfStates": { "id": 74, "type": "uint16" },
+        "outOfService": { "id": 81, "type": "boolean" },
+        "presentValue": { "id": 85, "type": "uint16" },
+        "priorityArray": { "id": 87, "type": "array" },
+        "reliability": { "id": 103, "type": "enum8" },
+        "relinquishDefault": { "id": 104, "type": "uint16" },
+        "statusFlags": { "id": 111, "type": "map8" },
+        "applicationType": { "id": 256, "type": "uint32" }
+      }
+    },
+    "genMultistateValue": {
+      "id": 20,
+      "attributes": {
+        "stateText": { "id": 14, "type": "array" },
+        "description": { "id": 28, "type": "string" },
+        "numberOfStates": { "id": 74, "type": "uint16" },
+        "outOfService": { "id": 81, "type": "boolean" },
+        "presentValue": { "id": 85, "type": "uint16" },
+        "priorityArray": { "id": 87, "type": "array" },
+        "reliability": { "id": 103, "type": "enum8" },
+        "relinquishDefault": { "id": 104, "type": "uint16" },
+        "statusFlags": { "id": 111, "type": "map8" },
+        "applicationType": { "id": 256, "type": "uint32" }
+      }
+    },
+    "genCommissioning": {
+      "id": 21,
+      "attributes": {
+        "shortress": { "id": 0, "type": "uint16" },
+        "extendedPANId": { "id": 1, "type": "ieeeAddr" },
+        "panId": { "id": 2, "type": "uint16" },
+        "channelmask": { "id": 3, "type": "map32" },
+        "protocolVersion": { "id": 4, "type": "uint8" },
+        "stackProfile": { "id": 5, "type": "uint8" },
+        "startupControl": { "id": 6, "type": "enum8" },
+        "trustCenterress": { "id": 16, "type": "ieeeAddr" },
+        "trustCenterMasterKey": { "id": 17, "type": "secKey" },
+        "networkKey": { "id": 18, "type": "secKey" },
+        "useInsecureJoin": { "id": 19, "type": "boolean" },
+        "preconfiguredLinkKey": { "id": 20, "type": "secKey" },
+        "networkKeySeqNum": { "id": 21, "type": "uint8" },
+        "networkKeyType": { "id": 22, "type": "enum8" },
+        "networkManagerress": { "id": 23, "type": "uint16" },
+        "scanAttempts": { "id": 32, "type": "uint8" },
+        "timeBetweenScans": { "id": 33, "type": "uint16" },
+        "rejoinInterval": { "id": 34, "type": "uint16" },
+        "maxRejoinInterval": { "id": 35, "type": "uint16" },
+        "indirectPollRate": { "id": 48, "type": "uint16" },
+        "parentRetryThreshold": { "id": 49, "type": "uint8" },
+        "concentratorFlag": { "id": 64, "type": "boolean" },
+        "concentratorRus": { "id": 65, "type": "uint8" },
+        "concentratorDiscoveryTime": { "id": 66, "type": "uint8" }
+      },
+      "cmd": {
+        "restartDevice": {
+          "id": 0,
+          "params": [
+            ["options", "uint8"],
+            ["delay", "uint8"],
+            ["jitter", "uint8"]
+          ]
+        },
+        "saveStartupParams": {
+          "id": 1,
+          "params": [["options", "uint8"], ["index", "uint8"]]
+        },
+        "restoreStartupParams": {
+          "id": 2,
+          "params": [["options", "uint8"], ["index", "uint8"]]
+        },
+        "resetStartupParams": {
+          "id": 3,
+          "params": [["options", "uint8"], ["index", "uint8"]]
+        }
+      },
+      "cmdRsp": {
+        "restartDeviceRsp": { "id": 0, "params": [["status", "uint8"]] },
+        "saveStartupParamsRsp": { "id": 1, "params": [["status", "uint8"]] },
+        "restoreStartupParamsRsp": { "id": 2, "params": [["status", "uint8"]] },
+        "resetStartupParamsRsp": { "id": 3, "params": [["status", "uint8"]] }
+      }
+    },
+    "genPartition": { "id": 22, "TODO": 2 },
+    "genOta": {
+      "id": 25,
+      "attributes": {
+        "upgradeServerId": { "id": 0, "type": "ieeeAddr" },
+        "fileOffset": { "id": 1, "type": "uint32" },
+        "currentFileVersion": { "id": 2, "type": "uint32" },
+        "currentZigbeeStackVersion": { "id": 3, "type": "uint16" },
+        "downloadedFileVersion": { "id": 4, "type": "uint32" },
+        "downloadedZigbeeStackVersion": { "id": 5, "type": "uint16" },
+        "imageUpgradeStatus": { "id": 6, "type": "enum8" },
+        "manufacturerId": { "id": 7, "type": "uint16" },
+        "imageTypeId": { "id": 8, "type": "uint16" },
+        "minimumBlockReqDelay": { "id": 9, "type": "uint16" },
+        "imageStamp": { "id": 10, "type": "uint32" }
+      },
+      "cmd": {
+        "queryNextImageReq": {
+          "id": 1,
+          "params": [
+            ["fieldControl", "uint8"],
+            ["manufacturerCode", "uint16"],
+            ["imageType", "uint16"],
+            ["currentFileVersion", "uint32"]
+          ]
+        },
+        "imageBlockReq": {
+          "id": 3,
+          "params": [
+            ["fieldControl", "uint8"],
+            ["manufacturerCode", "uint16"],
+            ["imageType", "uint16"],
+            ["fileVersion", "uint32"],
+            ["fileOffset", "uint32"],
+            ["maximumDataSize", "uint8"]
+          ]
+        },
+        "imagePageReq": { "id": 4, "TODO": 1 },
+        "upgradeEndReq": {
+          "id": 6,
+          "params": [
+            ["status", "uint8"],
+            ["manufacturerCode", "uint16"],
+            ["imageType", "uint16"],
+            ["fileVersion", "uint32"]
+          ]
+        },
+        "querySpecificFileReq": { "id": 8, "TODO": 1 }
+      },
+      "cmdRsp": {
+        "imageNotify": {
+          "id": 0,
+          "params": [["payloadType", "uint8"], ["queryJitter", "uint8"]]
+        },
+        "queryNextImageRsp": {
+          "id": 2,
+          "params": [
+            ["status", "uint8"],
+            ["manufacturerCode", "uint16"],
+            ["imageType", "uint16"],
+            ["fileVersion", "uint32"],
+            ["imageSize", "uint32"]
+          ]
+        },
+        "imageBlockRsp": { "id": 5, "TODO": 1 },
+        "upgradeEndRsp": {
+          "id": 7,
+          "params": [
+            ["fieldControl", "uint8"],
+            ["manufacturerCode", "uint16"],
+            ["imageType", "uint16"],
+            ["fileVersion", "uint32"],
+            ["currentTime", "uint32"],
+            ["upgradeTime", "uint32"]
+          ]
+        },
+        "querySpecificFileRsp": { "id": 9, "TODO": 1 }
+      }
+    },
+    "genPowerProfile": { "id": 26, "TODO": 2 },
+    "genApplianceCtrl": { "id": 27, "TODO": 2 },
+    "genPollCtrl": {
+      "id": 32,
+      "attributes": {
+        "checkinInterval": { "id": 0, "type": "uint32" },
+        "longPollInterval": { "id": 1, "type": "uint32" },
+        "shortPollInterval": { "id": 2, "type": "uint16" },
+        "fastPollTimeout": { "id": 3, "type": "uint16" },
+        "checkinIntervalMin": { "id": 4, "type": "uint32" },
+        "longPollIntervalMin": { "id": 5, "type": "uint32" },
+        "fastPollTimeoutMax": { "id": 6, "type": "uint16" },
+        "physicalClosedLimit": { "id": 0, "type": "uint16" }
+      },
+      "cmd": {
+        "checkinRsp": {
+          "id": 0,
+          "params": [["startfastpolling", "uint8"], ["fastpolltimeout", "uint16"]]
+        },
+        "fastPollStop": { "id": 1, "params": [] },
+        "setLongPollInterval": {
+          "id": 2,
+          "params": [["newlongpollinterval", "uint32"]]
+        },
+        "setShortPollInterval": {
+          "id": 3,
+          "params": [["newshortpollinterval", "uint16"]]
+        }
+      },
+      "cmdRsp": { "checkin": { "id": 0, "params": [] } }
+    },
+    "genGreenPowerProxy": { "id": 33, "TODO": 2 },
+    "mobileDeviceCfg": {
+      "id": 34,
+      "attributes": {
+        "keepAliveTime": { "id": 0, "type": "uint16" },
+        "rejoinTimeout": { "id": 1, "type": "uint16" }
+      },
+      "cmdRsp": {
+        "keepAliveNotification": {
+          "id": 0,
+          "params": [["KeepAliveTime", "uint16"], ["RejoinTimeout", "uint16"]]
+        }
+      }
+    },
+    "neighborCleaning": {
+      "id": 35,
+      "attributes": { "neighborCleaningTimeout": { "id": 0, "type": "uint16" } },
+      "cmd": { "purgeEntries": { "id": 0, "TODO": 1 } }
+    },
+    "nearestGateway": {
+      "id": 36,
+      "attributes": {
+        "nearestGateway": { "id": 0, "type": "uint16" },
+        "newMobileNode": { "id": 1, "type": "uint16" }
+      }
+    },
+    "closuresShadeCfg": {
+      "id": 256,
+      "attributes": {
+        "physicalClosedLimit": { "id": 0, "type": "uint16" },
+        "motorStepSize": { "id": 1, "type": "uint8" },
+        "status": { "id": 2, "type": "map8" },
+        "losedLimit": { "id": 16, "type": "uint16" },
+        "mode": { "id": 18, "type": "enum8" }
+      }
+    },
+    "closuresDoorLock": {
+      "id": 257,
+      "attributes": {
+        "lockState": { "id": 0, "type": "enum8" },
+        "lockType": { "id": 38, "type": "map16" },
+        "actuatorEnabled": { "id": 2, "type": "boolean" },
+        "doorState": { "id": 3, "type": "enum8" },
+        "doorOpenEvents": { "id": 4, "type": "uint32" },
+        "doorClosedEvents": { "id": 5, "type": "uint32" },
+        "openPeriod": { "id": 6, "type": "uint16" },
+        "numOfLockRecordsSupported": { "id": 16, "type": "uint16" },
+        "numOfTotalUsersSupported": { "id": 17, "type": "uint16" },
+        "numOfPinUsersSupported": { "id": 18, "type": "uint16" },
+        "numOfRfidUsersSupported": { "id": 19, "type": "uint16" },
+        "numOfWeekDaySchedulesSupportedPerUser": { "id": 20, "type": "uint8" },
+        "numOfYearDaySchedulesSupportedPerUser": { "id": 21, "type": "uint8" },
+        "numOfHolidaySchedulesSupported": { "id": 22, "type": "uint8" },
+        "maxPinLen": { "id": 23, "type": "uint8" },
+        "minPinLen": { "id": 24, "type": "uint8" },
+        "maxRfidLen": { "id": 25, "type": "uint8" },
+        "minRfidLen": { "id": 26, "type": "uint8" },
+        "enable_Logging": { "id": 32, "type": "boolean" },
+        "language": { "id": 33, "type": "string" },
+        "ledSettings": { "id": 34, "type": "uint8" },
+        "autoRelockTime": { "id": 35, "type": "uint32" },
+        "soundVolume": { "id": 36, "type": "uint8" },
+        "operatingMode": { "id": 37, "type": "uint32" },
+        "defaultConfigurationRegister": { "id": 39, "type": "map16" },
+        "enableLocalProgramming": { "id": 40, "type": "boolean" },
+        "enableOneTouchLocking": { "id": 41, "type": "boolean" },
+        "enableInsideStatusLed": { "id": 42, "type": "boolean" },
+        "enablePrivacyModeButton": { "id": 43, "type": "boolean" },
+        "wrongCodeEntryLimit": { "id": 48, "type": "uint8" },
+        "userCodeTemporaryDisableTime": { "id": 49, "type": "uint8" },
+        "sendPinOta": { "id": 50, "type": "boolean" },
+        "requirePinForRfOperation": { "id": 51, "type": "boolean" },
+        "zigbeeSecurityLevel": { "id": 52, "type": "uint8" },
+        "alarmMask": { "id": 64, "type": "map16" },
+        "keypadOperationEventMask": { "id": 65, "type": "map16" },
+        "rfOperationEventMask": { "id": 66, "type": "map16" },
+        "manualOperationEventMask": { "id": 67, "type": "map16" },
+        "rfidOperationEventMask": { "id": 68, "type": "map16" },
+        "keypadProgrammingEventMask": { "id": 69, "type": "map16" },
+        "rfProgrammingEventMask": { "id": 70, "type": "map16" },
+        "rfidProgrammingEventMask": { "id": 71, "type": "map16" }
+      },
+      "cmd": {
+        "lockDoor": { "id": 0, "params": [["pincodevalue", "string"]] },
+        "unlockDoor": { "id": 1, "params": [["pincodevalue", "string"]] },
+        "toggleDoor": { "id": 2, "params": [["pincodevalue", "string"]] },
+        "unlockWithTimeout": {
+          "id": 3,
+          "params": [["timeout", "uint16"], ["pincodevalue", "string"]]
+        },
+        "getLogRecord": { "id": 4, "params": [["logindex", "uint16"]] },
+        "setPinCode": {
+          "id": 5,
+          "params": [
+            ["userid", "uint16"],
+            ["userstatus", "uint8"],
+            ["usertype", "uint8"],
+            ["pincodevalue", "string"]
+          ]
+        },
+        "getPinCode": { "id": 6, "params": [["userid", "uint16"]] },
+        "clearPinCode": { "id": 7, "params": [["userid", "uint16"]] },
+        "clearAllPinCodes": { "id": 8, "params": [] },
+        "setUserStatus": {
+          "id": 9,
+          "params": [["userid", "uint16"], ["userstatus", "uint8"]]
+        },
+        "getUserStatus": { "id": 10, "params": [["userid", "uint16"]] },
+        "setWeekDaySchedule": {
+          "id": 11,
+          "params": [
+            ["scheduleid", "uint8"],
+            ["userid", "uint16"],
+            ["daysmask", "uint8"],
+            ["starthour", "uint8"],
+            ["startminute", "uint8"],
+            ["endhour", "uint8"],
+            ["endminute", "uint8"]
+          ]
+        },
+        "getWeekDaySchedule": {
+          "id": 12,
+          "params": [["scheduleid", "uint8"], ["userid", "uint16"]]
+        },
+        "clearWeekDaySchedule": {
+          "id": 13,
+          "params": [["scheduleid", "uint8"], ["userid", "uint16"]]
+        },
+        "setYearDaySchedule": {
+          "id": 14,
+          "params": [
+            ["scheduleid", "uint8"],
+            ["userid", "uint16"],
+            ["zigbeelocalstarttime", "uint32"],
+            ["zigbeelocalendtime", "uint32"]
+          ]
+        },
+        "getYearDaySchedule": {
+          "id": 15,
+          "params": [["scheduleid", "uint8"], ["userid", "uint16"]]
+        },
+        "clearYearDaySchedule": {
+          "id": 16,
+          "params": [["scheduleid", "uint8"], ["userid", "uint16"]]
+        },
+        "setHolidaySchedule": {
+          "id": 17,
+          "params": [
+            ["holidayscheduleid", "uint8"],
+            ["zigbeelocalstarttime", "uint32"],
+            ["zigbeelocalendtime", "uint32"],
+            ["opermodelduringholiday", "uint8"]
+          ]
+        },
+        "getHolidaySchedule": {
+          "id": 18,
+          "params": [["holidayscheduleid", "uint8"]]
+        },
+        "clearHolidaySchedule": {
+          "id": 19,
+          "params": [["holidayscheduleid", "uint8"]]
+        },
+        "setUserType": {
+          "id": 20,
+          "params": [["userid", "uint16"], ["usertype", "uint8"]]
+        },
+        "getUserType": { "id": 21, "params": [["userid", "uint16"]] },
+        "setRfidCode": {
+          "id": 22,
+          "params": [
+            ["userid", "uint16"],
+            ["userstatus", "uint8"],
+            ["usertype", "uint8"],
+            ["pincodevalue", "string"]
+          ]
+        },
+        "getRfidCode": { "id": 23, "params": [["userid", "uint16"]] },
+        "clearRfidCode": { "id": 24, "params": [["userid", "uint16"]] },
+        "clearAllRfidCodes": { "id": 25, "params": [] }
+      },
+      "cmdRsp": {
+        "lockDoorRsp": { "id": 0, "params": [["status", "uint8"]] },
+        "unlockDoorRsp": { "id": 1, "params": [["status", "uint8"]] },
+        "toggleDoorRsp": { "id": 2, "params": [["status", "uint8"]] },
+        "unlockWithTimeoutRsp": { "id": 3, "params": [["status", "uint8"]] },
+        "getLogRecordRsp": {
+          "id": 4,
+          "params": [
+            ["logentryid", "uint16"],
+            ["timestamp", "uint32"],
+            ["eventtype", "uint8"],
+            ["source", "uint8"],
+            ["eventidalarmcode", "uint8"],
+            ["userid", "uint16"],
+            ["pincodevalue", "string"]
+          ]
+        },
+        "setPinCodeRsp": { "id": 5, "params": [["status", "uint8"]] },
+        "getPinCodeRsp": {
+          "id": 6,
+          "params": [
+            ["userid", "uint16"],
+            ["userstatus", "uint8"],
+            ["usertype", "uint8"],
+            ["pincodevalue", "string"]
+          ]
+        },
+        "clearPinCodeRsp": { "id": 7, "params": [["status", "uint8"]] },
+        "clearAllPinCodesRsp": { "id": 8, "params": [["status", "uint8"]] },
+        "setUserStatusRsp": { "id": 9, "params": [["status", "uint8"]] },
+        "getUserStatusRsp": {
+          "id": 10,
+          "params": [["userid", "uint16"], ["userstatus", "uint8"]]
+        },
+        "setWeekDayScheduleRsp": { "id": 11, "params": [["status", "uint8"]] },
+        "getWeekDayScheduleRsp": {
+          "id": 12,
+          "params": [
+            ["scheduleid", "uint8"],
+            ["userid", "uint16"],
+            ["status", "uint8"],
+            ["daysmask", "uint8"],
+            ["starthour", "uint8"],
+            ["startminute", "uint8"],
+            ["endhour", "uint8"],
+            ["endminute", "uint8"]
+          ]
+        },
+        "clearWeekDayScheduleRsp": { "id": 13, "params": [["status", "uint8"]] },
+        "setYearDayScheduleRsp": { "id": 14, "params": [["status", "uint8"]] },
+        "getYearDayScheduleRsp": {
+          "id": 15,
+          "params": [
+            ["scheduleid", "uint8"],
+            ["userid", "uint16"],
+            ["status", "uint8"],
+            ["zigbeelocalstarttime", "uint32"],
+            ["zigbeelocalendtime", "uint32"]
+          ]
+        },
+        "clearYearDayScheduleRsp": { "id": 16, "params": [["status", "uint8"]] },
+        "setHolidayScheduleRsp": { "id": 17, "params": [["status", "uint8"]] },
+        "getHolidayScheduleRsp": {
+          "id": 18,
+          "params": [
+            ["holidayscheduleid", "uint8"],
+            ["status", "uint8"],
+            ["zigbeelocalstarttime", "uint32"],
+            ["zigbeelocalendtime", "uint32"],
+            ["opermodelduringholiday", "uint8"]
+          ]
+        },
+        "clearHolidayScheduleRsp": { "id": 19, "params": [["status", "uint8"]] },
+        "setUserTypeRsp": { "id": 20, "params": [["status", "uint8"]] },
+        "getUserTypeRsp": {
+          "id": 21,
+          "params": [["userid", "uint16"], ["usertype", "uint8"]]
+        },
+        "setRfidCodeRsp": { "id": 22, "params": [["status", "uint8"]] },
+        "getRfidCodeRsp": {
+          "id": 23,
+          "params": [
+            ["userid", "uint16"],
+            ["userstatus", "uint8"],
+            ["usertype", "uint8"],
+            ["pincodevalue", "string"]
+          ]
+        },
+        "clearRfidCodeRsp": { "id": 24, "params": [["status", "uint8"]] },
+        "clearAllRfidCodesRsp": { "id": 25, "params": [["status", "uint8"]] },
+        "operationEventNotification": {
+          "id": 32,
+          "params": [
+            ["opereventsrc", "uint8"],
+            ["opereventcode", "uint8"],
+            ["userid", "uint16"],
+            ["pin", "uint8"],
+            ["zigbeelocaltime", "uint32"],
+            ["data", "uint8"]
+          ]
+        },
+        "programmingEventNotification": {
+          "id": 33,
+          "params": [
+            ["programeventsrc", "uint8"],
+            ["programeventcode", "uint8"],
+            ["userid", "uint16"],
+            ["pin", "uint8"],
+            ["usertype", "uint8"],
+            ["userstatus", "uint8"],
+            ["zigbeelocaltime", "uint32"],
+            ["data", "uint8"]
+          ]
+        }
+      }
+    },
+    "closuresWindowCovering": {
+      "id": 258,
+      "attributes": {
+        "windowCoveringType": { "id": 0, "type": "enum8" },
+        "physicalCloseLimitLiftCm": { "id": 1, "type": "uint16" },
+        "physicalCloseLimitTiltDdegree": { "id": 2, "type": "uint16" },
+        "currentPositionLiftCm": { "id": 3, "type": "uint16" },
+        "currentPositionTiltDdegree": { "id": 4, "type": "uint16" },
+        "numOfActuationLift": { "id": 5, "type": "uint16" },
+        "numOfActuationTilt": { "id": 22, "type": "uint16" },
+        "configStatus": { "id": 7, "type": "map8" },
+        "currentPositionLiftPercentage": { "id": 8, "type": "uint8" },
+        "currentPositionTiltPercentage": { "id": 9, "type": "uint8" },
+        "installedOpenLimitLiftCm": { "id": 16, "type": "uint16" },
+        "installedClosedLimitLiftCm": { "id": 17, "type": "uint16" },
+        "installedOpenLimitTiltDdegree": { "id": 18, "type": "uint16" },
+        "installedClosedLimitTiltDdegree": { "id": 16, "type": "uint16" },
+        "velocityLift": { "id": 18, "type": "uint16" },
+        "accelerationTimeLift": { "id": 21, "type": "uint16" },
+        "windowCoveringMode": { "id": 23, "type": "map8" },
+        "intermediateSetpointsLift": { "id": 24, "type": "octstr" },
+        "intermediateSetpointsTilt": { "id": 25, "type": "octstr" }
+      },
+      "cmd": {
+        "upOpen": { "id": 0, "params": [] },
+        "downClose": { "id": 1, "params": [] },
+        "stop": { "id": 2, "params": [] },
+        "goToLiftValue": { "id": 4, "params": [["liftvalue", "uint16"]] },
+        "goToLiftPercentage": {
+          "id": 5,
+          "params": [["percentageliftvalue", "uint8"]]
+        },
+        "goToTiltValue": { "id": 7, "params": [["tiltvalue", "uint16"]] },
+        "goToTiltPercentage": {
+          "id": 8,
+          "params": [["percentagetiltvalue", "uint8"]]
+        }
+      }
+    },
+    "hvacPumpCfgCtrl": {
+      "id": 512,
+      "attributes": {
+        "maxPressure": { "id": 0, "type": "int16" },
+        "maxSpeed": { "id": 1, "type": "uint16" },
+        "maxFlow": { "id": 2, "type": "uint16" },
+        "minConstPressure": { "id": 3, "type": "int16" },
+        "maxConstPressure": { "id": 4, "type": "int16" },
+        "minCompPressure": { "id": 5, "type": "int16" },
+        "maxCompPressure": { "id": 6, "type": "int16" },
+        "minConstSpeed": { "id": 7, "type": "uint16" },
+        "maxConstSpeed": { "id": 8, "type": "uint16" },
+        "minConstFlow": { "id": 9, "type": "uint16" },
+        "maxConstFlow": { "id": 10, "type": "uint16" },
+        "minConstTemp": { "id": 11, "type": "int16" },
+        "maxConstTemp": { "id": 12, "type": "int16" },
+        "pumpStatus": { "id": 16, "type": "map16" },
+        "effectiveOperationMode": { "id": 17, "type": "enum8" },
+        "effectiveControlMode": { "id": 18, "type": "enum8" },
+        "capacity": { "id": 19, "type": "int16" },
+        "speed": { "id": 20, "type": "uint16" },
+        "lifetimeRunningHours": { "id": 21, "type": "uint24" },
+        "power": { "id": 22, "type": "uint24" },
+        "lifetimeEnergyConsumed": { "id": 23, "type": "uint32" },
+        "operationMode": { "id": 32, "type": "enum8" },
+        "controlMode": { "id": 33, "type": "enum8" },
+        "alarmMask": { "id": 34, "type": "map16" }
+      }
+    },
+    "hvacThermostat": {
+      "id": 513,
+      "attributes": {
+        "localTemp": { "id": 0, "type": "int16" },
+        "outdoorTemp": { "id": 1, "type": "int16" },
+        "ocupancy": { "id": 2, "type": "map8" },
+        "absMinHeatSetpointLimit": { "id": 3, "type": "int16" },
+        "absMaxHeatSetpointLimit": { "id": 4, "type": "int16" },
+        "absMinCoolSetpointLimit": { "id": 5, "type": "int16" },
+        "absMaxCoolSetpointLimit": { "id": 6, "type": "int16" },
+        "pICoolingDemand": { "id": 7, "type": "uint8" },
+        "pIHeatingDemand": { "id": 8, "type": "uint8" },
+        "systemTypeConfig": { "id": 9, "type": "map8" },
+        "localTemperatureCalibration": { "id": 16, "type": "int8" },
+        "occupiedCoolingSetpoint": { "id": 17, "type": "int16" },
+        "occupiedHeatingSetpoint": { "id": 18, "type": "int16" },
+        "unoccupiedCoolingSetpoint": { "id": 19, "type": "int16" },
+        "unoccupiedHeatingSetpoint": { "id": 20, "type": "int16" },
+        "minHeatSetpointLimit": { "id": 21, "type": "int16" },
+        "maxHeatSetpointLimit": { "id": 22, "type": "int16" },
+        "minCoolSetpointLimit": { "id": 23, "type": "int16" },
+        "maxCoolSetpointLimit": { "id": 24, "type": "int16" },
+        "minSetpointDeadBand": { "id": 25, "type": "int8" },
+        "remoteSensing": { "id": 26, "type": "map8" },
+        "ctrlSeqeOfOper": { "id": 27, "type": "enum8" },
+        "systemMode": { "id": 28, "type": "enum8" },
+        "alarmMask": { "id": 29, "type": "map8" },
+        "runningMode": { "id": 30, "type": "enum8" },
+        "startOfWeek": { "id": 32, "type": "enum8" },
+        "numberOfWeeklyTrans": { "id": 33, "type": "uint8" },
+        "numberOfDailyTrans": { "id": 34, "type": "uint8" },
+        "tempSetpointHold": { "id": 35, "type": "enum8" },
+        "tempSetpointHoldDuration": { "id": 36, "type": "uint16" },
+        "programingOperMode": { "id": 37, "type": "map8" },
+        "runningState": { "id": 41, "type": "map16" },
+        "setpointChangeSource": { "id": 48, "type": "enum8" },
+        "setpointChangeAmount": { "id": 49, "type": "int16" },
+        "setpointChangeSourceTimeStamp": { "id": 50, "type": "utc" },
+        "acType": { "id": 64, "type": "enum8" },
+        "acCapacity": { "id": 65, "type": "uint16" },
+        "acRefrigerantType": { "id": 66, "type": "enum8" },
+        "acCompressorType": { "id": 67, "type": "enum8" },
+        "acErrorCode": { "id": 68, "type": "map32" },
+        "acLouverPosition": { "id": 69, "type": "enum8" },
+        "acCollTemp": { "id": 70, "type": "int16" },
+        "acCapacityFormat": { "id": 71, "type": "enum8" }
+      },
+      "cmd": {
+        "setpointRaiseLower": {
+          "id": 0,
+          "params": [["mode", "uint8"], ["amount", "int8"]]
+        },
+        "setWeeklySchedule": {
+          "id": 1,
+          "params": [
+            ["numoftrans", "uint8"],
+            ["dayofweek", "uint8"],
+            ["mode", "preLenUint8"],
+            ["thermoseqmode", "dynUint16"]
+          ]
+        },
+        "getWeeklySchedule": {
+          "id": 2,
+          "params": [["daystoreturn", "uint8"], ["modetoreturn", "uint8"]]
+        },
+        "clearWeeklySchedule": { "id": 3, "params": [] },
+        "getRelayStatusLog": { "id": 4, "params": [] }
+      },
+      "cmdRsp": {
+        "getWeeklyScheduleRsp": {
+          "id": 0,
+          "params": [
+            ["numoftrans", "uint8"],
+            ["dayofweek", "uint8"],
+            ["mode", "preLenUint8"],
+            ["thermoseqmode", "dynUint16"]
+          ]
+        },
+        "getRelayStatusLogRsp": {
+          "id": 1,
+          "params": [
+            ["timeofday", "uint16"],
+            ["relaystatus", "uint16"],
+            ["localtemp", "uint16"],
+            ["humidity", "uint8"],
+            ["setpoint", "uint16"],
+            ["unreadentries", "uint16"]
+          ]
+        }
+      }
+    },
+    "hvacFanCtrl": {
+      "id": 514,
+      "attributes": {
+        "fanMode": { "id": 0, "type": "enum8" },
+        "fanModeSequence": { "id": 1, "type": "enum8" }
+      }
+    },
+    "hvacDehumidificationCtrl": {
+      "id": 515,
+      "attributes": {
+        "relativeHumidity": { "id": 0, "type": "uint8" },
+        "dehumidCooling": { "id": 1, "type": "uint8" },
+        "rhDehumidSetpoint": { "id": 16, "type": "uint8" },
+        "relativeHumidityMode": { "id": 17, "type": "enum8" },
+        "dehumidLockout": { "id": 18, "type": "enum8" },
+        "dehumidHysteresis": { "id": 19, "type": "uint8" },
+        "dehumidMaxCool": { "id": 20, "type": "uint8" },
+        "relativeHumidDisplay": { "id": 21, "type": "enum8" }
+      }
+    },
+    "hvacUserInterfaceCfg": {
+      "id": 516,
+      "attributes": {
+        "tempDisplayMode": { "id": 0, "type": "enum8" },
+        "keypadLockout": { "id": 1, "type": "enum8" },
+        "programmingVisibility": { "id": 2, "type": "enum8" }
+      }
+    },
+    "lightingColorCtrl": {
+      "id": 768,
+      "attributes": {
+        "currentHue": { "id": 0, "type": "uint8" },
+        "currentSaturation": { "id": 1, "type": "uint8" },
+        "remainingTime": { "id": 2, "type": "uint16" },
+        "currentX": { "id": 3, "type": "uint16" },
+        "currentY": { "id": 4, "type": "uint16" },
+        "driftCompensation": { "id": 5, "type": "enum8" },
+        "compensationText": { "id": 6, "type": "string" },
+        "colorTemperature": { "id": 7, "type": "uint16" },
+        "colorMode": { "id": 8, "type": "enum8" },
+        "numPrimaries": { "id": 16, "type": "uint8" },
+        "primary1X": { "id": 17, "type": "uint16" },
+        "primary1Y": { "id": 18, "type": "uint16" },
+        "primary1Intensity": { "id": 19, "type": "uint8" },
+        "primary2X": { "id": 21, "type": "uint16" },
+        "primary2Y": { "id": 22, "type": "uint16" },
+        "primary2Intensity": { "id": 23, "type": "uint8" },
+        "primary3X": { "id": 25, "type": "uint16" },
+        "primary3Y": { "id": 26, "type": "uint16" },
+        "primary3Intensity": { "id": 27, "type": "uint8" },
+        "primary4X": { "id": 32, "type": "uint16" },
+        "primary4Y": { "id": 33, "type": "uint16" },
+        "primary4Intensity": { "id": 34, "type": "uint8" },
+        "primary5X": { "id": 36, "type": "uint16" },
+        "primary5Y": { "id": 37, "type": "uint16" },
+        "primary5Intensity": { "id": 38, "type": "uint8" },
+        "primary6X": { "id": 40, "type": "uint16" },
+        "primary6Y": { "id": 41, "type": "uint16" },
+        "primary6Intensity": { "id": 42, "type": "uint8" },
+        "whitePointX": { "id": 48, "type": "uint16" },
+        "whitePointY": { "id": 49, "type": "uint16" },
+        "colorPointRX": { "id": 50, "type": "uint16" },
+        "colorPointRY": { "id": 51, "type": "uint16" },
+        "colorPointRIntensity": { "id": 52, "type": "uint8" },
+        "colorPointGX": { "id": 54, "type": "uint16" },
+        "colorPointGY": { "id": 55, "type": "uint16" },
+        "colorPointGIntensity": { "id": 56, "type": "uint8" },
+        "colorPointBX": { "id": 58, "type": "uint16" },
+        "colorPointBY": { "id": 59, "type": "uint16" },
+        "colorPointBIntensity": { "id": 60, "type": "uint8" },
+        "enhancedCurrentHue": { "id": 16384, "type": "uint16" },
+        "enhancedColorMode": { "id": 16385, "type": "enum8" },
+        "colorLoopActive": { "id": 16386, "type": "uint8" },
+        "colorLoopDirection": { "id": 16387, "type": "uint8" },
+        "colorLoopTime": { "id": 16388, "type": "uint16" },
+        "colorLoopStartEnhancedHue": { "id": 16389, "type": "uint16" },
+        "colorLoopStoredEnhancedHue": { "id": 16390, "type": "uint16" },
+        "colorCapabilities": { "id": 16394, "type": "uint16" },
+        "colorTempPhysicalMin": { "id": 16395, "type": "uint16" },
+        "colorTempPhysicalMax": { "id": 16396, "type": "uint16" }
+      },
+      "cmd": {
+        "moveToHue": {
+          "id": 0,
+          "params": [
+            ["hue", "uint8"],
+            ["direction", "uint8"],
+            ["transtime", "uint16"]
+          ]
+        },
+        "moveHue": {
+          "id": 1,
+          "params": [["movemode", "uint8"], ["rate", "uint8"]]
+        },
+        "stepHue": {
+          "id": 2,
+          "params": [
+            ["stepmode", "uint8"],
+            ["stepsize", "uint8"],
+            ["transtime", "uint8"]
+          ]
+        },
+        "moveToSaturation": {
+          "id": 3,
+          "params": [["saturation", "uint8"], ["transtime", "uint16"]]
+        },
+        "moveSaturation": {
+          "id": 4,
+          "params": [["movemode", "uint8"], ["rate", "uint8"]]
+        },
+        "stepSaturation": {
+          "id": 5,
+          "params": [
+            ["stepmode", "uint8"],
+            ["stepsize", "uint8"],
+            ["transtime", "uint8"]
+          ]
+        },
+        "moveToHueAndSaturation": {
+          "id": 6,
+          "params": [
+            ["hue", "uint8"],
+            ["saturation", "uint8"],
+            ["transtime", "uint16"]
+          ]
+        },
+        "moveToColor": {
+          "id": 7,
+          "params": [
+            ["colorx", "uint16"],
+            ["colory", "uint16"],
+            ["transtime", "uint16"]
+          ]
+        },
+        "moveColor": {
+          "id": 8,
+          "params": [["ratex", "int16"], ["ratey", "int16"]]
+        },
+        "stepColor": {
+          "id": 9,
+          "params": [
+            ["stepx", "int16"],
+            ["stepy", "int16"],
+            ["transtime", "uint16"]
+          ]
+        },
+        "moveToColorTemp": {
+          "id": 10,
+          "params": [["colortemp", "uint16"], ["transtime", "uint16"]]
+        },
+        "enhancedMoveToHue": {
+          "id": 64,
+          "params": [
+            ["enhancehue", "uint16"],
+            ["direction", "uint8"],
+            ["transtime", "uint16"]
+          ]
+        },
+        "enhancedMoveHue": {
+          "id": 65,
+          "params": [["movemode", "uint8"], ["rate", "uint16"]]
+        },
+        "enhancedStepHue": {
+          "id": 66,
+          "params": [
+            ["stepmode", "uint8"],
+            ["stepsize", "uint16"],
+            ["transtime", "uint16"]
+          ]
+        },
+        "enhancedMoveToHueAndSaturation": {
+          "id": 67,
+          "params": [
+            ["enhancehue", "uint16"],
+            ["saturation", "uint8"],
+            ["transtime", "uint16"]
+          ]
+        },
+        "colorLoopSet": {
+          "id": 68,
+          "params": [
+            ["bits", "uint8"],
+            ["bytee", "uint8"],
+            ["action", "uint8"],
+            ["direction", "uint8"],
+            ["time", "uint16"],
+            ["starthue", "uint16"]
+          ]
+        },
+        "stopMoveStep": {
+          "id": 71,
+          "params": [
+            ["bits", "uint8"],
+            ["bytee", "uint8"],
+            ["action", "uint8"],
+            ["direction", "uint8"],
+            ["time", "uint16"],
+            ["starthue", "uint16"]
+          ]
+        },
+        "moveColorTemp": {
+          "id": 75,
+          "params": [["ratex", "int16"], ["ratey", "int16"]]
+        },
+        "stepColorTemp": {
+          "id": 76,
+          "params": [
+            ["stepx", "int16"],
+            ["stepy", "int16"],
+            ["transtime", "uint16"]
+          ]
+        }
+      }
+    },
+    "lightingBallastCfg": {
+      "id": 769,
+      "attributes": {
+        "physicalMinLevel": { "id": 0, "type": "uint8" },
+        "physicalMaxLevel": { "id": 1, "type": "uint8" },
+        "ballastStatus": { "id": 2, "type": "map8" },
+        "minLevel": { "id": 16, "type": "uint8" },
+        "maxLevel": { "id": 17, "type": "uint8" },
+        "powerOnLevel": { "id": 18, "type": "uint8" },
+        "powerOnFadeTime": { "id": 19, "type": "uint16" },
+        "intrinsicBallastFactor": { "id": 20, "type": "uint8" },
+        "ballastFactorAdjustment": { "id": 21, "type": "uint8" },
+        "lampQuantity": { "id": 32, "type": "uint8" },
+        "lampType": { "id": 48, "type": "string" },
+        "lampManufacturer": { "id": 49, "type": "string" },
+        "lampRatedHours": { "id": 50, "type": "uint24" },
+        "lampBurnHours": { "id": 51, "type": "uint24" },
+        "lampAlarmMode": { "id": 52, "type": "map8" },
+        "lampBurnHoursTripPoint": { "id": 53, "type": "uint24" }
+      }
+    },
+    "msIlluminanceMeasurement": {
+      "id": 1024,
+      "attributes": {
+        "measuredValue": { "id": 0, "type": "uint16" },
+        "minMeasuredValue": { "id": 1, "type": "uint16" },
+        "maxMeasuredValue": { "id": 2, "type": "uint16" },
+        "tolerance": { "id": 3, "type": "uint16" },
+        "lightSensorType": { "id": 4, "type": "enum8" }
+      }
+    },
+    "msIlluminanceLevelSensing": {
+      "id": 1025,
+      "attributes": {
+        "levelStatus": { "id": 0, "type": "enum8" },
+        "lightSensorType": { "id": 1, "type": "enum8" },
+        "illuminanceTargetLevel": { "id": 16, "type": "uint16" }
+      }
+    },
+    "msTemperatureMeasurement": {
+      "id": 1026,
+      "attributes": {
+        "measuredValue": { "id": 0, "type": "int16" },
+        "minMeasuredValue": { "id": 1, "type": "int16" },
+        "maxMeasuredValue": { "id": 2, "type": "int16" },
+        "tolerance": { "id": 3, "type": "uint16" },
+        "minPercentChange": { "id": 16, "type": "unknown" },
+        "minAbsoluteChange": { "id": 17, "type": "unknown" }
+      }
+    },
+    "msPressureMeasurement": {
+      "id": 1027,
+      "attributes": {
+        "measuredValue": { "id": 0, "type": "int16" },
+        "minMeasuredValue": { "id": 1, "type": "int16" },
+        "maxMeasuredValue": { "id": 2, "type": "int16" },
+        "tolerance": { "id": 3, "type": "uint16" }
+      }
+    },
+    "msFlowMeasurement": {
+      "id": 1028,
+      "attributes": {
+        "measuredValue": { "id": 0, "type": "uint16" },
+        "minMeasuredValue": { "id": 1, "type": "uint16" },
+        "maxMeasuredValue": { "id": 2, "type": "uint16" },
+        "tolerance": { "id": 3, "type": "uint16" }
+      }
+    },
+    "msRelativeHumidity": {
+      "id": 1029,
+      "attributes": {
+        "measuredValue": { "id": 0, "type": "uint16" },
+        "minMeasuredValue": { "id": 1, "type": "uint16" },
+        "maxMeasuredValue": { "id": 2, "type": "uint16" },
+        "tolerance": { "id": 3, "type": "uint16" }
+      }
+    },
+    "msOccupancySensing": {
+      "id": 1030,
+      "attributes": {
+        "occupancy": { "id": 0, "type": "map8" },
+        "occupancySensorType": { "id": 1, "type": "enum8" },
+        "pirOToUDelay": { "id": 16, "type": "uint16" },
+        "pirUToODelay": { "id": 17, "type": "uint16" },
+        "pirUToOThreshold": { "id": 18, "type": "uint8" },
+        "ultrasonicOToUDelay": { "id": 32, "type": "uint16" },
+        "ultrasonicUToODelay": { "id": 33, "type": "uint16" },
+        "ultrasonicUToOThreshold": { "id": 34, "type": "uint8" }
+      }
+    },
+    "ssIasZone": {
+      "id": 1280,
+      "attributes": {
+        "zoneState": { "id": 0, "type": "enum8" },
+        "zoneType": { "id": 1, "type": "enum16" },
+        "zoneStatus": { "id": 2, "type": "map16" },
+        "iasCieAddr": { "id": 16, "type": "ieeeAddr" },
+        "zoneId": { "id": 17, "type": "uint8" },
+        "numZoneSensitivityLevelsSupported": { "id": 18, "type": "uint8" },
+        "currentZoneSensitivityLevel": { "id": 19, "type": "uint8" }
+      },
+      "cmd": {
+        "enrollRsp": {
+          "id": 0,
+          "params": [["enrollrspcode", "uint8"], ["zoneid", "uint8"]]
+        },
+        "initNormalOpMode": { "id": 1, "params": [] },
+        "initTestMode": { "id": 2, "params": [] }
+      },
+      "cmdRsp": {
+        "statusChangeNotification": {
+          "id": 0,
+          "params": [["zonestatus", "uint16"], ["extendedstatus", "uint8"]]
+        },
+        "enrollReq": {
+          "id": 1,
+          "params": [["zonetype", "uint16"], ["manucode", "uint16"]]
+        }
+      }
+    },
+    "ssIasAce": {
+      "id": 1281,
+      "cmd": {
+        "arm": { "id": 0, "params": [["armmode", "uint8"]] },
+        "bypass": {
+          "id": 1,
+          "params": [["numofzones", "preLenUint8"], ["zoneidlist", "dynUint8"]]
+        },
+        "emergency": { "id": 2, "params": [] },
+        "fire": { "id": 3, "params": [] },
+        "panic": { "id": 4, "params": [] },
+        "getZoneIDMap": { "id": 5, "params": [] },
+        "getZoneInfo": { "id": 6, "params": [["zoneid", "uint8"]] },
+        "getPanelStatus": { "id": 7, "params": [] },
+        "getBypassedZoneList": { "id": 8, "params": [] },
+        "getZoneStatus": {
+          "id": 9,
+          "params": [
+            ["startzoneid", "uint8"],
+            ["maxnumzoneid", "uint8"],
+            ["zonestatusmaskflag", "uint8"],
+            ["zonestatusmask", "uint16"]
+          ]
+        }
+      },
+      "cmdRsp": {
+        "armRsp": { "id": 0, "params": [["armnotification", "uint8"]] },
+        "getZoneIDMapRsp": {
+          "id": 1,
+          "params": [
+            ["zoneidmapsection0", "uint16"],
+            ["zoneidmapsection1", "uint16"],
+            ["zoneidmapsection2", "uint16"],
+            ["zoneidmapsection3", "uint16"],
+            ["zoneidmapsection4", "uint16"],
+            ["zoneidmapsection5", "uint16"],
+            ["zoneidmapsection6", "uint16"],
+            ["zoneidmapsection7", "uint16"],
+            ["zoneidmapsection8", "uint16"],
+            ["zoneidmapsection9", "uint16"],
+            ["zoneidmapsection10", "uint16"],
+            ["zoneidmapsection11", "uint16"],
+            ["zoneidmapsection12", "uint16"],
+            ["zoneidmapsection13", "uint16"],
+            ["zoneidmapsection14", "uint16"],
+            ["zoneidmapsection15", "uint16"]
+          ]
+        },
+        "getZoneInfoRsp": {
+          "id": 2,
+          "params": [
+            ["zoneid", "uint8"],
+            ["zonetype", "uint16"],
+            ["ieeeaddr", "ieeeAddr"]
+          ]
+        },
+        "zoneStatusChanged": {
+          "id": 3,
+          "params": [
+            ["zoneid", "uint8"],
+            ["zonestatus", "uint16"],
+            ["audiblenotif", "uint8"],
+            ["strlen", "uint8"],
+            ["string", "string"]
+          ]
+        },
+        "panelStatusChanged": {
+          "id": 4,
+          "params": [
+            ["panelstatus", "uint8"],
+            ["secondsremain", "uint8"],
+            ["audiblenotif", "uint8"],
+            ["alarmstatus", "uint8"]
+          ]
+        },
+        "getPanelStatusRsp": {
+          "id": 5,
+          "params": [
+            ["panelstatus", "uint8"],
+            ["secondsremain", "uint8"],
+            ["audiblenotif", "uint8"],
+            ["alarmstatus", "uint8"]
+          ]
+        },
+        "setBypassedZoneList": {
+          "id": 6,
+          "params": [["numofzones", "preLenUint8"], ["zoneid", "dynUint8"]]
+        },
+        "bypassRsp": {
+          "id": 7,
+          "params": [["numofzones", "preLenUint8"], ["bypassresult", "dynUint8"]]
+        },
+        "getZoneStatusRsp": {
+          "id": 8,
+          "params": [
+            ["zonestatuscomplete", "uint8"],
+            ["numofzones", "preLenUint8"],
+            ["zoneinfo", "zonebuffer"]
+          ]
+        }
+      }
+    },
+    "ssIasWd": {
+      "id": 1282,
+      "attributes": { "maxDuration": { "id": 0, "type": "uint16" } },
+      "cmd": {
+        "startWarning": {
+          "id": 0,
+          "params": [["startwarninginfo", "uint8"], ["warningduration", "uint16"]]
+        },
+        "squawk": { "id": 1, "params": [["squawkinfo", "uint8"]] }
+      }
+    },
+    "piGenericTunnel": {
+      "id": 1536,
+      "attributes": {
+        "maxIncomeTransSize": { "id": 1, "type": "uint16" },
+        "maxOutgoTransSize": { "id": 2, "type": "uint16" },
+        "protocolAddr": { "id": 3, "type": "octstr" }
+      },
+      "cmd": {
+        "matchProtocolAddr": {
+          "id": 0,
+          "params": [["protocoladdr", "string"]]
+        }
+      },
+      "cmdRsp": {
+        "matchProtocolAddrRsp": {
+          "id": 0,
+          "params": [
+            ["devieeeaddr", "ieeeAddr"],
+            ["protocoladdr", "string"]
+          ]
+        },
+        "advertiseProtocolAddr": {
+          "id": 1,
+          "params": [["protocoladdr", "string"]]
+        }
+      }
+    },
+    "piBacnetProtocolTunnel": {
+      "id": 1537,
+      "cmd": { "transferNpdu": { "id": 0, "params": [["npdu", "uint8"]] } }
+    },
+    "piAnalogInputReg": {
+      "id": 1538,
+      "attributes": {
+        "covIncrement": { "id": 22, "type": "single" },
+        "deviceType": { "id": 31, "type": "string" },
+        "objectId": { "id": 75, "type": "bacOid" },
+        "objectName": { "id": 77, "type": "string" },
+        "objectType": { "id": 79, "type": "enum16" },
+        "updateInterval": { "id": 118, "type": "uint8" },
+        "profileName": { "id": 168, "type": "string" }
+      }
+    },
+    "piAnalogInputExt": {
+      "id": 1539,
+      "attributes": {
+        "ackedTransitions": { "id": 0, "type": "map8" },
+        "notificationClass": { "id": 17, "type": "uint16" },
+        "deadband": { "id": 25, "type": "single" },
+        "eventEnable": { "id": 35, "type": "map8" },
+        "eventState": { "id": 36, "type": "enum8" },
+        "highLimit": { "id": 45, "type": "single" },
+        "limitEnable": { "id": 52, "type": "map8" },
+        "lowLimit": { "id": 59, "type": "single" },
+        "notifyType": { "id": 72, "type": "enum8" },
+        "timeDelay": { "id": 113, "type": "uint8" },
+        "eventTimeStamps": { "id": 130, "type": "array" }
+      },
+      "cmd": {
+        "transferApdu": { "id": 0, "params": [] },
+        "connectReq": { "id": 1, "params": [] },
+        "disconnectReq": { "id": 2, "params": [] },
+        "connectStatusNoti": { "id": 3, "params": [] }
+      }
+    },
+    "piAnalogOutputReg": {
+      "id": 1540,
+      "attributes": {
+        "covIncrement": { "id": 22, "type": "single" },
+        "deviceType": { "id": 31, "type": "string" },
+        "objectId": { "id": 75, "type": "bacOid" },
+        "objectName": { "id": 77, "type": "string" },
+        "objectType": { "id": 79, "type": "enum16" },
+        "updateInterval": { "id": 118, "type": "uint8" },
+        "profileName": { "id": 168, "type": "string" }
+      }
+    },
+    "piAnalogOutputExt": {
+      "id": 1541,
+      "attributes": {
+        "ackedTransitions": { "id": 0, "type": "map8" },
+        "notificationClass": { "id": 17, "type": "uint16" },
+        "deadband": { "id": 25, "type": "single" },
+        "eventEnable": { "id": 35, "type": "map8" },
+        "eventState": { "id": 36, "type": "enum8" },
+        "highLimit": { "id": 45, "type": "single" },
+        "limitEnable": { "id": 52, "type": "map8" },
+        "lowLimit": { "id": 59, "type": "single" },
+        "notifyType": { "id": 72, "type": "enum8" },
+        "timeDelay": { "id": 113, "type": "uint8" },
+        "eventTimeStamps": { "id": 130, "type": "array" }
+      }
+    },
+    "piAnalogValueReg": {
+      "id": 1542,
+      "attributes": {
+        "covIncrement": { "id": 22, "type": "single" },
+        "objectId": { "id": 75, "type": "bacOid" },
+        "objectName": { "id": 77, "type": "string" },
+        "objectType": { "id": 79, "type": "enum16" },
+        "profileName": { "id": 168, "type": "string" }
+      }
+    },
+    "piAnalogValueExt": {
+      "id": 1543,
+      "attributes": {
+        "ackedTransitions": { "id": 0, "type": "map8" },
+        "notificationClass": { "id": 17, "type": "uint16" },
+        "deadband": { "id": 25, "type": "single" },
+        "eventEnable": { "id": 35, "type": "map8" },
+        "eventState": { "id": 36, "type": "enum8" },
+        "highLimit": { "id": 45, "type": "single" },
+        "limitEnable": { "id": 52, "type": "map8" },
+        "lowLimit": { "id": 59, "type": "single" },
+        "notifyType": { "id": 72, "type": "enum8" },
+        "timeDelay": { "id": 113, "type": "uint8" },
+        "eventTimeStamps": { "id": 130, "type": "array" }
+      }
+    },
+    "piBinaryInputReg": {
+      "id": 1544,
+      "attributes": {
+        "changeOfStateCount": { "id": 15, "type": "uint32" },
+        "changeOfStateTime": { "id": 16, "type": "struct" },
+        "deviceType": { "id": 31, "type": "string" },
+        "elapsedActiveTime": { "id": 33, "type": "uint32" },
+        "objectIdentifier": { "id": 75, "type": "bacOid" },
+        "objectName": { "id": 77, "type": "string" },
+        "objectType": { "id": 79, "type": "enum16" },
+        "timeOfATReset": { "id": 114, "type": "struct" },
+        "timeOfSCReset": { "id": 115, "type": "struct" },
+        "profileName": { "id": 168, "type": "string" }
+      }
+    },
+    "piBinaryInputExt": {
+      "id": 1545,
+      "attributes": {
+        "ackedTransitions": { "id": 0, "type": "map8" },
+        "alarmValue": { "id": 6, "type": "boolean" },
+        "notificationClass": { "id": 17, "type": "uint16" },
+        "eventEnable": { "id": 35, "type": "map8" },
+        "eventState": { "id": 36, "type": "enum8" },
+        "notifyType": { "id": 72, "type": "enum8" },
+        "timeDelay": { "id": 113, "type": "uint8" },
+        "eventTimeStamps": { "id": 130, "type": "array" }
+      }
+    },
+    "piBinaryOutputReg": {
+      "id": 1546,
+      "attributes": {
+        "changeOfStateCount": { "id": 15, "type": "uint32" },
+        "changeOfStateTime": { "id": 16, "type": "struct" },
+        "deviceType": { "id": 31, "type": "string" },
+        "elapsedActiveTime": { "id": 33, "type": "uint32" },
+        "feedBackValue": { "id": 40, "type": "enum8" },
+        "objectIdentifier": { "id": 75, "type": "bacOid" },
+        "objectName": { "id": 77, "type": "string" },
+        "objectType": { "id": 79, "type": "enum16" },
+        "timeOfATReset": { "id": 114, "type": "struct" },
+        "timeOfSCReset": { "id": 115, "type": "struct" },
+        "profileName": { "id": 168, "type": "string" }
+      }
+    },
+    "piBinaryOutputExt": {
+      "id": 1547,
+      "attributes": {
+        "ackedTransitions": { "id": 0, "type": "map8" },
+        "notificationClass": { "id": 17, "type": "uint16" },
+        "eventEnable": { "id": 35, "type": "map8" },
+        "eventState": { "id": 36, "type": "enum8" },
+        "notifyType": { "id": 72, "type": "enum8" },
+        "timeDelay": { "id": 113, "type": "uint8" },
+        "eventTimeStamps": { "id": 130, "type": "array" }
+      }
+    },
+    "piBinaryValueReg": {
+      "id": 1548,
+      "attributes": {
+        "changeOfStateCount": { "id": 15, "type": "uint32" },
+        "changeOfStateTime": { "id": 16, "type": "struct" },
+        "elapsedActiveTime": { "id": 33, "type": "uint32" },
+        "objectIdentifier": { "id": 75, "type": "bacOid" },
+        "objectName": { "id": 77, "type": "string" },
+        "objectType": { "id": 79, "type": "enum16" },
+        "timeOfATReset": { "id": 114, "type": "struct" },
+        "timeOfSCReset": { "id": 115, "type": "struct" },
+        "profileName": { "id": 168, "type": "string" }
+      }
+    },
+    "piBinaryValueExt": {
+      "id": 1549,
+      "attributes": {
+        "ackedTransitions": { "id": 0, "type": "map8" },
+        "alarmValue": { "id": 6, "type": "boolean" },
+        "notificationClass": { "id": 17, "type": "uint16" },
+        "eventEnable": { "id": 35, "type": "map8" },
+        "eventState": { "id": 36, "type": "enum8" },
+        "notifyType": { "id": 72, "type": "enum8" },
+        "timeDelay": { "id": 113, "type": "uint8" },
+        "eventTimeStamps": { "id": 130, "type": "array" }
+      }
+    },
+    "piMultistateInputReg": {
+      "id": 1550,
+      "attributes": {
+        "deviceType": { "id": 31, "type": "string" },
+        "objectId": { "id": 75, "type": "bacOid" },
+        "objectName": { "id": 77, "type": "string" },
+        "objectType": { "id": 79, "type": "enum16" },
+        "profileName": { "id": 168, "type": "string" }
+      }
+    },
+    "piMultistateInputExt": {
+      "id": 1551,
+      "attributes": {
+        "ackedTransitions": { "id": 0, "type": "map8" },
+        "alarmValue": { "id": 6, "type": "uint16" },
+        "notificationClass": { "id": 17, "type": "uint16" },
+        "eventEnable": { "id": 35, "type": "map8" },
+        "eventState": { "id": 36, "type": "enum8" },
+        "faultValues": { "id": 37, "type": "uint16" },
+        "notifyType": { "id": 72, "type": "enum8" },
+        "timeDelay": { "id": 113, "type": "uint8" },
+        "eventTimeStamps": { "id": 130, "type": "array" }
+      }
+    },
+    "piMultistateOutputReg": {
+      "id": 1552,
+      "attributes": {
+        "deviceType": { "id": 31, "type": "string" },
+        "feedBackValue": { "id": 40, "type": "enum8" },
+        "objectId": { "id": 75, "type": "bacOid" },
+        "objectName": { "id": 77, "type": "string" },
+        "objectType": { "id": 79, "type": "enum16" },
+        "profileName": { "id": 168, "type": "string" }
+      }
+    },
+    "piMultistateOutputExt": {
+      "id": 1553,
+      "attributes": {
+        "ackedTransitions": { "id": 0, "type": "map8" },
+        "notificationClass": { "id": 17, "type": "uint16" },
+        "eventEnable": { "id": 35, "type": "map8" },
+        "eventState": { "id": 36, "type": "enum8" },
+        "notifyType": { "id": 72, "type": "enum8" },
+        "timeDelay": { "id": 113, "type": "uint8" },
+        "eventTimeStamps": { "id": 130, "type": "array" }
+      }
+    },
+    "piMultistateValueReg": {
+      "id": 1554,
+      "attributes": {
+        "objectId": { "id": 75, "type": "bacOid" },
+        "objectName": { "id": 77, "type": "string" },
+        "objectType": { "id": 79, "type": "enum16" },
+        "profileName": { "id": 168, "type": "string" }
+      }
+    },
+    "piMultistateValueExt": {
+      "id": 1555,
+      "attributes": {
+        "ackedTransitions": { "id": 0, "type": "map8" },
+        "alarmValue": { "id": 6, "type": "uint16" },
+        "notificationClass": { "id": 17, "type": "uint16" },
+        "eventEnable": { "id": 35, "type": "map8" },
+        "eventState": { "id": 36, "type": "enum8" },
+        "faultValues": { "id": 37, "type": "uint16" },
+        "notifyType": { "id": 72, "type": "enum8" },
+        "timeDelay": { "id": 113, "type": "uint8" },
+        "eventTimeStamps": { "id": 130, "type": "array" }
+      }
+    },
+    "pi11073ProtocolTunnel": {
+      "id": 1556,
+      "attributes": {
+        "deviceidList": { "id": 0, "type": "array" },
+        "managerTarget": { "id": 1, "type": "ieeeAddr" },
+        "managerEndpoint": { "id": 2, "type": "uint8" },
+        "connected": { "id": 3, "type": "boolean" },
+        "preemptible": { "id": 4, "type": "boolean" },
+        "idleTimeout": { "id": 5, "type": "uint16" }
+      },
+      "cmd": {
+        "transferApdu": { "id": 0, "params": [] },
+        "connectReq": { "id": 1, "params": [] },
+        "disconnectReq": { "id": 2, "params": [] },
+        "connectStatusNoti": { "id": 3, "params": [] }
+      }
+    },
+    "piIso7818ProtocolTunnel": {
+      "id": 1557,
+      "attributes": { "status": { "id": 0, "type": "uint8" } },
+      "cmd": {
+        "transferApdu": { "id": 0, "TODO": 1 },
+        "insertSmartCard": { "id": 1, "TODO": 1 },
+        "extractSmartCard": { "id": 2, "TODO": 1 }
+      },
+      "cmdRsp": { "transferApdu": { "id": 0, "TODO": 1 } }
+    },
+    "piRetailTunnel": {
+      "id": 1559,
+      "attributes": {
+        "manufacturerCode": { "id": 0, "type": "uint16" },
+        "msProfile": { "id": 1, "type": "uint16" }
+      },
+      "cmd": { "transferApdu": { "id": 0, "TODO": 1 } }
+    },
+    "sePrice": { "id": 1792, "TODO": 2 },
+    "seDrlc": { "id": 1793, "TODO": 2 },
+    "seMetering": {
+      "id": 1794,
+      "attributes": {
+        "currentSummDelivered": { "id": 0, "type": "uint48" },
+        "currentSummReceived": { "id": 1, "type": "uint48" },
+        "currentMaxDemandDelivered": { "id": 2, "type": "uint48" },
+        "currentMaxDemandReceived": { "id": 3, "type": "uint48" },
+        "dftSumm": { "id": 4, "type": "uint48" },
+        "dailyFreezeTime": { "id": 5, "type": "uint16" },
+        "powerFactor": { "id": 6, "type": "int8" },
+        "readingSnapshotTime": { "id": 7, "type": "utc" },
+        "currentMaxDemandDeliverdTime": { "id": 8, "type": "utc" },
+        "currentMaxDemandReceivedTime": { "id": 9, "type": "utc" },
+        "defaultUpdatePeriod": { "id": 10, "type": "uint8" },
+        "fastPollUpdatePeriod": { "id": 11, "type": "uint8" },
+        "currentBlockPeriodConsumpDelivered": { "id": 12, "type": "uint48" },
+        "dailyConsumpTarget": { "id": 13, "type": "uint24" },
+        "currentBlock": { "id": 14, "type": "enum8" },
+        "profileIntervalPeriod": { "id": 15, "type": "enum8" },
+        "intervalReadReportingPeriod": { "id": 16, "type": "uint16" },
+        "presetReadingTime": { "id": 17, "type": "uint16" },
+        "volumePerReport": { "id": 18, "type": "uint16" },
+        "flowRestriction": { "id": 19, "type": "uint8" },
+        "supplyStatus": { "id": 20, "type": "enum8" },
+        "currentInEnergyCarrierSumm": { "id": 21, "type": "uint48" },
+        "currentOutEnergyCarrierSumm": { "id": 22, "type": "uint48" },
+        "inletTemperature": { "id": 23, "type": "int24" },
+        "outletTemperature": { "id": 24, "type": "int24" },
+        "controlTemperature": { "id": 25, "type": "int24" },
+        "currentInEnergyCarrierDemand": { "id": 26, "type": "int24" },
+        "currentOutEnergyCarrierDemand": { "id": 27, "type": "int24" },
+        "currentBlockPeriodConsumpReceived": { "id": 29, "type": "uint48" },
+        "currentBlockReceived": { "id": 30, "type": "uint48" },
+        "currentTier1SummDelivered": { "id": 256, "type": "uint48" },
+        "currentTier1SummReceived": { "id": 257, "type": "uint48" },
+        "currentTier2SummDelivered": { "id": 258, "type": "uint48" },
+        "currentTier2SummReceived": { "id": 259, "type": "uint48" },
+        "currentTier3SummDelivered": { "id": 260, "type": "uint48" },
+        "currentTier3SummReceived": { "id": 261, "type": "uint48" },
+        "currentTier4SummDelivered": { "id": 262, "type": "uint48" },
+        "currentTier4SummReceived": { "id": 263, "type": "uint48" },
+        "currentTier5SummDelivered": { "id": 264, "type": "uint48" },
+        "currentTier5SummReceived": { "id": 265, "type": "uint48" },
+        "currentTier6SummDelivered": { "id": 266, "type": "uint48" },
+        "currentTier6SummReceived": { "id": 267, "type": "uint48" },
+        "currentTier7SummDelivered": { "id": 268, "type": "uint48" },
+        "currentTier7SummReceived": { "id": 269, "type": "uint48" },
+        "currentTier8SummDelivered": { "id": 270, "type": "uint48" },
+        "currentTier8SummReceived": { "id": 271, "type": "uint48" },
+        "currentTier9SummDelivered": { "id": 272, "type": "uint48" },
+        "currentTier9SummReceived": { "id": 273, "type": "uint48" },
+        "currentTier10SummDelivered": { "id": 274, "type": "uint48" },
+        "currentTier10SummReceived": { "id": 275, "type": "uint48" },
+        "currentTier11SummDelivered": { "id": 276, "type": "uint48" },
+        "currentTier11SummReceived": { "id": 277, "type": "uint48" },
+        "currentTier12SummDelivered": { "id": 278, "type": "uint48" },
+        "currentTier12SummReceived": { "id": 279, "type": "uint48" },
+        "currentTier13SummDelivered": { "id": 280, "type": "uint48" },
+        "currentTier13SummReceived": { "id": 281, "type": "uint48" },
+        "currentTier14SummDelivered": { "id": 282, "type": "uint48" },
+        "currentTier14SummReceived": { "id": 283, "type": "uint48" },
+        "currentTier15SummDelivered": { "id": 284, "type": "uint48" },
+        "currentTier15SummReceived": { "id": 285, "type": "uint48" },
+        "status": { "id": 512, "type": "map8" },
+        "remainingBattLife": { "id": 513, "type": "uint8" },
+        "hoursInOperation": { "id": 514, "type": "uint24" },
+        "hoursInFault": { "id": 515, "type": "uint24" },
+        "extendedStatus": { "id": 516, "type": "map64" },
+        "unitOfMeasure": { "id": 768, "type": "enum8" },
+        "multiplier": { "id": 769, "type": "uint24" },
+        "divisor": { "id": 770, "type": "uint24" },
+        "summaFormatting": { "id": 771, "type": "map8" },
+        "demandFormatting": { "id": 772, "type": "map8" },
+        "historicalConsumpFormatting": { "id": 773, "type": "map8" },
+        "meteringDeviceType": { "id": 774, "type": "map8" },
+        "siteId": { "id": 775, "type": "octstr" },
+        "meterSerialNumber": { "id": 776, "type": "octstr" },
+        "energyCarrierUnitOfMeas": { "id": 777, "type": "enum8" },
+        "energyCarrierSummFormatting": { "id": 778, "type": "map8" },
+        "energyCarrierDemandFormatting": { "id": 779, "type": "map8" },
+        "temperatureUnitOfMeas": { "id": 780, "type": "enum8" },
+        "temperatureFormatting": { "id": 781, "type": "map8" },
+        "moduleSerialNumber": { "id": 782, "type": "octstr" },
+        "operatingTariffLevel": { "id": 783, "type": "octstr" },
+        "instantaneousDemand": { "id": 1024, "type": "int24" },
+        "currentDayConsumpDelivered": { "id": 1025, "type": "uint24" },
+        "currentDayConsumpReceived": { "id": 1026, "type": "uint24" },
+        "previousDayConsumpDelivered": { "id": 1027, "type": "uint24" },
+        "previousDayConsumpReceived": { "id": 1028, "type": "uint24" },
+        "curPartProfileIntStartTimeDelivered": { "id": 1029, "type": "utc" },
+        "curPartProfileIntStartTime_Received": { "id": 1030, "type": "utc" },
+        "curPartProfileIntValueDelivered": { "id": 1031, "type": "uint24" },
+        "curPartProfileIntValueReceived": { "id": 1032, "type": "uint24" },
+        "currentDayMaxPressure": { "id": 1033, "type": "uint48" },
+        "currentDayMinPressure": { "id": 1034, "type": "uint48" },
+        "previousDayMaxPressure": { "id": 1035, "type": "uint48" },
+        "previousDayMinPressure": { "id": 1036, "type": "uint48" },
+        "currentDayMaxDemand": { "id": 1037, "type": "int24" },
+        "previousDayMaxDemand": { "id": 1038, "type": "int24" },
+        "currentMonthMaxDemand": { "id": 1039, "type": "int24" },
+        "currentYearMaxDemand": { "id": 1040, "type": "int24" },
+        "currentDayMaxEnergyCarrDemand": { "id": 1041, "type": "int24" },
+        "previousDayMaxEnergyCarrDemand": { "id": 1042, "type": "int24" },
+        "curMonthMaxEnergyCarrDemand": { "id": 1043, "type": "int24" },
+        "curMonthMinEnergyCarrDemand": { "id": 1044, "type": "int24" },
+        "curYearMaxEnergyCarrDemand": { "id": 1045, "type": "int24" },
+        "curYearMinEnergyCarrDemand": { "id": 1046, "type": "int24" },
+        "maxNumberOfPeriodsDelivered": { "id": 1280, "type": "uint8" },
+        "current_Demand_Delivered": { "id": 1536, "type": "uint24" },
+        "demandLimit": { "id": 1537, "type": "uint24" },
+        "demandIntegrationPeriod": { "id": 1538, "type": "uint8" },
+        "numberOfDemandSubintervals": { "id": 1539, "type": "uint8" },
+        "demandLimitArmDuration": { "id": 1540, "type": "uint16" },
+        "genericAlarmMask": { "id": 2048, "type": "map16" },
+        "electricityAlarmMask": { "id": 2049, "type": "map32" },
+        "genFlowPressureAlarmMask": { "id": 2050, "type": "map16" },
+        "waterSpecificAlarmMask": { "id": 2051, "type": "map16" },
+        "heatCoolSpecificAlarmMASK": { "id": 2052, "type": "map16" },
+        "gasSpecificAlarmMask": { "id": 2053, "type": "map16" },
+        "extendedGenericAlarmMask": { "id": 2054, "type": "map48" },
+        "manufactureAlarmMask": { "id": 2055, "type": "map16" },
+        "billToDate": { "id": 2560, "type": "uint32" },
+        "billToDateTimeStamp": { "id": 2561, "type": "utc" },
+        "projectedBill": { "id": 2562, "type": "uint32" },
+        "projectedBillTimeStamp": { "id": 2563, "type": "utc" },
+        "notification_Control_Flags": { "id": 0, "type": "map32" },
+        "notification_Flags": { "id": 1, "type": "map32" },
+        "price_Notification_Flags": { "id": 2, "type": "map32" },
+        "calendar_Notification_Flags": { "id": 3, "type": "map32" },
+        "pre_Pay_Notification_Flags": { "id": 4, "type": "map32" },
+        "device_Management_Flags": { "id": 5, "type": "map32" },
+        "changeReportingProfile": { "id": 256, "type": "unknown" }
+      },
+      "cmd": {
+        "getProfile": { "id": 0, "params": [] },
+        "reqMirror": { "id": 1, "params": [] },
+        "mirrorRem": { "id": 2, "params": [] },
+        "reqFastPollMode": { "id": 3, "params": [] },
+        "getSnapshot": { "id": 4, "params": [] },
+        "takeSnapshot": { "id": 5, "params": [] },
+        "mirrorReportAttrRsp": { "id": 6, "params": [] }
+      },
+      "cmdRsp": {
+        "getProfileRsp": { "id": 0, "params": [] },
+        "reqMirrorRsp": { "id": 1, "params": [] },
+        "mirrorRemRsp": { "id": 2, "params": [] },
+        "reqFastPollModeRsp": { "id": 3, "params": [] },
+        "getSnapshotRsp": { "id": 4, "params": [] }
+      }
+    },
+    "seMessaging": { "id": 1795, "TODO": 2 },
+    "seTunneling": { "id": 1796, "TODO": 2 },
+    "sePrepayment": { "id": 1797, "TODO": 2 },
+    "seEnergyMgmt": { "id": 1798, "TODO": 2 },
+    "seCalendar": { "id": 1799, "TODO": 2 },
+    "seDeviceMgmt": { "id": 1800, "TODO": 2 },
+    "seEvents": { "id": 1801, "TODO": 2 },
+    "seMduPairing": { "id": 1802, "TODO": 2 },
+    "seKeyEstablishment": { "id": 2048, "TODO": 2 },
+    "telecommunicationsInformation": {
+      "id": 2304,
+      "attributes": {
+        "nodeDescription": { "id": 0, "type": "string" },
+        "deliveryEnable": { "id": 1, "type": "boolean" },
+        "pushInformationTimer": { "id": 2, "type": "uint32" },
+        "enableSecureConfiguration": { "id": 3, "type": "boolean" },
+        "numberOfContents": { "id": 16, "type": "uint16" },
+        "contentRootID": { "id": 17, "type": "uint16" }
+      },
+      "cmd": {
+        "reqInformation": { "id": 0, "TODO": 1 },
+        "pushInformationRsp": { "id": 1, "TODO": 1 },
+        "sendPreference": { "id": 2, "TODO": 1 },
+        "reqPreferenceRsp": { "id": 3, "TODO": 1 },
+        "update": { "id": 4, "TODO": 1 },
+        "delete": { "id": 5, "TODO": 1 },
+        "cfgNodeDescription": { "id": 6, "TODO": 1 },
+        "cfgDeliveryEnable": { "id": 7, "TODO": 1 },
+        "cfgPushInformationTimer": { "id": 8, "TODO": 1 },
+        "cfgSetRootID": { "id": 9, "TODO": 1 }
+      },
+      "cmdRsp": {
+        "reqInformationRsp": { "id": 0, "TODO": 1 },
+        "pushInformation": { "id": 1, "TODO": 1 },
+        "sendPreferenceRsp": { "id": 2, "TODO": 1 },
+        "serverReqPreference": { "id": 3, "TODO": 1 },
+        "reqPreferenceConfirmation": { "id": 4, "TODO": 1 },
+        "updateRsp": { "id": 5, "TODO": 1 },
+        "deleteRsp": { "id": 6, "TODO": 1 }
+      }
+    },
+    "telecommunicationsVoiceOverZigbee": {
+      "id": 2308,
+      "attributes": {
+        "codecType": { "id": 0, "type": "enum8" },
+        "samplingFrequency": { "id": 1, "type": "enum8" },
+        "codecrate": { "id": 2, "type": "enum8" },
+        "establishmentTimeout": { "id": 3, "type": "uint8" },
+        "codecTypeSub1": { "id": 4, "type": "enum8" },
+        "codecTypeSub2": { "id": 5, "type": "enum8" },
+        "codecTypeSub3": { "id": 6, "type": "enum8" },
+        "compressionType": { "id": 7, "type": "enum8" },
+        "compressionRate": { "id": 8, "type": "enum8" },
+        "optionFlags": { "id": 9, "type": "map8" },
+        "threshold": { "id": 10, "type": "uint8" }
+      },
+      "cmd": {
+        "establishmentReq": { "id": 0, "TODO": 1 },
+        "voiceTransmission": { "id": 1, "TODO": 1 },
+        "voiceTransmissionCompletion": { "id": 2, "TODO": 1 },
+        "controlResponse": { "id": 3, "TODO": 1 }
+      },
+      "cmdRsp": {
+        "establishmentResponse": { "id": 0, "TODO": 1 },
+        "voiceTransmissionResponse": { "id": 1, "TODO": 1 },
+        "control": { "id": 2, "TODO": 1 }
+      }
+    },
+    "telecommunicationsChatting": {
+      "id": 2309,
+      "attributes": {
+        "uID": { "id": 0, "type": "uint16" },
+        "nickname": { "id": 1, "type": "string" },
+        "cID": { "id": 16, "type": "uint16" },
+        "name": { "id": 17, "type": "string" },
+        "enableAddChat": { "id": 18, "type": "boolean" }
+      },
+      "cmd": {
+        "joinChatReq": { "id": 0, "TODO": 1 },
+        "leaveChatReq": { "id": 1, "TODO": 1 },
+        "searchChatReq": { "id": 2, "TODO": 1 },
+        "switchChairmanRsp": { "id": 3, "TODO": 1 },
+        "startChatReq": { "id": 4, "TODO": 1 },
+        "chatMessage": { "id": 5, "TODO": 1 },
+        "getNodeInformationReq": { "id": 6, "TODO": 1 }
+      },
+      "cmdRsp": {
+        "startChatRsp": { "id": 0, "TODO": 1 },
+        "joinChatRsp": { "id": 1, "TODO": 1 },
+        "userLeft": { "id": 2, "TODO": 1 },
+        "userJoined": { "id": 3, "TODO": 1 },
+        "searchChatRsp": { "id": 4, "TODO": 1 },
+        "switchChairmanReq": { "id": 5, "TODO": 1 },
+        "switchChairmanConfirm": { "id": 6, "TODO": 1 },
+        "switchChairmanNotification": { "id": 7, "TODO": 1 },
+        "getNodeInformationRsp": { "id": 8, "TODO": 1 }
+      }
+    },
+    "haApplianceIdentification": {
+      "id": 2816,
+      "attributes": {
+        "basicIdentification": { "id": 0, "type": "uint56" },
+        "companyName": { "id": 16, "type": "string" },
+        "companyId": { "id": 17, "type": "uint16" },
+        "brandName": { "id": 18, "type": "string" },
+        "brandId": { "id": 19, "type": "uint16" },
+        "model": { "id": 20, "type": "octstr" },
+        "partNumber": { "id": 21, "type": "octstr" },
+        "productRevision": { "id": 22, "type": "octstr" },
+        "softwareRevision": { "id": 23, "type": "octstr" },
+        "productTypeName": { "id": 24, "type": "octstr" },
+        "productTypeId": { "id": 25, "type": "uint16" },
+        "cecedSpecificationVersion": { "id": 26, "type": "uint8" }
+      }
+    },
+    "haMeterIdentification": {
+      "id": 2817,
+      "attributes": {
+        "companyName": { "id": 0, "type": "string" },
+        "meterTypeId": { "id": 1, "type": "uint16" },
+        "dataQualityId": { "id": 4, "type": "uint16" },
+        "customerName": { "id": 5, "type": "string" },
+        "model": { "id": 6, "type": "string" },
+        "partNumber": { "id": 7, "type": "string" },
+        "productRevision": { "id": 8, "type": "string" },
+        "softwareRevision": { "id": 10, "type": "string" },
+        "utilityName": { "id": 11, "type": "string" },
+        "pod": { "id": 12, "type": "string" },
+        "availablePower": { "id": 13, "type": "int24" },
+        "powerThreshold": { "id": 14, "type": "int24" }
+      }
+    },
+    "haApplianceEventsAlerts": {
+      "id": 2818,
+      "cmd": { "getAlerts": { "id": 0, "params": [] } },
+      "cmdRsp": {
+        "getAlertsRsp": {
+          "id": 0,
+          "params": [["alertscount", "preLenUint8"], ["aalert", "dynUint24"]]
+        },
+        "alertsNotification": {
+          "id": 1,
+          "params": [["alertscount", "preLenUint8"], ["aalert", "dynUint24"]]
+        },
+        "eventNotification": {
+          "id": 2,
+          "params": [["eventheader", "uint8"], ["eventid", "uint8"]]
+        }
+      }
+    },
+    "haApplianceStatistics": {
+      "id": 2819,
+      "attributes": {
+        "logMaxSize": { "id": 0, "type": "uint32" },
+        "logQueueMaxSize": { "id": 1, "type": "uint8" }
+      },
+      "cmd": {
+        "log": { "id": 0, "params": [["logid", "uint32"]] },
+        "logQueue": { "id": 1, "params": [] }
+      },
+      "cmdRsp": {
+        "logNotification": {
+          "id": 0,
+          "params": [
+            ["timestamp", "uint32"],
+            ["logid", "uint32"],
+            ["loglength", "preLenUint32"],
+            ["logpayload", "dynUint8"]
+          ]
+        },
+        "logRsp": {
+          "id": 1,
+          "params": [
+            ["timestamp", "uint32"],
+            ["logid", "uint32"],
+            ["loglength", "preLenUint32"],
+            ["logpayload", "dynUint8"]
+          ]
+        },
+        "logQueueRsp": {
+          "id": 2,
+          "params": [["logqueuesize", "preLenUint8"], ["logid", "dynUint32"]]
+        },
+        "statisticsAvailable": {
+          "id": 3,
+          "params": [["logqueuesize", "preLenUint8"], ["logid", "dynUint32"]]
+        }
+      }
+    },
+    "haElectricalMeasurement": {
+      "id": 2820,
+      "attributes": {
+        "measurementType": { "id": 0, "type": "map32" },
+        "dcVoltage": { "id": 256, "type": "int16" },
+        "dcVoltageMin": { "id": 257, "type": "int16" },
+        "dcvoltagemax": { "id": 258, "type": "int16" },
+        "dcCurrent": { "id": 259, "type": "int16" },
+        "dcCurrentMin": { "id": 260, "type": "int16" },
+        "dcCurrentMax": { "id": 261, "type": "int16" },
+        "dcPower": { "id": 262, "type": "int16" },
+        "dcPowerMin": { "id": 263, "type": "int16" },
+        "dcPowerMax": { "id": 264, "type": "int16" },
+        "dcVoltageMultiplier": { "id": 512, "type": "uint16" },
+        "dcVoltageDivisor": { "id": 513, "type": "uint16" },
+        "dcCurrentMultiplier": { "id": 514, "type": "uint16" },
+        "dcCurrentDivisor": { "id": 515, "type": "uint16" },
+        "dcPowerMultiplier": { "id": 516, "type": "uint16" },
+        "dcPowerDivisor": { "id": 517, "type": "uint16" },
+        "acFrequency": { "id": 768, "type": "uint16" },
+        "acFrequencyMin": { "id": 769, "type": "uint16" },
+        "acFrequencyMax": { "id": 770, "type": "uint16" },
+        "neutralCurrent": { "id": 771, "type": "uint16" },
+        "totalActivePower": { "id": 772, "type": "int32" },
+        "totalReactivePower": { "id": 773, "type": "int32" },
+        "totalApparentPower": { "id": 774, "type": "uint32" },
+        "meas1stHarmonicCurrent": { "id": 775, "type": "int16" },
+        "meas3rdHarmonicCurrent": { "id": 776, "type": "int16" },
+        "meas5thHarmonicCurrent": { "id": 777, "type": "int16" },
+        "meas7thHarmonicCurrent": { "id": 778, "type": "int16" },
+        "meas9thHarmonicCurrent": { "id": 779, "type": "int16" },
+        "meas11thHarmonicCurrent": { "id": 780, "type": "int16" },
+        "measPhase1stHarmonicCurrent": { "id": 781, "type": "int16" },
+        "measPhase3rdHarmonicCurrent": { "id": 782, "type": "int16" },
+        "measPhase5thHarmonicCurrent": { "id": 783, "type": "int16" },
+        "measPhase7thHarmonicCurrent": { "id": 784, "type": "int16" },
+        "measPhase9thHarmonicCurrent": { "id": 785, "type": "int16" },
+        "measPhase11thHarmonicCurrent": { "id": 786, "type": "int16" },
+        "acFrequencyMultiplier": { "id": 1024, "type": "uint16" },
+        "acFrequencyDivisor": { "id": 1025, "type": "uint16" },
+        "powerMultiplier": { "id": 1026, "type": "uint32" },
+        "powerDivisor": { "id": 1027, "type": "uint32" },
+        "harmonicCurrentMultiplier": { "id": 1028, "type": "int8" },
+        "phaseHarmonicCurrentMultiplier": { "id": 1029, "type": "int8" },
+        "instantaneousVoltage": { "id": 1280, "type": "int16" },
+        "instantaneousLineCurrent": { "id": 1281, "type": "uint16" },
+        "instantaneousActiveCurrent": { "id": 1282, "type": "int16" },
+        "instantaneousReactiveCurrent": { "id": 1283, "type": "int16" },
+        "instantaneousPower": { "id": 1284, "type": "int16" },
+        "rmsVoltage": { "id": 1285, "type": "uint16" },
+        "rmsVoltageMin": { "id": 1286, "type": "uint16" },
+        "rmsVoltageMax": { "id": 1287, "type": "uint16" },
+        "rmsCurrent": { "id": 1288, "type": "uint16" },
+        "rmsCurrentMin": { "id": 1289, "type": "uint16" },
+        "rmsCurrentMax": { "id": 1290, "type": "uint16" },
+        "activePower": { "id": 1291, "type": "int16" },
+        "activePowerMin": { "id": 1292, "type": "int16" },
+        "activePowerMax": { "id": 1293, "type": "int16" },
+        "reactivePower": { "id": 1294, "type": "int16" },
+        "apparentPower": { "id": 1295, "type": "uint16" },
+        "powerFactor": { "id": 1296, "type": "int8" },
+        "averageRmsVoltageMeasPeriod": { "id": 1297, "type": "uint16" },
+        "averageRmsOverVoltageCounter": { "id": 1298, "type": "uint16" },
+        "averageRmsUnderVoltageCounter": { "id": 1299, "type": "uint16" },
+        "rmsExtremeOverVoltagePeriod": { "id": 1300, "type": "uint16" },
+        "rmsExtremeUnderVoltagePeriod": { "id": 1301, "type": "uint16" },
+        "rmsVoltageSagPeriod": { "id": 1302, "type": "uint16" },
+        "rmsVoltageSwellPeriod": { "id": 1303, "type": "uint16" },
+        "acVoltageMultiplier": { "id": 1536, "type": "uint16" },
+        "acVoltageDivisor": { "id": 1537, "type": "uint16" },
+        "acCurrentMultiplier": { "id": 1538, "type": "uint16" },
+        "acCurrentDivisor": { "id": 1539, "type": "uint16" },
+        "acPowerMultiplier": { "id": 1540, "type": "uint16" },
+        "acPowerDivisor": { "id": 1541, "type": "uint16" },
+        "dcOverloadAlarmsMask": { "id": 1792, "type": "map8" },
+        "dcVoltageOverload": { "id": 1793, "type": "int16" },
+        "dcCurrentOverload": { "id": 1794, "type": "int16" },
+        "acAlarmsMask": { "id": 2048, "type": "map16" },
+        "acVoltageOverload": { "id": 2049, "type": "int16" },
+        "acCurrentOverload": { "id": 2050, "type": "int16" },
+        "acActivePowerOverload": { "id": 2051, "type": "int16" },
+        "acReactivePowerOverload": { "id": 2052, "type": "int16" },
+        "averageRmsOverVoltage": { "id": 2053, "type": "int16" },
+        "averageRmsUnderVoltage": { "id": 2054, "type": "int16" },
+        "rmsExtremeOverVoltage": { "id": 2055, "type": "int16" },
+        "rmsExtremeUnderVoltage": { "id": 2056, "type": "int16" },
+        "rmsVoltageSag": { "id": 2057, "type": "int16" },
+        "rmsVoltageSwell": { "id": 2058, "type": "int16" },
+        "lineCurrentPhB": { "id": 2305, "type": "uint16" },
+        "activeCurrentPhB": { "id": 2306, "type": "int16" },
+        "reactiveCurrentPhB": { "id": 2307, "type": "int16" },
+        "rmsVoltagePhB": { "id": 2309, "type": "uint16" },
+        "rmsVoltageMinPhB": { "id": 2310, "type": "uint16" },
+        "rmsVoltageMaxPhB": { "id": 2311, "type": "uint16" },
+        "rmsCurrentPhB": { "id": 2312, "type": "uint16" },
+        "rmsCurrentMinPhB": { "id": 2313, "type": "uint16" },
+        "rmsCurrentMaxPhB": { "id": 2314, "type": "uint16" },
+        "activePowerPhB": { "id": 2315, "type": "int16" },
+        "activePowerMinPhB": { "id": 2316, "type": "int16" },
+        "activePowerMaxPhB": { "id": 2317, "type": "int16" },
+        "reactivePowerPhB": { "id": 2318, "type": "int16" },
+        "apparentPowerPhB": { "id": 2319, "type": "uint16" },
+        "powerFactorPhB": { "id": 2320, "type": "int8" },
+        "averageRmsVoltageMeasurePeriodPhB": { "id": 2321, "type": "uint16" },
+        "averageRmsOverVoltageCounterPhB": { "id": 2322, "type": "uint16" },
+        "averageUnderVoltageCounterPhB": { "id": 2323, "type": "uint16" },
+        "rmsExtremeOverVoltagePeriodPhB": { "id": 2324, "type": "uint16" },
+        "rmsExtremeUnderVoltagePeriodPhB": { "id": 2325, "type": "uint16" },
+        "rmsVoltageSagPeriodPhB": { "id": 2326, "type": "uint16" },
+        "rmsVoltageSwellPeriodPhB": { "id": 2327, "type": "uint16" },
+        "lineCurrentPhC": { "id": 2561, "type": "uint16" },
+        "activeCurrentPhC": { "id": 2562, "type": "int16" },
+        "reactiveCurrentPhC": { "id": 2563, "type": "int16" },
+        "rmsVoltagePhC": { "id": 2565, "type": "uint16" },
+        "rmsVoltageMinPhC": { "id": 2566, "type": "uint16" },
+        "rmsVoltageMaxPhC": { "id": 2567, "type": "uint16" },
+        "rmsCurrentPhC": { "id": 2568, "type": "uint16" },
+        "rmsCurrentMinPhC": { "id": 2569, "type": "uint16" },
+        "rmsCurrentMaxPhC": { "id": 2570, "type": "uint16" },
+        "activePowerPhC": { "id": 2571, "type": "int16" },
+        "activePowerMinPhC": { "id": 2572, "type": "int16" },
+        "activePowerMaxPhC": { "id": 2573, "type": "int16" },
+        "reactivePowerPhC": { "id": 2574, "type": "int16" },
+        "apparentPowerPhC": { "id": 2575, "type": "uint16" },
+        "powerFactorPhC": { "id": 2576, "type": "int8" },
+        "averageRmsVoltageMeasPeriodPhC": { "id": 2577, "type": "uint16" },
+        "averageRmsOverVoltageCounterPhC": { "id": 2578, "type": "uint16" },
+        "averageUnderVoltageCounterPhC": { "id": 2579, "type": "uint16" },
+        "rmsExtremeOverVoltagePeriodPhC": { "id": 2580, "type": "uint16" },
+        "rmsExtremeUnderVoltagePeriodPhC": { "id": 2581, "type": "uint16" },
+        "rmsVoltageSagPeriodPhC": { "id": 2582, "type": "uint16" },
+        "rmsVoltageSwellPeriodPh_C": { "id": 2583, "type": "uint16" }
+      },
+      "cmd": {
+        "getProfileInfo": { "id": 0, "params": [] },
+        "getMeasurementProfile": {
+          "id": 1,
+          "params": [
+            ["attrId", "attrId"],
+            ["starttime", "uint32"],
+            ["numofintervals", "uint8"]
+          ]
+        }
+      },
+      "cmdRsp": {
+        "getProfileInfoRsp": {
+          "id": 0,
+          "params": [
+            ["profilecount", "uint8"],
+            ["profileintervalperiod", "enum8"],
+            ["maxnumofintervals", "uint8"],
+            ["numofattrs", "preLenUint8"],
+            ["listofattr", "dynUint16"]
+          ]
+        },
+        "getMeasurementProfileRsp": {
+          "id": 1,
+          "params": [
+            ["starttime", "utc"],
+            ["status", "enum8"],
+            ["profileintervalperiod", "enum8"],
+            ["numofintervalsdeliv", "preLenUint8"],
+            ["attrId", "attrId"],
+            ["intervals", "dynUint8"]
+          ]
+        }
+      }
+    },
+    "haDiagnostic": {
+      "id": 2821,
+      "attributes": {
+        "numberOfResets": { "id": 0, "type": "uint16" },
+        "persistentMemoryWrites": { "id": 1, "type": "uint16" },
+        "macRxBcast": { "id": 256, "type": "uint32" },
+        "macTxBcast": { "id": 257, "type": "uint32" },
+        "macRxUcast": { "id": 258, "type": "uint32" },
+        "macTxUcast": { "id": 259, "type": "uint32" },
+        "macTxUcastRetry": { "id": 260, "type": "uint16" },
+        "macTxUcastFail": { "id": 261, "type": "uint16" },
+        "aPSRxBcast": { "id": 262, "type": "uint16" },
+        "aPSTxBcast": { "id": 263, "type": "uint16" },
+        "aPSRxUcast": { "id": 264, "type": "uint16" },
+        "aPSTxUcastSuccess": { "id": 265, "type": "uint16" },
+        "aPSTxUcastRetry": { "id": 266, "type": "uint16" },
+        "aPSTxUcastFail": { "id": 267, "type": "uint16" },
+        "routeDiscInitiated": { "id": 268, "type": "uint16" },
+        "neighborAdded": { "id": 269, "type": "uint16" },
+        "neighborRemoved": { "id": 270, "type": "uint16" },
+        "neighborStale": { "id": 271, "type": "uint16" },
+        "joinIndication": { "id": 272, "type": "uint16" },
+        "childMoved": { "id": 273, "type": "uint16" },
+        "nwkFcFailure": { "id": 274, "type": "uint16" },
+        "apsFcFailure": { "id": 275, "type": "uint16" },
+        "apsUnauthorizedKey": { "id": 276, "type": "uint16" },
+        "nwkDecryptFailures": { "id": 277, "type": "uint16" },
+        "apsDecryptFailures": { "id": 278, "type": "uint16" },
+        "packetBufferAllocateFailures": { "id": 279, "type": "uint16" },
+        "relayedUcast": { "id": 280, "type": "uint16" },
+        "phyToMacQueueLimitReached": { "id": 281, "type": "uint16" },
+        "packetValidateDropCount": { "id": 282, "type": "uint16" },
+        "averageMacRetryPerApsMessageSent": { "id": 283, "type": "uint16" },
+        "lastMessageLqi": { "id": 284, "type": "uint8" },
+        "lastMessageRssi": { "id": 285, "type": "int8" }
+      }
+    },
+    "lightLink": {
+      "id": 4096,
+      "cmd": {
+        "scanReq": { "id": 0, "TODO": 1 },
+        "deviceInformationReq": { "id": 2, "TODO": 1 },
+        "identifyReq": { "id": 6, "TODO": 1 },
+        "resetToFactoryNewReq": { "id": 7, "TODO": 1 },
+        "networkStartReq": { "id": 16, "TODO": 1 },
+        "networkJoinRouterReq": { "id": 18, "TODO": 1 },
+        "networkJoinEndDeviceReq": { "id": 20, "TODO": 1 },
+        "networkUpdateReq": { "id": 22, "TODO": 1 },
+        "getGroupIdentifiersReq": { "id": 65, "TODO": 1 },
+        "getEndpointListReq": { "id": 66, "TODO": 1 }
+      },
+      "cmdRsp": {
+        "scanRsp": { "id": 1, "TODO": 1 },
+        "deviceInformationRsp": { "id": 3, "TODO": 1 },
+        "networkStartRsp": { "id": 17, "TODO": 1 },
+        "networkJoinRouterRsp": { "id": 19, "TODO": 1 },
+        "networkJoinEndDeviceRsp": { "id": 21, "TODO": 1 },
+        "endpointInformation": { "id": 64, "TODO": 1 },
+        "getGroupIdentifiersRsp": { "id": 65, "TODO": 1 },
+        "getEndpointListRsp": { "id": 66, "TODO": 1 }
+      }
+    },
+    "manuSpecificCluster": { "id": 65535, "TODO": 2 }
+  }

@@ -10,6 +10,7 @@ import (
 	"github.com/shimmeringbee/zigbee"
 	"github.com/supby/gigbee2mqtt/configuration"
 	"github.com/supby/gigbee2mqtt/db"
+	"github.com/supby/gigbee2mqtt/zcldef"
 
 	//"github.com/supby/gigbee2mqtt/zstack"
 	"github.com/shimmeringbee/zstack"
@@ -33,6 +34,11 @@ func main() {
 		log.Fatal(err)
 	}
 	port.SetRTS(true)
+
+	zclMap := zcldef.Load("./zcldef/zcldef.json")
+	if zclMap == nil {
+		log.Fatal("Error loading ZCL map")
+	}
 
 	db1 := db.Init("./db.json")
 
@@ -107,18 +113,18 @@ func processIncomingMessage(msg zigbee.IncomingMessage, zclCommandRegistry *zcl.
 		return
 	}
 
-	log.Printf("Incomming command of type [%T] is received: %v\n", message.Command, message.Command)
+	log.Printf("Incomming command of type (%T) is received. ClusterId is %v\n", message.Command, message.ClusterID)
 
 	switch cmd := message.Command.(type) {
 	case *global.ReportAttributes:
 		// res, _ := json.Marshal(cmd.Records[0].)
 		// log.Printf("Incomming message JSON: %v\n", res)
+
 		for _, r := range cmd.Records {
+			// AttrId: 2, DataType: 33, Value: 0
 			log.Printf("AttrId: %v, DataType: %v, Value: %v\n", r.Identifier, r.DataTypeValue.DataType, r.DataTypeValue.Value)
 		}
 	}
-
-	//msg.ApplicationMessage.
 }
 
 func saveNodeDB(znode zigbee.Node, dbObj *db.DB) {
