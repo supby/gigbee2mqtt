@@ -18,7 +18,7 @@
         "alarmMask": { "id": 19, "type": "map8" },
         "disableLocalConfig": { "id": 20, "type": "map8" }
       },
-      "cmd": { "resetFactDefault": { "id": 0, "params": [] } }
+      "commands": { "resetFactDefault": { "id": 0, "parameters": [] } }
     },
     "genPowerCfg": {
       "id": 1,
@@ -68,51 +68,51 @@
         "identifyTime": { "id": 0, "type": "uint16" },
         "identifyCommissionState": { "id": 1, "type": "unknown" }
       },
-      "cmd": {
-        "identify": { "id": 0, "params": [["identifytime", "uint16"]] },
-        "identifyQuery": { "id": 1, "params": [] },
-        "ezModeInvoke": { "id": 2, "params": [["action", "uint8"]] },
+      "commands": {
+        "identify": { "id": 0, "parameters": [["identifytime", "uint16"]] },
+        "identifyQuery": { "id": 1, "parameters": [] },
+        "ezModeInvoke": { "id": 2, "parameters": [["action", "uint8"]] },
         "updateCommissionState": {
           "id": 3,
-          "params": [["action", "uint8"], ["commstatemask", "uint8"]]
+          "parameters": [["action", "uint8"], ["commstatemask", "uint8"]]
         },
         "triggerEffect": {
           "id": 64,
-          "params": [["effectid", "uint8"], ["effectvariant", "uint8"]]
+          "parameters": [["effectid", "uint8"], ["effectvariant", "uint8"]]
         }
       },
-      "cmdRsp": {
-        "identifyQueryRsp": { "id": 0, "params": [["timeout", "uint16"]] }
+      "commandsResponse": {
+        "identifyQueryRsp": { "id": 0, "parameters": [["timeout", "uint16"]] }
       }
     },
     "genGroups": {
       "id": 4,
       "attributes": { "nameSupport": { "id": 0, "type": "map8" } },
-      "cmd": {
+      "commands": {
         "add": {
           "id": 0,
-          "params": [["groupid", "uint16"], ["groupname", "string"]]
+          "parameters": [["groupid", "uint16"], ["groupname", "string"]]
         },
-        "view": { "id": 1, "params": [["groupid", "uint16"]] },
+        "view": { "id": 1, "parameters": [["groupid", "uint16"]] },
         "getMembership": {
           "id": 2,
-          "params": [["groupcount", "preLenUint8"], ["grouplist", "dynUint16"]]
+          "parameters": [["groupcount", "preLenUint8"], ["grouplist", "dynUint16"]]
         },
-        "remove": { "id": 3, "params": [["groupid", "uint16"]] },
-        "removeAll": { "id": 4, "params": [] },
+        "remove": { "id": 3, "parameters": [["groupid", "uint16"]] },
+        "removeAll": { "id": 4, "parameters": [] },
         "addIfIdentifying": {
           "id": 5,
-          "params": [["groupid", "uint16"], ["groupname", "string"]]
+          "parameters": [["groupid", "uint16"], ["groupname", "string"]]
         }
       },
-      "cmdRsp": {
+      "commandsResponse": {
         "addRsp": {
           "id": 0,
-          "params": [["status", "uint8"], ["groupid", "uint16"]]
+          "parameters": [["status", "uint8"], ["groupid", "uint16"]]
         },
         "viewRsp": {
           "id": 1,
-          "params": [
+          "parameters": [
             ["status", "uint8"],
             ["groupid", "uint16"],
             ["groupname", "string"]
@@ -120,7 +120,7 @@
         },
         "getMembershipRsp": {
           "id": 2,
-          "params": [
+          "parameters": [
             ["capacity", "uint8"],
             ["groupcount", "preLenUint8"],
             ["grouplist", "dynUint16"]
@@ -128,7 +128,7 @@
         },
         "removeRsp": {
           "id": 3,
-          "params": [["status", "uint8"], ["groupid", "uint16"]]
+          "parameters": [["status", "uint8"], ["groupid", "uint16"]]
         }
       }
     },
@@ -142,10 +142,10 @@
         "nameSupport": { "id": 4, "type": "map8" },
         "lastCfgBy": { "id": 5, "type": "ieeeAddr" }
       },
-      "cmd": {
+      "commands": {
         "add": {
           "id": 0,
-          "params": [
+          "parameters": [
             ["groupid", "uint16"],
             ["sceneid", "uint8"],
             ["transtime", "uint16"],
@@ -155,25 +155,25 @@
         },
         "view": {
           "id": 1,
-          "params": [["groupid", "uint16"], ["sceneid", "uint8"]]
+          "parameters": [["groupid", "uint16"], ["sceneid", "uint8"]]
         },
         "remove": {
           "id": 2,
-          "params": [["groupid", "uint16"], ["sceneid", "uint8"]]
+          "parameters": [["groupid", "uint16"], ["sceneid", "uint8"]]
         },
-        "removeAll": { "id": 3, "params": [["groupid", "uint16"]] },
+        "removeAll": { "id": 3, "parameters": [["groupid", "uint16"]] },
         "store": {
           "id": 4,
-          "params": [["groupid", "uint16"], ["sceneid", "uint8"]]
+          "parameters": [["groupid", "uint16"], ["sceneid", "uint8"]]
         },
         "recall": {
           "id": 5,
-          "params": [["groupid", "uint16"], ["sceneid", "uint8"]]
+          "parameters": [["groupid", "uint16"], ["sceneid", "uint8"]]
         },
-        "getSceneMembership": { "id": 6, "params": [["groupid", "uint16"]] },
+        "getSceneMembership": { "id": 6, "parameters": [["groupid", "uint16"]] },
         "enhancedAdd": {
           "id": 64,
-          "params": [
+          "parameters": [
             ["groupid", "uint16"],
             ["sceneid", "uint8"],
             ["transtime", "uint16"],
@@ -183,11 +183,11 @@
         },
         "enhancedView": {
           "id": 65,
-          "params": [["groupid", "uint16"], ["sceneid", "uint8"]]
+          "parameters": [["groupid", "uint16"], ["sceneid", "uint8"]]
         },
         "copy": {
           "id": 66,
-          "params": [
+          "parameters": [
             ["mode", "uint8"],
             ["groupidfrom", "uint16"],
             ["sceneidfrom", "uint8"],
@@ -196,10 +196,10 @@
           ]
         }
       },
-      "cmdRsp": {
+      "commandsResponse": {
         "addRsp": {
           "id": 0,
-          "params": [
+          "parameters": [
             ["status", "uint8"],
             ["groupId", "uint16"],
             ["sceneId", "uint8"]
@@ -207,7 +207,7 @@
         },
         "viewRsp": {
           "id": 1,
-          "params": [
+          "parameters": [
             ["status", "uint8"],
             ["groupid", "uint16"],
             ["sceneid", "uint8"],
@@ -218,7 +218,7 @@
         },
         "removeRsp": {
           "id": 2,
-          "params": [
+          "parameters": [
             ["status", "uint8"],
             ["groupid", "uint16"],
             ["sceneid", "uint8"]
@@ -226,11 +226,11 @@
         },
         "removeAllRsp": {
           "id": 3,
-          "params": [["status", "uint8"], ["groupid", "uint16"]]
+          "parameters": [["status", "uint8"], ["groupid", "uint16"]]
         },
         "storeRsp": {
           "id": 4,
-          "params": [
+          "parameters": [
             ["status", "uint8"],
             ["groupid", "uint16"],
             ["sceneid", "uint8"]
@@ -238,7 +238,7 @@
         },
         "getSceneMembershipRsp": {
           "id": 6,
-          "params": [
+          "parameters": [
             ["status", "uint8"],
             ["capacity", "uint8"],
             ["groupid", "uint16"],
@@ -246,10 +246,10 @@
             ["scenelist", "dynUint8"]
           ]
         },
-        "enhancedAddRsp": { "id": 64, "params": [] },
+        "enhancedAddRsp": { "id": 64, "parameters": [] },
         "enhancedViewRsp": {
           "id": 65,
-          "params": [
+          "parameters": [
             ["status", "uint8"],
             ["groupid", "uint16"],
             ["sceneid", "uint8"],
@@ -260,7 +260,7 @@
         },
         "copyRsp": {
           "id": 66,
-          "params": [
+          "parameters": [
             ["status", "uint8"],
             ["groupidfrom", "uint16"],
             ["sceneidfrom", "uint8"]
@@ -276,18 +276,18 @@
         "onTime": { "id": 16385, "type": "uint16" },
         "offWaitTime": { "id": 16386, "type": "uint16" }
       },
-      "cmd": {
-        "off": { "id": 0, "params": [] },
-        "on": { "id": 1, "params": [] },
-        "toggle": { "id": 2, "params": [] },
+      "commands": {
+        "off": { "id": 0, "parameters": [] },
+        "on": { "id": 1, "parameters": [] },
+        "toggle": { "id": 2, "parameters": [] },
         "offWithEffect": {
           "id": 64,
-          "params": [["effectid", "uint8"], ["effectvariant", "uint8"]]
+          "parameters": [["effectid", "uint8"], ["effectvariant", "uint8"]]
         },
-        "onWithRecallGlobalScene": { "id": 65, "params": [] },
+        "onWithRecallGlobalScene": { "id": 65, "parameters": [] },
         "onWithTimedOff": {
           "id": 66,
-          "params": [
+          "parameters": [
             ["ctrlbits", "uint8"],
             ["ctrlbyte", "uint8"],
             ["ontime", "uint16"],
@@ -315,68 +315,68 @@
         "offTransitionTime": { "id": 19, "type": "uint16" },
         "defaultMoveRate": { "id": 20, "type": "uint16" }
       },
-      "cmd": {
+      "commands": {
         "moveToLevel": {
           "id": 0,
-          "params": [["level", "uint8"], ["transtime", "uint16"]]
+          "parameters": [["level", "uint8"], ["transtime", "uint16"]]
         },
-        "move": { "id": 1, "params": [["movemode", "uint8"], ["rate", "uint8"]] },
+        "move": { "id": 1, "parameters": [["movemode", "uint8"], ["rate", "uint8"]] },
         "step": {
           "id": 2,
-          "params": [
+          "parameters": [
             ["stepmode", "uint8"],
             ["stepsize", "uint8"],
             ["transtime", "uint16"]
           ]
         },
-        "stop": { "id": 3, "params": [] },
+        "stop": { "id": 3, "parameters": [] },
         "moveToLevelWithOnOff": {
           "id": 4,
-          "params": [["level", "uint8"], ["transtime", "uint16"]]
+          "parameters": [["level", "uint8"], ["transtime", "uint16"]]
         },
         "moveWithOnOff": {
           "id": 5,
-          "params": [["movemode", "uint8"], ["rate", "uint8"]]
+          "parameters": [["movemode", "uint8"], ["rate", "uint8"]]
         },
         "stepWithOnOff": {
           "id": 6,
-          "params": [
+          "parameters": [
             ["stepmode", "uint8"],
             ["stepsize", "uint8"],
             ["transtime", "uint16"]
           ]
         },
-        "stopWithOnOff": { "id": 7, "params": [] }
+        "stopWithOnOff": { "id": 7, "parameters": [] }
       }
     },
     "genAlarms": {
       "id": 9,
       "attributes": { "alarmCount": { "id": 0, "type": "uint16" } },
-      "cmd": {
+      "commands": {
         "reset": {
           "id": 0,
-          "params": [["alarmcode", "uint8"], ["clusterid", "uint16"]]
+          "parameters": [["alarmcode", "uint8"], ["clusterid", "uint16"]]
         },
-        "resetAll": { "id": 1, "params": [] },
-        "getAlarm": { "id": 2, "params": [] },
-        "resetLog": { "id": 3, "params": [] },
-        "publishEventLog": { "id": 4, "params": [] }
+        "resetAll": { "id": 1, "parameters": [] },
+        "getAlarm": { "id": 2, "parameters": [] },
+        "resetLog": { "id": 3, "parameters": [] },
+        "publishEventLog": { "id": 4, "parameters": [] }
       },
-      "cmdRsp": {
+      "commandsResponse": {
         "alarm": {
           "id": 0,
-          "params": [["alarmcode", "uint8"], ["clusterid", "uint16"]]
+          "parameters": [["alarmcode", "uint8"], ["clusterid", "uint16"]]
         },
         "getRsp": {
           "id": 1,
-          "params": [
+          "parameters": [
             ["status", "uint8"],
             ["alarmcode", "uint8"],
             ["clusterid", "uint16"],
             ["timestamp", "uint32"]
           ]
         },
-        "getEventLog": { "id": 2, "params": [] }
+        "getEventLog": { "id": 2, "parameters": [] }
       }
     },
     "genTime": {
@@ -411,10 +411,10 @@
         "calcPeriod": { "id": 22, "type": "uint16" },
         "numRSSIMeasurements": { "id": 23, "type": "uint16" }
       },
-      "cmd": {
+      "commands": {
         "setAbsolute": {
           "id": 0,
-          "params": [
+          "parameters": [
             ["coord1", "int16"],
             ["coord2", "int16"],
             ["coord3", "int16"],
@@ -424,7 +424,7 @@
         },
         "setDevCfg": {
           "id": 1,
-          "params": [
+          "parameters": [
             ["power", "int16"],
             ["pathlossexponent", "uint16"],
             ["calperiod", "uint16"],
@@ -432,10 +432,10 @@
             ["reportingperiod", "uint16"]
           ]
         },
-        "getDevCfg": { "id": 2, "params": [["targetaddr", "ieeeAddr"]] },
+        "getDevCfg": { "id": 2, "parameters": [["targetaddr", "ieeeAddr"]] },
         "getData": {
           "id": 3,
-          "params": [
+          "parameters": [
             ["getdatainfo", "uint8"],
             ["numrsp", "uint8"],
             ["targetaddr", "ieeeAddr"]
@@ -443,7 +443,7 @@
         },
         "rssiRsp": {
           "id": 4,
-          "params": [
+          "parameters": [
             ["replyingdev", "ieeeAddr"],
             ["coord1", "int16"],
             ["coord2", "int16"],
@@ -454,7 +454,7 @@
         },
         "sendPings": {
           "id": 5,
-          "params": [
+          "parameters": [
             ["targetaddr", "ieeeAddr"],
             ["numrssimeasurements", "uint8"],
             ["calperiod", "uint16"]
@@ -462,7 +462,7 @@
         },
         "anchorNodeAnnounce": {
           "id": 6,
-          "params": [
+          "parameters": [
             ["anchornodeaddr", "ieeeAddr"],
             ["coord1", "int16"],
             ["coord2", "int16"],
@@ -470,10 +470,10 @@
           ]
         }
       },
-      "cmdRsp": {
+      "commandsResponse": {
         "devCfgRsp": {
           "id": 0,
-          "params": [
+          "parameters": [
             ["status", "uint8"],
             ["power", "int16"],
             ["pathlossexp", "uint16"],
@@ -484,7 +484,7 @@
         },
         "dataRsp": {
           "id": 1,
-          "params": [
+          "parameters": [
             ["status", "uint8"],
             ["locationtype", "uint8"],
             ["coord1", "int16"],
@@ -499,7 +499,7 @@
         },
         "dataNotif": {
           "id": 2,
-          "params": [
+          "parameters": [
             ["locationtype", "uint8"],
             ["coord1", "int16"],
             ["coord2", "int16"],
@@ -513,7 +513,7 @@
         },
         "compactDataNotif": {
           "id": 3,
-          "params": [
+          "parameters": [
             ["locationtype", "uint8"],
             ["coord1", "int16"],
             ["coord2", "int16"],
@@ -522,17 +522,17 @@
             ["locationage", "uint16"]
           ]
         },
-        "rssiPing": { "id": 4, "params": [["locationtype", "uint8"]] },
-        "rssiReq": { "id": 5, "params": [] },
+        "rssiPing": { "id": 4, "parameters": [["locationtype", "uint8"]] },
+        "rssiReq": { "id": 5, "parameters": [] },
         "reportRssiMeas": {
           "id": 6,
-          "params": [
+          "parameters": [
             ["reportingaddr", "ieeeAddr"],
             ["numofneighbors", "preLenUint8"],
             ["neighborsinfo", "neighborsInfo"]
           ]
         },
-        "reqOwnLocation": { "id": 7, "params": [["reqaddr", "ieeeAddr"]] }
+        "reqOwnLocation": { "id": 7, "parameters": [["reqaddr", "ieeeAddr"]] }
       }
     },
     "genAnalogInput": {
@@ -701,10 +701,10 @@
         "concentratorRus": { "id": 65, "type": "uint8" },
         "concentratorDiscoveryTime": { "id": 66, "type": "uint8" }
       },
-      "cmd": {
+      "commands": {
         "restartDevice": {
           "id": 0,
-          "params": [
+          "parameters": [
             ["options", "uint8"],
             ["delay", "uint8"],
             ["jitter", "uint8"]
@@ -712,22 +712,22 @@
         },
         "saveStartupParams": {
           "id": 1,
-          "params": [["options", "uint8"], ["index", "uint8"]]
+          "parameters": [["options", "uint8"], ["index", "uint8"]]
         },
         "restoreStartupParams": {
           "id": 2,
-          "params": [["options", "uint8"], ["index", "uint8"]]
+          "parameters": [["options", "uint8"], ["index", "uint8"]]
         },
         "resetStartupParams": {
           "id": 3,
-          "params": [["options", "uint8"], ["index", "uint8"]]
+          "parameters": [["options", "uint8"], ["index", "uint8"]]
         }
       },
-      "cmdRsp": {
-        "restartDeviceRsp": { "id": 0, "params": [["status", "uint8"]] },
-        "saveStartupParamsRsp": { "id": 1, "params": [["status", "uint8"]] },
-        "restoreStartupParamsRsp": { "id": 2, "params": [["status", "uint8"]] },
-        "resetStartupParamsRsp": { "id": 3, "params": [["status", "uint8"]] }
+      "commandsResponse": {
+        "restartDeviceRsp": { "id": 0, "parameters": [["status", "uint8"]] },
+        "saveStartupParamsRsp": { "id": 1, "parameters": [["status", "uint8"]] },
+        "restoreStartupParamsRsp": { "id": 2, "parameters": [["status", "uint8"]] },
+        "resetStartupParamsRsp": { "id": 3, "parameters": [["status", "uint8"]] }
       }
     },
     "genPartition": { "id": 22, "TODO": 2 },
@@ -746,10 +746,10 @@
         "minimumBlockReqDelay": { "id": 9, "type": "uint16" },
         "imageStamp": { "id": 10, "type": "uint32" }
       },
-      "cmd": {
+      "commands": {
         "queryNextImageReq": {
           "id": 1,
-          "params": [
+          "parameters": [
             ["fieldControl", "uint8"],
             ["manufacturerCode", "uint16"],
             ["imageType", "uint16"],
@@ -758,7 +758,7 @@
         },
         "imageBlockReq": {
           "id": 3,
-          "params": [
+          "parameters": [
             ["fieldControl", "uint8"],
             ["manufacturerCode", "uint16"],
             ["imageType", "uint16"],
@@ -770,7 +770,7 @@
         "imagePageReq": { "id": 4, "TODO": 1 },
         "upgradeEndReq": {
           "id": 6,
-          "params": [
+          "parameters": [
             ["status", "uint8"],
             ["manufacturerCode", "uint16"],
             ["imageType", "uint16"],
@@ -779,14 +779,14 @@
         },
         "querySpecificFileReq": { "id": 8, "TODO": 1 }
       },
-      "cmdRsp": {
+      "commandsResponse": {
         "imageNotify": {
           "id": 0,
-          "params": [["payloadType", "uint8"], ["queryJitter", "uint8"]]
+          "parameters": [["payloadType", "uint8"], ["queryJitter", "uint8"]]
         },
         "queryNextImageRsp": {
           "id": 2,
-          "params": [
+          "parameters": [
             ["status", "uint8"],
             ["manufacturerCode", "uint16"],
             ["imageType", "uint16"],
@@ -797,7 +797,7 @@
         "imageBlockRsp": { "id": 5, "TODO": 1 },
         "upgradeEndRsp": {
           "id": 7,
-          "params": [
+          "parameters": [
             ["fieldControl", "uint8"],
             ["manufacturerCode", "uint16"],
             ["imageType", "uint16"],
@@ -823,22 +823,22 @@
         "fastPollTimeoutMax": { "id": 6, "type": "uint16" },
         "physicalClosedLimit": { "id": 0, "type": "uint16" }
       },
-      "cmd": {
+      "commands": {
         "checkinRsp": {
           "id": 0,
-          "params": [["startfastpolling", "uint8"], ["fastpolltimeout", "uint16"]]
+          "parameters": [["startfastpolling", "uint8"], ["fastpolltimeout", "uint16"]]
         },
-        "fastPollStop": { "id": 1, "params": [] },
+        "fastPollStop": { "id": 1, "parameters": [] },
         "setLongPollInterval": {
           "id": 2,
-          "params": [["newlongpollinterval", "uint32"]]
+          "parameters": [["newlongpollinterval", "uint32"]]
         },
         "setShortPollInterval": {
           "id": 3,
-          "params": [["newshortpollinterval", "uint16"]]
+          "parameters": [["newshortpollinterval", "uint16"]]
         }
       },
-      "cmdRsp": { "checkin": { "id": 0, "params": [] } }
+      "commandsResponse": { "checkin": { "id": 0, "parameters": [] } }
     },
     "genGreenPowerProxy": { "id": 33, "TODO": 2 },
     "mobileDeviceCfg": {
@@ -847,17 +847,17 @@
         "keepAliveTime": { "id": 0, "type": "uint16" },
         "rejoinTimeout": { "id": 1, "type": "uint16" }
       },
-      "cmdRsp": {
+      "commandsResponse": {
         "keepAliveNotification": {
           "id": 0,
-          "params": [["KeepAliveTime", "uint16"], ["RejoinTimeout", "uint16"]]
+          "parameters": [["KeepAliveTime", "uint16"], ["RejoinTimeout", "uint16"]]
         }
       }
     },
     "neighborCleaning": {
       "id": 35,
       "attributes": { "neighborCleaningTimeout": { "id": 0, "type": "uint16" } },
-      "cmd": { "purgeEntries": { "id": 0, "TODO": 1 } }
+      "commands": { "purgeEntries": { "id": 0, "TODO": 1 } }
     },
     "nearestGateway": {
       "id": 36,
@@ -922,35 +922,35 @@
         "rfProgrammingEventMask": { "id": 70, "type": "map16" },
         "rfidProgrammingEventMask": { "id": 71, "type": "map16" }
       },
-      "cmd": {
-        "lockDoor": { "id": 0, "params": [["pincodevalue", "string"]] },
-        "unlockDoor": { "id": 1, "params": [["pincodevalue", "string"]] },
-        "toggleDoor": { "id": 2, "params": [["pincodevalue", "string"]] },
+      "commands": {
+        "lockDoor": { "id": 0, "parameters": [["pincodevalue", "string"]] },
+        "unlockDoor": { "id": 1, "parameters": [["pincodevalue", "string"]] },
+        "toggleDoor": { "id": 2, "parameters": [["pincodevalue", "string"]] },
         "unlockWithTimeout": {
           "id": 3,
-          "params": [["timeout", "uint16"], ["pincodevalue", "string"]]
+          "parameters": [["timeout", "uint16"], ["pincodevalue", "string"]]
         },
-        "getLogRecord": { "id": 4, "params": [["logindex", "uint16"]] },
+        "getLogRecord": { "id": 4, "parameters": [["logindex", "uint16"]] },
         "setPinCode": {
           "id": 5,
-          "params": [
+          "parameters": [
             ["userid", "uint16"],
             ["userstatus", "uint8"],
             ["usertype", "uint8"],
             ["pincodevalue", "string"]
           ]
         },
-        "getPinCode": { "id": 6, "params": [["userid", "uint16"]] },
-        "clearPinCode": { "id": 7, "params": [["userid", "uint16"]] },
-        "clearAllPinCodes": { "id": 8, "params": [] },
+        "getPinCode": { "id": 6, "parameters": [["userid", "uint16"]] },
+        "clearPinCode": { "id": 7, "parameters": [["userid", "uint16"]] },
+        "clearAllPinCodes": { "id": 8, "parameters": [] },
         "setUserStatus": {
           "id": 9,
-          "params": [["userid", "uint16"], ["userstatus", "uint8"]]
+          "parameters": [["userid", "uint16"], ["userstatus", "uint8"]]
         },
-        "getUserStatus": { "id": 10, "params": [["userid", "uint16"]] },
+        "getUserStatus": { "id": 10, "parameters": [["userid", "uint16"]] },
         "setWeekDaySchedule": {
           "id": 11,
-          "params": [
+          "parameters": [
             ["scheduleid", "uint8"],
             ["userid", "uint16"],
             ["daysmask", "uint8"],
@@ -962,15 +962,15 @@
         },
         "getWeekDaySchedule": {
           "id": 12,
-          "params": [["scheduleid", "uint8"], ["userid", "uint16"]]
+          "parameters": [["scheduleid", "uint8"], ["userid", "uint16"]]
         },
         "clearWeekDaySchedule": {
           "id": 13,
-          "params": [["scheduleid", "uint8"], ["userid", "uint16"]]
+          "parameters": [["scheduleid", "uint8"], ["userid", "uint16"]]
         },
         "setYearDaySchedule": {
           "id": 14,
-          "params": [
+          "parameters": [
             ["scheduleid", "uint8"],
             ["userid", "uint16"],
             ["zigbeelocalstarttime", "uint32"],
@@ -979,15 +979,15 @@
         },
         "getYearDaySchedule": {
           "id": 15,
-          "params": [["scheduleid", "uint8"], ["userid", "uint16"]]
+          "parameters": [["scheduleid", "uint8"], ["userid", "uint16"]]
         },
         "clearYearDaySchedule": {
           "id": 16,
-          "params": [["scheduleid", "uint8"], ["userid", "uint16"]]
+          "parameters": [["scheduleid", "uint8"], ["userid", "uint16"]]
         },
         "setHolidaySchedule": {
           "id": 17,
-          "params": [
+          "parameters": [
             ["holidayscheduleid", "uint8"],
             ["zigbeelocalstarttime", "uint32"],
             ["zigbeelocalendtime", "uint32"],
@@ -996,38 +996,38 @@
         },
         "getHolidaySchedule": {
           "id": 18,
-          "params": [["holidayscheduleid", "uint8"]]
+          "parameters": [["holidayscheduleid", "uint8"]]
         },
         "clearHolidaySchedule": {
           "id": 19,
-          "params": [["holidayscheduleid", "uint8"]]
+          "parameters": [["holidayscheduleid", "uint8"]]
         },
         "setUserType": {
           "id": 20,
-          "params": [["userid", "uint16"], ["usertype", "uint8"]]
+          "parameters": [["userid", "uint16"], ["usertype", "uint8"]]
         },
-        "getUserType": { "id": 21, "params": [["userid", "uint16"]] },
+        "getUserType": { "id": 21, "parameters": [["userid", "uint16"]] },
         "setRfidCode": {
           "id": 22,
-          "params": [
+          "parameters": [
             ["userid", "uint16"],
             ["userstatus", "uint8"],
             ["usertype", "uint8"],
             ["pincodevalue", "string"]
           ]
         },
-        "getRfidCode": { "id": 23, "params": [["userid", "uint16"]] },
-        "clearRfidCode": { "id": 24, "params": [["userid", "uint16"]] },
-        "clearAllRfidCodes": { "id": 25, "params": [] }
+        "getRfidCode": { "id": 23, "parameters": [["userid", "uint16"]] },
+        "clearRfidCode": { "id": 24, "parameters": [["userid", "uint16"]] },
+        "clearAllRfidCodes": { "id": 25, "parameters": [] }
       },
-      "cmdRsp": {
-        "lockDoorRsp": { "id": 0, "params": [["status", "uint8"]] },
-        "unlockDoorRsp": { "id": 1, "params": [["status", "uint8"]] },
-        "toggleDoorRsp": { "id": 2, "params": [["status", "uint8"]] },
-        "unlockWithTimeoutRsp": { "id": 3, "params": [["status", "uint8"]] },
+      "commandsResponse": {
+        "lockDoorRsp": { "id": 0, "parameters": [["status", "uint8"]] },
+        "unlockDoorRsp": { "id": 1, "parameters": [["status", "uint8"]] },
+        "toggleDoorRsp": { "id": 2, "parameters": [["status", "uint8"]] },
+        "unlockWithTimeoutRsp": { "id": 3, "parameters": [["status", "uint8"]] },
         "getLogRecordRsp": {
           "id": 4,
-          "params": [
+          "parameters": [
             ["logentryid", "uint16"],
             ["timestamp", "uint32"],
             ["eventtype", "uint8"],
@@ -1037,27 +1037,27 @@
             ["pincodevalue", "string"]
           ]
         },
-        "setPinCodeRsp": { "id": 5, "params": [["status", "uint8"]] },
+        "setPinCodeRsp": { "id": 5, "parameters": [["status", "uint8"]] },
         "getPinCodeRsp": {
           "id": 6,
-          "params": [
+          "parameters": [
             ["userid", "uint16"],
             ["userstatus", "uint8"],
             ["usertype", "uint8"],
             ["pincodevalue", "string"]
           ]
         },
-        "clearPinCodeRsp": { "id": 7, "params": [["status", "uint8"]] },
-        "clearAllPinCodesRsp": { "id": 8, "params": [["status", "uint8"]] },
-        "setUserStatusRsp": { "id": 9, "params": [["status", "uint8"]] },
+        "clearPinCodeRsp": { "id": 7, "parameters": [["status", "uint8"]] },
+        "clearAllPinCodesRsp": { "id": 8, "parameters": [["status", "uint8"]] },
+        "setUserStatusRsp": { "id": 9, "parameters": [["status", "uint8"]] },
         "getUserStatusRsp": {
           "id": 10,
-          "params": [["userid", "uint16"], ["userstatus", "uint8"]]
+          "parameters": [["userid", "uint16"], ["userstatus", "uint8"]]
         },
-        "setWeekDayScheduleRsp": { "id": 11, "params": [["status", "uint8"]] },
+        "setWeekDayScheduleRsp": { "id": 11, "parameters": [["status", "uint8"]] },
         "getWeekDayScheduleRsp": {
           "id": 12,
-          "params": [
+          "parameters": [
             ["scheduleid", "uint8"],
             ["userid", "uint16"],
             ["status", "uint8"],
@@ -1068,11 +1068,11 @@
             ["endminute", "uint8"]
           ]
         },
-        "clearWeekDayScheduleRsp": { "id": 13, "params": [["status", "uint8"]] },
-        "setYearDayScheduleRsp": { "id": 14, "params": [["status", "uint8"]] },
+        "clearWeekDayScheduleRsp": { "id": 13, "parameters": [["status", "uint8"]] },
+        "setYearDayScheduleRsp": { "id": 14, "parameters": [["status", "uint8"]] },
         "getYearDayScheduleRsp": {
           "id": 15,
-          "params": [
+          "parameters": [
             ["scheduleid", "uint8"],
             ["userid", "uint16"],
             ["status", "uint8"],
@@ -1080,11 +1080,11 @@
             ["zigbeelocalendtime", "uint32"]
           ]
         },
-        "clearYearDayScheduleRsp": { "id": 16, "params": [["status", "uint8"]] },
-        "setHolidayScheduleRsp": { "id": 17, "params": [["status", "uint8"]] },
+        "clearYearDayScheduleRsp": { "id": 16, "parameters": [["status", "uint8"]] },
+        "setHolidayScheduleRsp": { "id": 17, "parameters": [["status", "uint8"]] },
         "getHolidayScheduleRsp": {
           "id": 18,
-          "params": [
+          "parameters": [
             ["holidayscheduleid", "uint8"],
             ["status", "uint8"],
             ["zigbeelocalstarttime", "uint32"],
@@ -1092,27 +1092,27 @@
             ["opermodelduringholiday", "uint8"]
           ]
         },
-        "clearHolidayScheduleRsp": { "id": 19, "params": [["status", "uint8"]] },
-        "setUserTypeRsp": { "id": 20, "params": [["status", "uint8"]] },
+        "clearHolidayScheduleRsp": { "id": 19, "parameters": [["status", "uint8"]] },
+        "setUserTypeRsp": { "id": 20, "parameters": [["status", "uint8"]] },
         "getUserTypeRsp": {
           "id": 21,
-          "params": [["userid", "uint16"], ["usertype", "uint8"]]
+          "parameters": [["userid", "uint16"], ["usertype", "uint8"]]
         },
-        "setRfidCodeRsp": { "id": 22, "params": [["status", "uint8"]] },
+        "setRfidCodeRsp": { "id": 22, "parameters": [["status", "uint8"]] },
         "getRfidCodeRsp": {
           "id": 23,
-          "params": [
+          "parameters": [
             ["userid", "uint16"],
             ["userstatus", "uint8"],
             ["usertype", "uint8"],
             ["pincodevalue", "string"]
           ]
         },
-        "clearRfidCodeRsp": { "id": 24, "params": [["status", "uint8"]] },
-        "clearAllRfidCodesRsp": { "id": 25, "params": [["status", "uint8"]] },
+        "clearRfidCodeRsp": { "id": 24, "parameters": [["status", "uint8"]] },
+        "clearAllRfidCodesRsp": { "id": 25, "parameters": [["status", "uint8"]] },
         "operationEventNotification": {
           "id": 32,
-          "params": [
+          "parameters": [
             ["opereventsrc", "uint8"],
             ["opereventcode", "uint8"],
             ["userid", "uint16"],
@@ -1123,7 +1123,7 @@
         },
         "programmingEventNotification": {
           "id": 33,
-          "params": [
+          "parameters": [
             ["programeventsrc", "uint8"],
             ["programeventcode", "uint8"],
             ["userid", "uint16"],
@@ -1159,19 +1159,19 @@
         "intermediateSetpointsLift": { "id": 24, "type": "octstr" },
         "intermediateSetpointsTilt": { "id": 25, "type": "octstr" }
       },
-      "cmd": {
-        "upOpen": { "id": 0, "params": [] },
-        "downClose": { "id": 1, "params": [] },
-        "stop": { "id": 2, "params": [] },
-        "goToLiftValue": { "id": 4, "params": [["liftvalue", "uint16"]] },
+      "commands": {
+        "upOpen": { "id": 0, "parameters": [] },
+        "downClose": { "id": 1, "parameters": [] },
+        "stop": { "id": 2, "parameters": [] },
+        "goToLiftValue": { "id": 4, "parameters": [["liftvalue", "uint16"]] },
         "goToLiftPercentage": {
           "id": 5,
-          "params": [["percentageliftvalue", "uint8"]]
+          "parameters": [["percentageliftvalue", "uint8"]]
         },
-        "goToTiltValue": { "id": 7, "params": [["tiltvalue", "uint16"]] },
+        "goToTiltValue": { "id": 7, "parameters": [["tiltvalue", "uint16"]] },
         "goToTiltPercentage": {
           "id": 8,
-          "params": [["percentagetiltvalue", "uint8"]]
+          "parameters": [["percentagetiltvalue", "uint8"]]
         }
       }
     },
@@ -1251,14 +1251,14 @@
         "acCollTemp": { "id": 70, "type": "int16" },
         "acCapacityFormat": { "id": 71, "type": "enum8" }
       },
-      "cmd": {
+      "commands": {
         "setpointRaiseLower": {
           "id": 0,
-          "params": [["mode", "uint8"], ["amount", "int8"]]
+          "parameters": [["mode", "uint8"], ["amount", "int8"]]
         },
         "setWeeklySchedule": {
           "id": 1,
-          "params": [
+          "parameters": [
             ["numoftrans", "uint8"],
             ["dayofweek", "uint8"],
             ["mode", "preLenUint8"],
@@ -1267,15 +1267,15 @@
         },
         "getWeeklySchedule": {
           "id": 2,
-          "params": [["daystoreturn", "uint8"], ["modetoreturn", "uint8"]]
+          "parameters": [["daystoreturn", "uint8"], ["modetoreturn", "uint8"]]
         },
-        "clearWeeklySchedule": { "id": 3, "params": [] },
-        "getRelayStatusLog": { "id": 4, "params": [] }
+        "clearWeeklySchedule": { "id": 3, "parameters": [] },
+        "getRelayStatusLog": { "id": 4, "parameters": [] }
       },
-      "cmdRsp": {
+      "commandsResponse": {
         "getWeeklyScheduleRsp": {
           "id": 0,
-          "params": [
+          "parameters": [
             ["numoftrans", "uint8"],
             ["dayofweek", "uint8"],
             ["mode", "preLenUint8"],
@@ -1284,7 +1284,7 @@
         },
         "getRelayStatusLogRsp": {
           "id": 1,
-          "params": [
+          "parameters": [
             ["timeofday", "uint16"],
             ["relaystatus", "uint16"],
             ["localtemp", "uint16"],
@@ -1376,10 +1376,10 @@
         "colorTempPhysicalMin": { "id": 16395, "type": "uint16" },
         "colorTempPhysicalMax": { "id": 16396, "type": "uint16" }
       },
-      "cmd": {
+      "commands": {
         "moveToHue": {
           "id": 0,
-          "params": [
+          "parameters": [
             ["hue", "uint8"],
             ["direction", "uint8"],
             ["transtime", "uint16"]
@@ -1387,11 +1387,11 @@
         },
         "moveHue": {
           "id": 1,
-          "params": [["movemode", "uint8"], ["rate", "uint8"]]
+          "parameters": [["movemode", "uint8"], ["rate", "uint8"]]
         },
         "stepHue": {
           "id": 2,
-          "params": [
+          "parameters": [
             ["stepmode", "uint8"],
             ["stepsize", "uint8"],
             ["transtime", "uint8"]
@@ -1399,15 +1399,15 @@
         },
         "moveToSaturation": {
           "id": 3,
-          "params": [["saturation", "uint8"], ["transtime", "uint16"]]
+          "parameters": [["saturation", "uint8"], ["transtime", "uint16"]]
         },
         "moveSaturation": {
           "id": 4,
-          "params": [["movemode", "uint8"], ["rate", "uint8"]]
+          "parameters": [["movemode", "uint8"], ["rate", "uint8"]]
         },
         "stepSaturation": {
           "id": 5,
-          "params": [
+          "parameters": [
             ["stepmode", "uint8"],
             ["stepsize", "uint8"],
             ["transtime", "uint8"]
@@ -1415,7 +1415,7 @@
         },
         "moveToHueAndSaturation": {
           "id": 6,
-          "params": [
+          "parameters": [
             ["hue", "uint8"],
             ["saturation", "uint8"],
             ["transtime", "uint16"]
@@ -1423,7 +1423,7 @@
         },
         "moveToColor": {
           "id": 7,
-          "params": [
+          "parameters": [
             ["colorx", "uint16"],
             ["colory", "uint16"],
             ["transtime", "uint16"]
@@ -1431,11 +1431,11 @@
         },
         "moveColor": {
           "id": 8,
-          "params": [["ratex", "int16"], ["ratey", "int16"]]
+          "parameters": [["ratex", "int16"], ["ratey", "int16"]]
         },
         "stepColor": {
           "id": 9,
-          "params": [
+          "parameters": [
             ["stepx", "int16"],
             ["stepy", "int16"],
             ["transtime", "uint16"]
@@ -1443,11 +1443,11 @@
         },
         "moveToColorTemp": {
           "id": 10,
-          "params": [["colortemp", "uint16"], ["transtime", "uint16"]]
+          "parameters": [["colortemp", "uint16"], ["transtime", "uint16"]]
         },
         "enhancedMoveToHue": {
           "id": 64,
-          "params": [
+          "parameters": [
             ["enhancehue", "uint16"],
             ["direction", "uint8"],
             ["transtime", "uint16"]
@@ -1455,11 +1455,11 @@
         },
         "enhancedMoveHue": {
           "id": 65,
-          "params": [["movemode", "uint8"], ["rate", "uint16"]]
+          "parameters": [["movemode", "uint8"], ["rate", "uint16"]]
         },
         "enhancedStepHue": {
           "id": 66,
-          "params": [
+          "parameters": [
             ["stepmode", "uint8"],
             ["stepsize", "uint16"],
             ["transtime", "uint16"]
@@ -1467,7 +1467,7 @@
         },
         "enhancedMoveToHueAndSaturation": {
           "id": 67,
-          "params": [
+          "parameters": [
             ["enhancehue", "uint16"],
             ["saturation", "uint8"],
             ["transtime", "uint16"]
@@ -1475,7 +1475,7 @@
         },
         "colorLoopSet": {
           "id": 68,
-          "params": [
+          "parameters": [
             ["bits", "uint8"],
             ["bytee", "uint8"],
             ["action", "uint8"],
@@ -1486,7 +1486,7 @@
         },
         "stopMoveStep": {
           "id": 71,
-          "params": [
+          "parameters": [
             ["bits", "uint8"],
             ["bytee", "uint8"],
             ["action", "uint8"],
@@ -1497,11 +1497,11 @@
         },
         "moveColorTemp": {
           "id": 75,
-          "params": [["ratex", "int16"], ["ratey", "int16"]]
+          "parameters": [["ratex", "int16"], ["ratey", "int16"]]
         },
         "stepColorTemp": {
           "id": 76,
-          "params": [
+          "parameters": [
             ["stepx", "int16"],
             ["stepy", "int16"],
             ["transtime", "uint16"]
@@ -1610,43 +1610,43 @@
         "numZoneSensitivityLevelsSupported": { "id": 18, "type": "uint8" },
         "currentZoneSensitivityLevel": { "id": 19, "type": "uint8" }
       },
-      "cmd": {
+      "commands": {
         "enrollRsp": {
           "id": 0,
-          "params": [["enrollrspcode", "uint8"], ["zoneid", "uint8"]]
+          "parameters": [["enrollrspcode", "uint8"], ["zoneid", "uint8"]]
         },
-        "initNormalOpMode": { "id": 1, "params": [] },
-        "initTestMode": { "id": 2, "params": [] }
+        "initNormalOpMode": { "id": 1, "parameters": [] },
+        "initTestMode": { "id": 2, "parameters": [] }
       },
-      "cmdRsp": {
+      "commandsResponse": {
         "statusChangeNotification": {
           "id": 0,
-          "params": [["zonestatus", "uint16"], ["extendedstatus", "uint8"]]
+          "parameters": [["zonestatus", "uint16"], ["extendedstatus", "uint8"]]
         },
         "enrollReq": {
           "id": 1,
-          "params": [["zonetype", "uint16"], ["manucode", "uint16"]]
+          "parameters": [["zonetype", "uint16"], ["manucode", "uint16"]]
         }
       }
     },
     "ssIasAce": {
       "id": 1281,
-      "cmd": {
-        "arm": { "id": 0, "params": [["armmode", "uint8"]] },
+      "commands": {
+        "arm": { "id": 0, "parameters": [["armmode", "uint8"]] },
         "bypass": {
           "id": 1,
-          "params": [["numofzones", "preLenUint8"], ["zoneidlist", "dynUint8"]]
+          "parameters": [["numofzones", "preLenUint8"], ["zoneidlist", "dynUint8"]]
         },
-        "emergency": { "id": 2, "params": [] },
-        "fire": { "id": 3, "params": [] },
-        "panic": { "id": 4, "params": [] },
-        "getZoneIDMap": { "id": 5, "params": [] },
-        "getZoneInfo": { "id": 6, "params": [["zoneid", "uint8"]] },
-        "getPanelStatus": { "id": 7, "params": [] },
-        "getBypassedZoneList": { "id": 8, "params": [] },
+        "emergency": { "id": 2, "parameters": [] },
+        "fire": { "id": 3, "parameters": [] },
+        "panic": { "id": 4, "parameters": [] },
+        "getZoneIDMap": { "id": 5, "parameters": [] },
+        "getZoneInfo": { "id": 6, "parameters": [["zoneid", "uint8"]] },
+        "getPanelStatus": { "id": 7, "parameters": [] },
+        "getBypassedZoneList": { "id": 8, "parameters": [] },
         "getZoneStatus": {
           "id": 9,
-          "params": [
+          "parameters": [
             ["startzoneid", "uint8"],
             ["maxnumzoneid", "uint8"],
             ["zonestatusmaskflag", "uint8"],
@@ -1654,11 +1654,11 @@
           ]
         }
       },
-      "cmdRsp": {
-        "armRsp": { "id": 0, "params": [["armnotification", "uint8"]] },
+      "commandsResponse": {
+        "armRsp": { "id": 0, "parameters": [["armnotification", "uint8"]] },
         "getZoneIDMapRsp": {
           "id": 1,
-          "params": [
+          "parameters": [
             ["zoneidmapsection0", "uint16"],
             ["zoneidmapsection1", "uint16"],
             ["zoneidmapsection2", "uint16"],
@@ -1679,7 +1679,7 @@
         },
         "getZoneInfoRsp": {
           "id": 2,
-          "params": [
+          "parameters": [
             ["zoneid", "uint8"],
             ["zonetype", "uint16"],
             ["ieeeaddr", "ieeeAddr"]
@@ -1687,7 +1687,7 @@
         },
         "zoneStatusChanged": {
           "id": 3,
-          "params": [
+          "parameters": [
             ["zoneid", "uint8"],
             ["zonestatus", "uint16"],
             ["audiblenotif", "uint8"],
@@ -1697,7 +1697,7 @@
         },
         "panelStatusChanged": {
           "id": 4,
-          "params": [
+          "parameters": [
             ["panelstatus", "uint8"],
             ["secondsremain", "uint8"],
             ["audiblenotif", "uint8"],
@@ -1706,7 +1706,7 @@
         },
         "getPanelStatusRsp": {
           "id": 5,
-          "params": [
+          "parameters": [
             ["panelstatus", "uint8"],
             ["secondsremain", "uint8"],
             ["audiblenotif", "uint8"],
@@ -1715,15 +1715,15 @@
         },
         "setBypassedZoneList": {
           "id": 6,
-          "params": [["numofzones", "preLenUint8"], ["zoneid", "dynUint8"]]
+          "parameters": [["numofzones", "preLenUint8"], ["zoneid", "dynUint8"]]
         },
         "bypassRsp": {
           "id": 7,
-          "params": [["numofzones", "preLenUint8"], ["bypassresult", "dynUint8"]]
+          "parameters": [["numofzones", "preLenUint8"], ["bypassresult", "dynUint8"]]
         },
         "getZoneStatusRsp": {
           "id": 8,
-          "params": [
+          "parameters": [
             ["zonestatuscomplete", "uint8"],
             ["numofzones", "preLenUint8"],
             ["zoneinfo", "zonebuffer"]
@@ -1734,12 +1734,12 @@
     "ssIasWd": {
       "id": 1282,
       "attributes": { "maxDuration": { "id": 0, "type": "uint16" } },
-      "cmd": {
+      "commands": {
         "startWarning": {
           "id": 0,
-          "params": [["startwarninginfo", "uint8"], ["warningduration", "uint16"]]
+          "parameters": [["startwarninginfo", "uint8"], ["warningduration", "uint16"]]
         },
-        "squawk": { "id": 1, "params": [["squawkinfo", "uint8"]] }
+        "squawk": { "id": 1, "parameters": [["squawkinfo", "uint8"]] }
       }
     },
     "piGenericTunnel": {
@@ -1749,29 +1749,29 @@
         "maxOutgoTransSize": { "id": 2, "type": "uint16" },
         "protocolAddr": { "id": 3, "type": "octstr" }
       },
-      "cmd": {
+      "commands": {
         "matchProtocolAddr": {
           "id": 0,
-          "params": [["protocoladdr", "string"]]
+          "parameters": [["protocoladdr", "string"]]
         }
       },
-      "cmdRsp": {
+      "commandsResponse": {
         "matchProtocolAddrRsp": {
           "id": 0,
-          "params": [
+          "parameters": [
             ["devieeeaddr", "ieeeAddr"],
             ["protocoladdr", "string"]
           ]
         },
         "advertiseProtocolAddr": {
           "id": 1,
-          "params": [["protocoladdr", "string"]]
+          "parameters": [["protocoladdr", "string"]]
         }
       }
     },
     "piBacnetProtocolTunnel": {
       "id": 1537,
-      "cmd": { "transferNpdu": { "id": 0, "params": [["npdu", "uint8"]] } }
+      "commands": { "transferNpdu": { "id": 0, "parameters": [["npdu", "uint8"]] } }
     },
     "piAnalogInputReg": {
       "id": 1538,
@@ -1800,11 +1800,11 @@
         "timeDelay": { "id": 113, "type": "uint8" },
         "eventTimeStamps": { "id": 130, "type": "array" }
       },
-      "cmd": {
-        "transferApdu": { "id": 0, "params": [] },
-        "connectReq": { "id": 1, "params": [] },
-        "disconnectReq": { "id": 2, "params": [] },
-        "connectStatusNoti": { "id": 3, "params": [] }
+      "commands": {
+        "transferApdu": { "id": 0, "parameters": [] },
+        "connectReq": { "id": 1, "parameters": [] },
+        "disconnectReq": { "id": 2, "parameters": [] },
+        "connectStatusNoti": { "id": 3, "parameters": [] }
       }
     },
     "piAnalogOutputReg": {
@@ -2024,22 +2024,22 @@
         "preemptible": { "id": 4, "type": "boolean" },
         "idleTimeout": { "id": 5, "type": "uint16" }
       },
-      "cmd": {
-        "transferApdu": { "id": 0, "params": [] },
-        "connectReq": { "id": 1, "params": [] },
-        "disconnectReq": { "id": 2, "params": [] },
-        "connectStatusNoti": { "id": 3, "params": [] }
+      "commands": {
+        "transferApdu": { "id": 0, "parameters": [] },
+        "connectReq": { "id": 1, "parameters": [] },
+        "disconnectReq": { "id": 2, "parameters": [] },
+        "connectStatusNoti": { "id": 3, "parameters": [] }
       }
     },
     "piIso7818ProtocolTunnel": {
       "id": 1557,
       "attributes": { "status": { "id": 0, "type": "uint8" } },
-      "cmd": {
+      "commands": {
         "transferApdu": { "id": 0, "TODO": 1 },
         "insertSmartCard": { "id": 1, "TODO": 1 },
         "extractSmartCard": { "id": 2, "TODO": 1 }
       },
-      "cmdRsp": { "transferApdu": { "id": 0, "TODO": 1 } }
+      "commandsResponse": { "transferApdu": { "id": 0, "TODO": 1 } }
     },
     "piRetailTunnel": {
       "id": 1559,
@@ -2047,7 +2047,7 @@
         "manufacturerCode": { "id": 0, "type": "uint16" },
         "msProfile": { "id": 1, "type": "uint16" }
       },
-      "cmd": { "transferApdu": { "id": 0, "TODO": 1 } }
+      "commands": { "transferApdu": { "id": 0, "TODO": 1 } }
     },
     "sePrice": { "id": 1792, "TODO": 2 },
     "seDrlc": { "id": 1793, "TODO": 2 },
@@ -2184,21 +2184,21 @@
         "device_Management_Flags": { "id": 5, "type": "map32" },
         "changeReportingProfile": { "id": 256, "type": "unknown" }
       },
-      "cmd": {
-        "getProfile": { "id": 0, "params": [] },
-        "reqMirror": { "id": 1, "params": [] },
-        "mirrorRem": { "id": 2, "params": [] },
-        "reqFastPollMode": { "id": 3, "params": [] },
-        "getSnapshot": { "id": 4, "params": [] },
-        "takeSnapshot": { "id": 5, "params": [] },
-        "mirrorReportAttrRsp": { "id": 6, "params": [] }
+      "commands": {
+        "getProfile": { "id": 0, "parameters": [] },
+        "reqMirror": { "id": 1, "parameters": [] },
+        "mirrorRem": { "id": 2, "parameters": [] },
+        "reqFastPollMode": { "id": 3, "parameters": [] },
+        "getSnapshot": { "id": 4, "parameters": [] },
+        "takeSnapshot": { "id": 5, "parameters": [] },
+        "mirrorReportAttrRsp": { "id": 6, "parameters": [] }
       },
-      "cmdRsp": {
-        "getProfileRsp": { "id": 0, "params": [] },
-        "reqMirrorRsp": { "id": 1, "params": [] },
-        "mirrorRemRsp": { "id": 2, "params": [] },
-        "reqFastPollModeRsp": { "id": 3, "params": [] },
-        "getSnapshotRsp": { "id": 4, "params": [] }
+      "commandsResponse": {
+        "getProfileRsp": { "id": 0, "parameters": [] },
+        "reqMirrorRsp": { "id": 1, "parameters": [] },
+        "mirrorRemRsp": { "id": 2, "parameters": [] },
+        "reqFastPollModeRsp": { "id": 3, "parameters": [] },
+        "getSnapshotRsp": { "id": 4, "parameters": [] }
       }
     },
     "seMessaging": { "id": 1795, "TODO": 2 },
@@ -2220,7 +2220,7 @@
         "numberOfContents": { "id": 16, "type": "uint16" },
         "contentRootID": { "id": 17, "type": "uint16" }
       },
-      "cmd": {
+      "commands": {
         "reqInformation": { "id": 0, "TODO": 1 },
         "pushInformationRsp": { "id": 1, "TODO": 1 },
         "sendPreference": { "id": 2, "TODO": 1 },
@@ -2232,7 +2232,7 @@
         "cfgPushInformationTimer": { "id": 8, "TODO": 1 },
         "cfgSetRootID": { "id": 9, "TODO": 1 }
       },
-      "cmdRsp": {
+      "commandsResponse": {
         "reqInformationRsp": { "id": 0, "TODO": 1 },
         "pushInformation": { "id": 1, "TODO": 1 },
         "sendPreferenceRsp": { "id": 2, "TODO": 1 },
@@ -2257,13 +2257,13 @@
         "optionFlags": { "id": 9, "type": "map8" },
         "threshold": { "id": 10, "type": "uint8" }
       },
-      "cmd": {
+      "commands": {
         "establishmentReq": { "id": 0, "TODO": 1 },
         "voiceTransmission": { "id": 1, "TODO": 1 },
         "voiceTransmissionCompletion": { "id": 2, "TODO": 1 },
         "controlResponse": { "id": 3, "TODO": 1 }
       },
-      "cmdRsp": {
+      "commandsResponse": {
         "establishmentResponse": { "id": 0, "TODO": 1 },
         "voiceTransmissionResponse": { "id": 1, "TODO": 1 },
         "control": { "id": 2, "TODO": 1 }
@@ -2278,7 +2278,7 @@
         "name": { "id": 17, "type": "string" },
         "enableAddChat": { "id": 18, "type": "boolean" }
       },
-      "cmd": {
+      "commands": {
         "joinChatReq": { "id": 0, "TODO": 1 },
         "leaveChatReq": { "id": 1, "TODO": 1 },
         "searchChatReq": { "id": 2, "TODO": 1 },
@@ -2287,7 +2287,7 @@
         "chatMessage": { "id": 5, "TODO": 1 },
         "getNodeInformationReq": { "id": 6, "TODO": 1 }
       },
-      "cmdRsp": {
+      "commandsResponse": {
         "startChatRsp": { "id": 0, "TODO": 1 },
         "joinChatRsp": { "id": 1, "TODO": 1 },
         "userLeft": { "id": 2, "TODO": 1 },
@@ -2335,19 +2335,19 @@
     },
     "haApplianceEventsAlerts": {
       "id": 2818,
-      "cmd": { "getAlerts": { "id": 0, "params": [] } },
-      "cmdRsp": {
+      "commands": { "getAlerts": { "id": 0, "parameters": [] } },
+      "commandsResponse": {
         "getAlertsRsp": {
           "id": 0,
-          "params": [["alertscount", "preLenUint8"], ["aalert", "dynUint24"]]
+          "parameters": [["alertscount", "preLenUint8"], ["aalert", "dynUint24"]]
         },
         "alertsNotification": {
           "id": 1,
-          "params": [["alertscount", "preLenUint8"], ["aalert", "dynUint24"]]
+          "parameters": [["alertscount", "preLenUint8"], ["aalert", "dynUint24"]]
         },
         "eventNotification": {
           "id": 2,
-          "params": [["eventheader", "uint8"], ["eventid", "uint8"]]
+          "parameters": [["eventheader", "uint8"], ["eventid", "uint8"]]
         }
       }
     },
@@ -2357,14 +2357,14 @@
         "logMaxSize": { "id": 0, "type": "uint32" },
         "logQueueMaxSize": { "id": 1, "type": "uint8" }
       },
-      "cmd": {
-        "log": { "id": 0, "params": [["logid", "uint32"]] },
-        "logQueue": { "id": 1, "params": [] }
+      "commands": {
+        "log": { "id": 0, "parameters": [["logid", "uint32"]] },
+        "logQueue": { "id": 1, "parameters": [] }
       },
-      "cmdRsp": {
+      "commandsResponse": {
         "logNotification": {
           "id": 0,
-          "params": [
+          "parameters": [
             ["timestamp", "uint32"],
             ["logid", "uint32"],
             ["loglength", "preLenUint32"],
@@ -2373,7 +2373,7 @@
         },
         "logRsp": {
           "id": 1,
-          "params": [
+          "parameters": [
             ["timestamp", "uint32"],
             ["logid", "uint32"],
             ["loglength", "preLenUint32"],
@@ -2382,11 +2382,11 @@
         },
         "logQueueRsp": {
           "id": 2,
-          "params": [["logqueuesize", "preLenUint8"], ["logid", "dynUint32"]]
+          "parameters": [["logqueuesize", "preLenUint8"], ["logid", "dynUint32"]]
         },
         "statisticsAvailable": {
           "id": 3,
-          "params": [["logqueuesize", "preLenUint8"], ["logid", "dynUint32"]]
+          "parameters": [["logqueuesize", "preLenUint8"], ["logid", "dynUint32"]]
         }
       }
     },
@@ -2523,21 +2523,21 @@
         "rmsVoltageSagPeriodPhC": { "id": 2582, "type": "uint16" },
         "rmsVoltageSwellPeriodPh_C": { "id": 2583, "type": "uint16" }
       },
-      "cmd": {
-        "getProfileInfo": { "id": 0, "params": [] },
+      "commands": {
+        "getProfileInfo": { "id": 0, "parameters": [] },
         "getMeasurementProfile": {
           "id": 1,
-          "params": [
+          "parameters": [
             ["attrId", "attrId"],
             ["starttime", "uint32"],
             ["numofintervals", "uint8"]
           ]
         }
       },
-      "cmdRsp": {
+      "commandsResponse": {
         "getProfileInfoRsp": {
           "id": 0,
-          "params": [
+          "parameters": [
             ["profilecount", "uint8"],
             ["profileintervalperiod", "enum8"],
             ["maxnumofintervals", "uint8"],
@@ -2547,7 +2547,7 @@
         },
         "getMeasurementProfileRsp": {
           "id": 1,
-          "params": [
+          "parameters": [
             ["starttime", "utc"],
             ["status", "enum8"],
             ["profileintervalperiod", "enum8"],
@@ -2597,7 +2597,7 @@
     },
     "lightLink": {
       "id": 4096,
-      "cmd": {
+      "commands": {
         "scanReq": { "id": 0, "TODO": 1 },
         "deviceInformationReq": { "id": 2, "TODO": 1 },
         "identifyReq": { "id": 6, "TODO": 1 },
@@ -2609,7 +2609,7 @@
         "getGroupIdentifiersReq": { "id": 65, "TODO": 1 },
         "getEndpointListReq": { "id": 66, "TODO": 1 }
       },
-      "cmdRsp": {
+      "commandsResponse": {
         "scanRsp": { "id": 1, "TODO": 1 },
         "deviceInformationRsp": { "id": 3, "TODO": 1 },
         "networkStartRsp": { "id": 17, "TODO": 1 },

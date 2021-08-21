@@ -35,8 +35,8 @@ func main() {
 	}
 	port.SetRTS(true)
 
-	zclMap := zcldef.Load("./zcldef/zcldef.json")
-	if zclMap == nil {
+	zclDefMap := zcldef.Load("./zcldef/zcldef.json")
+	if zclDefMap == nil {
 		log.Fatal("Error loading ZCL map")
 	}
 
@@ -101,12 +101,12 @@ func main() {
 		case zigbee.NodeIncomingMessageEvent:
 			log.Printf("message: %v\n", e)
 			go saveNodeDB(e.Node, db1)
-			go processIncomingMessage(e.IncomingMessage, zclCommandRegistry)
+			go processIncomingMessage(e.IncomingMessage, zclCommandRegistry, zclDefMap)
 		}
 	}
 }
 
-func processIncomingMessage(msg zigbee.IncomingMessage, zclCommandRegistry *zcl.CommandRegistry) {
+func processIncomingMessage(msg zigbee.IncomingMessage, zclCommandRegistry *zcl.CommandRegistry, zclDefMap *zcldef.ZCLMap) {
 	message, err := zclCommandRegistry.Unmarshal(msg.ApplicationMessage)
 	if err != nil {
 		log.Printf("Error parse incomming message: %v\n", err)
