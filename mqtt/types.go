@@ -1,7 +1,14 @@
 package mqtt
 
-type DeviceMEssage struct {
+type DeviceMessage struct {
 	IEEEAddress uint64
-	ClusterID   uint16
-	ClusterName string
+	LinkQuality uint8
+	Cluster     ClusterData
+}
+
+type ClusterData struct {
+	ID         uint16
+	Name       string
+	Type       string
+	Attributes map[string]interface{}
 }

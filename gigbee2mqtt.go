@@ -10,6 +10,8 @@ import (
 	"github.com/shimmeringbee/zigbee"
 	"github.com/supby/gigbee2mqtt/configuration"
 	"github.com/supby/gigbee2mqtt/db"
+	"github.com/supby/gigbee2mqtt/handler"
+	"github.com/supby/gigbee2mqtt/mqtt"
 	"github.com/supby/gigbee2mqtt/zcldef"
 
 	//"github.com/supby/gigbee2mqtt/zstack"
@@ -35,12 +37,10 @@ func main() {
 	}
 	port.SetRTS(true)
 
-	zclDefMap := zcldef.Load("./zcldef/zcldef.json")
-	if zclDefMap == nil {
-		log.Fatal("Error loading ZCL map")
-	}
-
 	db1 := db.Init("./db.json")
+
+	mqttClient, mqttDisconnect := mqtt.InitMQTT(cfg)
+	defer mqttDisconnect()
 
 	/* Construct node table, cache of network nodes. */
 	t := zstack.NewNodeTable()
@@ -80,6 +80,13 @@ func main() {
 	zclCommandRegistry := zcl.NewCommandRegistry()
 	global.Register(zclCommandRegistry)
 
+	zclDefMap := zcldef.Load("./zcldef/zcldef.json")
+	if zclDefMap == nil {
+		log.Fatal("Error loading ZCL map")
+	}
+
+	messageHsandler := handler.Create(zclCommandRegistry, zclDefMap, mqttClient, cfg)
+
 	log.Println("Start event loop ====")
 	for {
 		ctx := context.Background()
@@ -101,28 +108,7 @@ func main() {
 		case zigbee.NodeIncomingMessageEvent:
 			log.Printf("message: %v\n", e)
 			go saveNodeDB(e.Node, db1)
-			go processIncomingMessage(e.IncomingMessage, zclCommandRegistry, zclDefMap)
-		}
-	}
-}
-
-func processIncomingMessage(msg zigbee.IncomingMessage, zclCommandRegistry *zcl.CommandRegistry, zclDefMap *zcldef.ZCLMap) {
-	message, err := zclCommandRegistry.Unmarshal(msg.ApplicationMessage)
-	if err != nil {
-		log.Printf("Error parse incomming message: %v\n", err)
-		return
-	}
-
-	log.Printf("Incomming command of type (%T) is received. ClusterId is %v\n", message.Command, message.ClusterID)
-
-	switch cmd := message.Command.(type) {
-	case *global.ReportAttributes:
-		// res, _ := json.Marshal(cmd.Records[0].)
-		// log.Printf("Incomming message JSON: %v\n", res)
-
-		for _, r := range cmd.Records {
-			// AttrId: 2, DataType: 33, Value: 0
-			log.Printf("AttrId: %v, DataType: %v, Value: %v\n", r.Identifier, r.DataTypeValue.DataType, r.DataTypeValue.Value)
+			go messageHsandler.ProcessIncomingMessage(e.IncomingMessage)
 		}
 	}
 }

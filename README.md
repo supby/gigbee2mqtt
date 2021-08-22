@@ -1,1 +1,3 @@
-# gigbee2mqtt
+# Zigbee to MQTT gateway
+
+Convert zigbee messages to MQTT

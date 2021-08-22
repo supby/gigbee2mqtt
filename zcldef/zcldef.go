@@ -31,7 +31,7 @@ type CommandsResponseDefinition struct {
 	Parameters [][]string
 }
 
-type ZCLMap map[uint16]ClusterDefinition
+type ZCLDefMap map[uint16]ClusterDefinition
 
 type jsonZclMap map[string]jsonClusterDefinition
 
@@ -42,7 +42,7 @@ type jsonClusterDefinition struct {
 	CommandsResponse map[string]CommandsResponseDefinition
 }
 
-func Load(filename string) *ZCLMap {
+func Load(filename string) *ZCLDefMap {
 	_, err := os.Stat(filename)
 	if os.IsNotExist(err) {
 		return nil
@@ -53,7 +53,7 @@ func Load(filename string) *ZCLMap {
 	jsonBuf, _ := os.ReadFile(filename)
 	json.Unmarshal(jsonBuf, &jsonLoadedMap)
 
-	ret := make(ZCLMap)
+	ret := make(ZCLDefMap)
 
 	for clusterName := range jsonLoadedMap {
 		jsonClusterDef := jsonLoadedMap[clusterName]
