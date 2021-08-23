@@ -20,7 +20,7 @@ var connectLostHandler mqttlib.ConnectionLostHandler = func(client mqttlib.Clien
 	fmt.Printf("Connect lost: %v", err)
 }
 
-func InitMQTT(config *configuration.Configuration) (mqttlib.Client, func()) {
+func NewClient(config *configuration.Configuration) (*Client, func()) {
 	opts := mqttlib.NewClientOptions()
 	opts.AddBroker(fmt.Sprintf("tcp://%s:%d", config.MqttConfiguration.Address, config.MqttConfiguration.Port))
 	opts.SetClientID("gigbee2mqtt")
@@ -29,10 +29,26 @@ func InitMQTT(config *configuration.Configuration) (mqttlib.Client, func()) {
 	opts.SetDefaultPublishHandler(messagePubHandler)
 	opts.OnConnect = connectHandler
 	opts.OnConnectionLost = connectLostHandler
-	client := mqttlib.NewClient(opts)
-	if token := client.Connect(); token.Wait() && token.Error() != nil {
+	innerClient := mqttlib.NewClient(opts)
+	if token := innerClient.Connect(); token.Wait() && token.Error() != nil {
 		log.Fatal(token.Error())
 	}
 
-	return client, func() { client.Disconnect(0) }
+	client := Client{
+		innerClient: innerClient,
+	}
+
+	return &client, func() { client.Dispose() }
+}
+
+type Client struct {
+	innerClient mqttlib.Client
+}
+
+func (cl *Client) Dispose() {
+	cl.innerClient.Disconnect(0)
+}
+
+func (cl *Client) Publish(topic string, data []byte) {
+	cl.innerClient.Publish(topic, 0, false, data)
 }

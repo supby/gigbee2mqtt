@@ -8,14 +8,13 @@ import (
 	"github.com/shimmeringbee/zcl"
 	"github.com/shimmeringbee/zcl/commands/global"
 	"github.com/shimmeringbee/zigbee"
+	"github.com/shimmeringbee/zstack"
+
 	"github.com/supby/gigbee2mqtt/configuration"
 	"github.com/supby/gigbee2mqtt/db"
 	"github.com/supby/gigbee2mqtt/handler"
 	"github.com/supby/gigbee2mqtt/mqtt"
 	"github.com/supby/gigbee2mqtt/zcldef"
-
-	//"github.com/supby/gigbee2mqtt/zstack"
-	"github.com/shimmeringbee/zstack"
 
 	"go.bug.st/serial.v1"
 )
@@ -27,6 +26,53 @@ import (
 func main() {
 	cfg := configuration.Init("./configuration.yaml")
 
+	db1 := db.Init("./db.json")
+
+	z := initZStack(cfg, db1)
+
+	zclCommandRegistry := zcl.NewCommandRegistry()
+	global.Register(zclCommandRegistry)
+
+	zclDefMap := zcldef.Load("./zcldef/zcldef.json")
+	if zclDefMap == nil {
+		log.Fatal("Error loading ZCL map")
+	}
+
+	mqttClient, mqttDisconnect := mqtt.NewClient(cfg)
+	defer mqttDisconnect()
+
+	messageHsandler := handler.Create(zclCommandRegistry, zclDefMap, mqttClient, db1, cfg)
+
+	startEventLoop(z, messageHsandler)
+}
+
+func startEventLoop(z *zstack.ZStack, messageHandler *handler.MessageHandler) {
+	log.Println("Start event loop ====")
+	for {
+		ctx := context.Background()
+		event, err := z.ReadEvent(ctx)
+
+		if err != nil {
+			log.Printf("Error read event: %v\n", err)
+		}
+
+		switch e := event.(type) {
+		case zigbee.NodeJoinEvent:
+			log.Printf("join: %v\n", e.Node)
+			go messageHandler.ProcessNodeJoin(e)
+		case zigbee.NodeLeaveEvent:
+			log.Printf("leave: %v\n", e.Node)
+		case zigbee.NodeUpdateEvent:
+			log.Printf("update: %v\n", e.Node)
+			go messageHandler.ProcessNodeUpdate(e)
+		case zigbee.NodeIncomingMessageEvent:
+			log.Printf("message: %v\n", e)
+			go messageHandler.ProcessIncomingMessage(e)
+		}
+	}
+}
+
+func initZStack(cfg *configuration.Configuration, db1 *db.DB) *zstack.ZStack {
 	mode := &serial.Mode{
 		BaudRate: int(cfg.SerialConfiguration.BaudRate),
 	}
@@ -36,11 +82,6 @@ func main() {
 		log.Fatal(err)
 	}
 	port.SetRTS(true)
-
-	db1 := db.Init("./db.json")
-
-	mqttClient, mqttDisconnect := mqtt.InitMQTT(cfg)
-	defer mqttDisconnect()
 
 	/* Construct node table, cache of network nodes. */
 	t := zstack.NewNodeTable()
@@ -77,54 +118,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	zclCommandRegistry := zcl.NewCommandRegistry()
-	global.Register(zclCommandRegistry)
-
-	zclDefMap := zcldef.Load("./zcldef/zcldef.json")
-	if zclDefMap == nil {
-		log.Fatal("Error loading ZCL map")
-	}
-
-	messageHsandler := handler.Create(zclCommandRegistry, zclDefMap, mqttClient, cfg)
-
-	log.Println("Start event loop ====")
-	for {
-		ctx := context.Background()
-		event, err := z.ReadEvent(ctx)
-
-		if err != nil {
-			log.Printf("Error read event: %v\n", err)
-		}
-
-		switch e := event.(type) {
-		case zigbee.NodeJoinEvent:
-			log.Printf("join: %v\n", e.Node)
-			go saveNodeDB(e.Node, db1)
-		case zigbee.NodeLeaveEvent:
-			log.Printf("leave: %v\n", e.Node)
-		case zigbee.NodeUpdateEvent:
-			log.Printf("update: %v\n", e.Node)
-			go saveNodeDB(e.Node, db1)
-		case zigbee.NodeIncomingMessageEvent:
-			log.Printf("message: %v\n", e)
-			go saveNodeDB(e.Node, db1)
-			go messageHsandler.ProcessIncomingMessage(e.IncomingMessage)
-		}
-	}
-}
-
-func saveNodeDB(znode zigbee.Node, dbObj *db.DB) {
-	dbNode := db.Node{
-		IEEEAddress:    uint64(znode.IEEEAddress),
-		NetworkAddress: uint16(znode.NetworkAddress),
-		LogicalType:    uint8(znode.LogicalType),
-		LQI:            znode.LQI,
-		Depth:          znode.Depth,
-		LastDiscovered: znode.LastDiscovered,
-		LastReceived:   znode.LastReceived,
-	}
-
-	dbObj.SaveNode(dbNode)
+	return z
 }
 
 func loadNodeTableFromDB(t *zstack.NodeTable, dbObj *db.DB) {

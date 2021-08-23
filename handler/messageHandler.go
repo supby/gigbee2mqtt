@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"log"
 
-	mqttlib "github.com/eclipse/paho.mqtt.golang"
 	"github.com/shimmeringbee/zcl"
 	"github.com/shimmeringbee/zcl/commands/global"
 	"github.com/shimmeringbee/zigbee"
 	"github.com/supby/gigbee2mqtt/configuration"
+	"github.com/supby/gigbee2mqtt/db"
 	"github.com/supby/gigbee2mqtt/mqtt"
 	"github.com/supby/gigbee2mqtt/zcldef"
 )
@@ -18,10 +18,35 @@ type MessageHandler struct {
 	configuration      *configuration.Configuration
 	zclCommandRegistry *zcl.CommandRegistry
 	zclDefMap          *zcldef.ZCLDefMap
-	mqttClient         mqttlib.Client
+	mqttClient         *mqtt.Client
+	database           *db.DB
 }
 
-func (mh *MessageHandler) ProcessIncomingMessage(msg zigbee.IncomingMessage) {
+func saveNodeDB(znode zigbee.Node, dbObj *db.DB) {
+	dbNode := db.Node{
+		IEEEAddress:    uint64(znode.IEEEAddress),
+		NetworkAddress: uint16(znode.NetworkAddress),
+		LogicalType:    uint8(znode.LogicalType),
+		LQI:            znode.LQI,
+		Depth:          znode.Depth,
+		LastDiscovered: znode.LastDiscovered,
+		LastReceived:   znode.LastReceived,
+	}
+
+	dbObj.SaveNode(dbNode)
+}
+
+func (mh *MessageHandler) ProcessNodeJoin(e zigbee.NodeJoinEvent) {
+	saveNodeDB(e.Node, mh.database)
+}
+
+func (mh *MessageHandler) ProcessNodeUpdate(e zigbee.NodeUpdateEvent) {
+	saveNodeDB(e.Node, mh.database)
+}
+
+func (mh *MessageHandler) ProcessIncomingMessage(e zigbee.NodeIncomingMessageEvent) {
+	go saveNodeDB(e.Node, mh.database)
+	msg := e.IncomingMessage
 	message, err := mh.zclCommandRegistry.Unmarshal(msg.ApplicationMessage)
 	if err != nil {
 		log.Printf("Error parse incomming message: %v\n", err)
@@ -45,7 +70,6 @@ func (mh *MessageHandler) ProcessIncomingMessage(msg zigbee.IncomingMessage) {
 		}
 
 		for _, r := range cmd.Records {
-			// AttrId: 2, DataType: 33, Value: 0
 			log.Printf("AttrId: %v, DataType: %v, Value (%T): %v\n", r.Identifier, r.DataTypeValue.DataType, r.DataTypeValue.Value, r.DataTypeValue.Value)
 
 			attrDef := clusterDef.Attributes[uint16(r.Identifier)]
@@ -53,7 +77,7 @@ func (mh *MessageHandler) ProcessIncomingMessage(msg zigbee.IncomingMessage) {
 		}
 
 		jsonData, _ := json.Marshal(mqttMessage)
-		mh.mqttClient.Publish(fmt.Sprintf("%v/%v", mh.configuration.MqttConfiguration.Topic, mqttMessage.IEEEAddress), 0, false, jsonData)
+		mh.mqttClient.Publish(fmt.Sprintf("%v/%v", mh.configuration.MqttConfiguration.Topic, mqttMessage.IEEEAddress), jsonData)
 
 	}
 }
@@ -61,13 +85,15 @@ func (mh *MessageHandler) ProcessIncomingMessage(msg zigbee.IncomingMessage) {
 func Create(
 	zclCommandRegistry *zcl.CommandRegistry,
 	zclDefMap *zcldef.ZCLDefMap,
-	mqttClient mqttlib.Client,
+	mqttClient *mqtt.Client,
+	database *db.DB,
 	cfg *configuration.Configuration) *MessageHandler {
 	ret := MessageHandler{
 		configuration:      cfg,
 		zclCommandRegistry: zclCommandRegistry,
 		zclDefMap:          zclDefMap,
 		mqttClient:         mqttClient,
+		database:           database,
 	}
 
 	return &ret
