@@ -13,4 +13,6 @@ require (
 	github.com/shimmeringbee/zigbee v0.0.0-20210427191220-76676a734066
 	github.com/shimmeringbee/zstack v0.0.0-20210525165917-f3b4c8f9948a
 	go.bug.st/serial.v1 v0.0.0-20191202182710-24a6610f0541
+	gopkg.in/yaml.v2 v2.4.0 // indirect
+	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 )

@@ -34,6 +34,8 @@ func NewClient(config *configuration.Configuration) (*Client, func()) {
 		log.Fatal(token.Error())
 	}
 
+	log.Printf("Connected to MQTT on '%v:%v'", config.MqttConfiguration.Address, config.MqttConfiguration.Port)
+
 	client := Client{
 		innerClient: innerClient,
 	}

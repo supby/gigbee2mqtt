@@ -1,7 +1,11 @@
 package configuration
 
 import (
+	"log"
+	"os"
+
 	"github.com/supby/gigbee2mqtt/utils"
+	"gopkg.in/yaml.v2"
 )
 
 type ZNetworkConfiguration struct {
@@ -41,15 +45,25 @@ func Init(filename string) *Configuration {
 			Channel:       15,
 		},
 		SerialConfiguration: SerialConfiguration{
-			PortName: "/dev/ttyACM0",
 			BaudRate: 115200,
 		},
 		PermitJoin: true,
 		MqttConfiguration: MqttConfiguration{
-			Address: "192.168.1.25",
-			Port:    1883,
-			Topic:   "gigbee2mqtt",
+			Port:  1883,
+			Topic: "gigbee2mqtt",
 		},
+	}
+
+	_, err := os.Stat(filename)
+	if os.IsNotExist(err) {
+		log.Fatalf("Configuration file '%v' does not exist.", filename)
+	}
+
+	data, _ := os.ReadFile(filename)
+
+	err = yaml.Unmarshal([]byte(data), &cfg)
+	if err != nil {
+		log.Fatalf("error loading YAML config: %v", err)
 	}
 
 	return &cfg
