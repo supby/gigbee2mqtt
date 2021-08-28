@@ -2,9 +2,7 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"log"
-	"strings"
 	"time"
 
 	"github.com/shimmeringbee/zcl"
@@ -40,23 +38,16 @@ func main() {
 		log.Fatal("Error loading ZCL map")
 	}
 
-	mqttClient, mqttDisconnect := mqtt.NewClient(cfg, mqqtMessage)
+	mqttClient, mqttDisconnect := mqtt.NewClient(cfg)
 	defer mqttDisconnect()
 
-	messageHsandler := handler.Create(zclCommandRegistry, zclDefMap, mqttClient, db1, cfg)
+	zMessageHsandler := handler.CreateZigbeeMessageHandler(zclCommandRegistry, zclDefMap, mqttClient, db1, cfg)
+	handler.CreateMQTTMessageHandler(mqttClient)
 
-	startEventLoop(z, messageHsandler)
+	startEventLoop(z, zMessageHsandler)
 }
 
-func mqqtMessage(topic string, message []byte) {
-
-	var devMsg mqtt.DeviceMessage
-	json.Unmarshal(message, &devMsg)
-
-	ieeeAddress := strings.Split(topic, "/")[0]
-}
-
-func startEventLoop(z *zstack.ZStack, messageHandler *handler.MessageHandler) {
+func startEventLoop(z *zstack.ZStack, messageHandler *handler.ZigbeeMessageHandler) {
 	log.Println("Start event loop ====")
 	for {
 		ctx := context.Background()

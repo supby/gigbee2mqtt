@@ -16,10 +16,8 @@ var connectLostHandler mqttlib.ConnectionLostHandler = func(client mqttlib.Clien
 	log.Printf("Connect lost: %v", err)
 }
 
-func NewClient(config *configuration.Configuration, messageCallback func(topic string, message []byte)) (*Client, func()) {
-	retClient := Client{
-		messageCallback: messageCallback,
-	}
+func NewClient(config *configuration.Configuration) (*Client, func()) {
+	retClient := Client{}
 
 	opts := mqttlib.NewClientOptions()
 	opts.AddBroker(fmt.Sprintf("tcp://%s:%d", config.MqttConfiguration.Address, config.MqttConfiguration.Port))
@@ -28,7 +26,7 @@ func NewClient(config *configuration.Configuration, messageCallback func(topic s
 	opts.SetPassword(config.MqttConfiguration.Password)
 	opts.SetDefaultPublishHandler(func(client mqttlib.Client, msg mqttlib.Message) {
 		log.Printf("Received message: %s from topic: %s\n", msg.Payload(), msg.Topic())
-		retClient.messageCallback(msg.Topic(), msg.Payload())
+		retClient.onMessageReceived(msg.Topic(), msg.Payload())
 	})
 	opts.OnConnect = connectHandler
 	opts.OnConnectionLost = connectLostHandler
@@ -55,4 +53,18 @@ func (cl *Client) Dispose() {
 
 func (cl *Client) Publish(topic string, data []byte) {
 	cl.innerClient.Publish(topic, 0, false, data)
+}
+
+func (cl *Client) Subscribe(callback func(topic string, message []byte)) {
+	cl.messageCallback = callback
+}
+
+func (cl *Client) UnSubscribe() {
+	cl.messageCallback = nil
+}
+
+func (cl *Client) onMessageReceived(topic string, message []byte) {
+	if cl.messageCallback != nil {
+		cl.messageCallback(topic, message)
+	}
 }
