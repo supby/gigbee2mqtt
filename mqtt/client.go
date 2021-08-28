@@ -8,25 +8,28 @@ import (
 	"github.com/supby/gigbee2mqtt/configuration"
 )
 
-var messagePubHandler mqttlib.MessageHandler = func(client mqttlib.Client, msg mqttlib.Message) {
-	fmt.Printf("Received message: %s from topic: %s\n", msg.Payload(), msg.Topic())
-}
-
 var connectHandler mqttlib.OnConnectHandler = func(client mqttlib.Client) {
-	fmt.Println("Connected")
+	log.Println("Connected")
 }
 
 var connectLostHandler mqttlib.ConnectionLostHandler = func(client mqttlib.Client, err error) {
-	fmt.Printf("Connect lost: %v", err)
+	log.Printf("Connect lost: %v", err)
 }
 
-func NewClient(config *configuration.Configuration) (*Client, func()) {
+func NewClient(config *configuration.Configuration, messageCallback func(topic string, message []byte)) (*Client, func()) {
+	retClient := Client{
+		messageCallback: messageCallback,
+	}
+
 	opts := mqttlib.NewClientOptions()
 	opts.AddBroker(fmt.Sprintf("tcp://%s:%d", config.MqttConfiguration.Address, config.MqttConfiguration.Port))
 	opts.SetClientID("gigbee2mqtt")
 	opts.SetUsername(config.MqttConfiguration.Username)
 	opts.SetPassword(config.MqttConfiguration.Password)
-	opts.SetDefaultPublishHandler(messagePubHandler)
+	opts.SetDefaultPublishHandler(func(client mqttlib.Client, msg mqttlib.Message) {
+		log.Printf("Received message: %s from topic: %s\n", msg.Payload(), msg.Topic())
+		retClient.messageCallback(msg.Topic(), msg.Payload())
+	})
 	opts.OnConnect = connectHandler
 	opts.OnConnectionLost = connectLostHandler
 	innerClient := mqttlib.NewClient(opts)
@@ -36,15 +39,14 @@ func NewClient(config *configuration.Configuration) (*Client, func()) {
 
 	log.Printf("Connected to MQTT on '%v:%v'", config.MqttConfiguration.Address, config.MqttConfiguration.Port)
 
-	client := Client{
-		innerClient: innerClient,
-	}
+	retClient.innerClient = innerClient
 
-	return &client, func() { client.Dispose() }
+	return &retClient, func() { retClient.Dispose() }
 }
 
 type Client struct {
-	innerClient mqttlib.Client
+	innerClient     mqttlib.Client
+	messageCallback func(topic string, message []byte)
 }
 
 func (cl *Client) Dispose() {

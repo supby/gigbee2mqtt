@@ -2,7 +2,9 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/shimmeringbee/zcl"
@@ -38,12 +40,20 @@ func main() {
 		log.Fatal("Error loading ZCL map")
 	}
 
-	mqttClient, mqttDisconnect := mqtt.NewClient(cfg)
+	mqttClient, mqttDisconnect := mqtt.NewClient(cfg, mqqtMessage)
 	defer mqttDisconnect()
 
 	messageHsandler := handler.Create(zclCommandRegistry, zclDefMap, mqttClient, db1, cfg)
 
 	startEventLoop(z, messageHsandler)
+}
+
+func mqqtMessage(topic string, message []byte) {
+
+	var devMsg mqtt.DeviceMessage
+	json.Unmarshal(message, &devMsg)
+
+	ieeeAddress := strings.Split(topic, "/")[0]
 }
 
 func startEventLoop(z *zstack.ZStack, messageHandler *handler.MessageHandler) {
