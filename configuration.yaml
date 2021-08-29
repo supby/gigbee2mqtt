@@ -13,4 +13,4 @@ serialconfiguration:
   portname: "/dev/ttyACM0"
   baudrate: 115200
 
-permitjoin: false
+permitjoin: true

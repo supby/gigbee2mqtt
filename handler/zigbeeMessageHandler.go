@@ -1,13 +1,16 @@
 package handler
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/shimmeringbee/zcl"
 	"github.com/shimmeringbee/zcl/commands/global"
 	"github.com/shimmeringbee/zigbee"
+	"github.com/shimmeringbee/zstack"
 	"github.com/supby/gigbee2mqtt/configuration"
 	"github.com/supby/gigbee2mqtt/db"
 	"github.com/supby/gigbee2mqtt/mqtt"
@@ -36,15 +39,15 @@ func saveNodeDB(znode zigbee.Node, dbObj *db.DB) {
 	dbObj.SaveNode(dbNode)
 }
 
-func (mh *ZigbeeMessageHandler) ProcessNodeJoin(e zigbee.NodeJoinEvent) {
+func (mh *ZigbeeMessageHandler) processNodeJoin(e zigbee.NodeJoinEvent) {
 	saveNodeDB(e.Node, mh.database)
 }
 
-func (mh *ZigbeeMessageHandler) ProcessNodeUpdate(e zigbee.NodeUpdateEvent) {
+func (mh *ZigbeeMessageHandler) processNodeUpdate(e zigbee.NodeUpdateEvent) {
 	saveNodeDB(e.Node, mh.database)
 }
 
-func (mh *ZigbeeMessageHandler) ProcessIncomingMessage(e zigbee.NodeIncomingMessageEvent) {
+func (mh *ZigbeeMessageHandler) processIncomingMessage(e zigbee.NodeIncomingMessageEvent) {
 	go saveNodeDB(e.Node, mh.database)
 	msg := e.IncomingMessage
 	message, err := mh.zclCommandRegistry.Unmarshal(msg.ApplicationMessage)
@@ -83,6 +86,7 @@ func (mh *ZigbeeMessageHandler) ProcessIncomingMessage(e zigbee.NodeIncomingMess
 }
 
 func CreateZigbeeMessageHandler(
+	z *zstack.ZStack,
 	zclCommandRegistry *zcl.CommandRegistry,
 	zclDefMap *zcldef.ZCLDefMap,
 	mqttClient *mqtt.Client,
@@ -96,5 +100,69 @@ func CreateZigbeeMessageHandler(
 		database:           database,
 	}
 
+	ret.startEventLoop(z)
+
 	return &ret
+}
+
+func (mh *ZigbeeMessageHandler) startEventLoop(z *zstack.ZStack) {
+	log.Println("Start event loop ====")
+	for {
+		ctx := context.Background()
+		event, err := z.ReadEvent(ctx)
+
+		if err != nil {
+			log.Printf("Error read event: %v\n", err)
+		}
+
+		switch e := event.(type) {
+		case zigbee.NodeJoinEvent:
+			log.Printf("join: %v\n", e.Node)
+			exploreDevice(z, e.Node)
+			go mh.processNodeJoin(e)
+		case zigbee.NodeLeaveEvent:
+			log.Printf("leave: %v\n", e.Node)
+		case zigbee.NodeUpdateEvent:
+			log.Printf("update: %v\n", e.Node)
+			go mh.processNodeUpdate(e)
+		case zigbee.NodeIncomingMessageEvent:
+			log.Printf("message: %v\n", e)
+			go mh.processIncomingMessage(e)
+		}
+	}
+}
+
+func exploreDevice(z *zstack.ZStack, node zigbee.Node) {
+	log.Printf("node %v: querying\n", node.IEEEAddress)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Minute)
+	defer cancel()
+
+	descriptor, err := z.QueryNodeDescription(ctx, node.IEEEAddress)
+
+	if err != nil {
+		log.Printf("failed to get node descriptor: %v\n", err)
+		return
+	}
+
+	log.Printf("node %v: descriptor: %+v\n", node.IEEEAddress, descriptor)
+
+	endpoints, err := z.QueryNodeEndpoints(ctx, node.IEEEAddress)
+
+	if err != nil {
+		log.Printf("failed to get node endpoints: %v\n", err)
+		return
+	}
+
+	log.Printf("node %v: endpoints: %+v\n", node.IEEEAddress, endpoints)
+
+	for _, endpoint := range endpoints {
+		endpointDes, err := z.QueryNodeEndpointDescription(ctx, node.IEEEAddress, endpoint)
+
+		if err != nil {
+			log.Printf("failed to get node endpoint description: %v / %d\n", err, endpoint)
+		} else {
+			log.Printf("node %v: endpoint: %d desc: %+v", node.IEEEAddress, endpoint, endpointDes)
+		}
+	}
 }
