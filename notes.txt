@@ -1,0 +1,1 @@
+node 00124b00217301e4: endpoint: 6 desc: {Endpoint:6 ProfileID:260 DeviceID:0 DeviceVersion:0 InClusterList:[0 3] OutClusterList:[6]}

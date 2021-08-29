@@ -24,11 +24,13 @@ import (
 // payload '{"cluster":"ssIasZone","data":{"batteryPercentageRemaining":200,"batteryVoltage":30,"zoneStatus":1},"device":{"friendlyName":"0x00124b000724ae04","ieeeAddr":"0x00124b000724ae04","model":"unknown","networkAddress":31211,"type":"Unknown"},"endpoint":{"ID":1,"_binds":[],"_configuredReportings":[],"clusters":{"genPowerCfg":{"attributes":{"batteryPercentageRemaining":200,"batteryVoltage":30}},"ssIasZone":{"attributes":{"zoneStatus":1}}},"deviceIeeeAddress":"0x00124b000724ae04","deviceNetworkAddress":31211,"inputClusters":[],"meta":{},"outputClusters":[]},"groupID":0,"linkquality":52,"meta":{"frameControl":{"direction":1,"disableDefaultResponse":true,"frameType":0,"manufacturerSpecific":false,"reservedBits":0},"manufacturerCode":null,"zclTransactionSequenceNumber":219},"type":"attributeReport"}'
 
 func main() {
+	pctx := context.Background()
+
 	cfg := configuration.Init("./configuration_livolo.yaml")
 
 	db1 := db.Init("./db.json")
 
-	z := initZStack(cfg, db1)
+	z := initZStack(pctx, cfg, db1)
 
 	zclCommandRegistry := zcl.NewCommandRegistry()
 	global.Register(zclCommandRegistry)
@@ -41,11 +43,17 @@ func main() {
 	mqttClient, mqttDisconnect := mqtt.NewClient(cfg)
 	defer mqttDisconnect()
 
-	handler.CreateZigbeeMessageHandler(z, zclCommandRegistry, zclDefMap, mqttClient, db1, cfg)
+	zHandler := handler.CreateZigbeeMessageHandler(z, zclCommandRegistry, zclDefMap, mqttClient, db1, cfg)
 	handler.CreateMQTTMessageHandler(mqttClient)
+
+	zHandler.Start(pctx)
+
+	<-pctx.Done()
+
+	log.Println("Exiting app...")
 }
 
-func initZStack(cfg *configuration.Configuration, db1 *db.DB) *zstack.ZStack {
+func initZStack(pctx context.Context, cfg *configuration.Configuration, db1 *db.DB) *zstack.ZStack {
 	mode := &serial.Mode{
 		BaudRate: int(cfg.SerialConfiguration.BaudRate),
 	}
@@ -58,7 +66,19 @@ func initZStack(cfg *configuration.Configuration, db1 *db.DB) *zstack.ZStack {
 
 	/* Construct node table, cache of network nodes. */
 	t := zstack.NewNodeTable()
-	loadNodeTableFromDB(t, db1)
+	znodes := make([]zigbee.Node, len(db1.Nodes))
+	for i, dbNode := range db1.Nodes {
+		znodes[i] = zigbee.Node{
+			IEEEAddress:    zigbee.IEEEAddress(dbNode.IEEEAddress),
+			NetworkAddress: zigbee.NetworkAddress(dbNode.NetworkAddress),
+			LogicalType:    zigbee.LogicalType(dbNode.LogicalType),
+			LQI:            dbNode.LQI,
+			Depth:          dbNode.Depth,
+			LastDiscovered: dbNode.LastDiscovered,
+			LastReceived:   dbNode.LastReceived,
+		}
+	}
+	t.Load(znodes)
 
 	/* Create a new ZStack struct. */
 	z := zstack.New(port, t)
@@ -71,43 +91,25 @@ func initZStack(cfg *configuration.Configuration, db1 *db.DB) *zstack.ZStack {
 	}
 
 	/* Obtain context for timeout of initialisation. */
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+	initCtx, cancel := context.WithTimeout(pctx, 2*time.Minute)
 	defer cancel()
 
 	/* Initialise ZStack and CC253X */
-	err = z.Initialise(ctx, netCfg)
+	err = z.Initialise(initCtx, netCfg)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	if cfg.PermitJoin {
-		err = z.PermitJoin(ctx, true)
+		err = z.PermitJoin(initCtx, true)
 		if err != nil {
 			log.Printf("Error permit join: %v\n", err)
 		}
 	}
 
-	if err := z.RegisterAdapterEndpoint(ctx, zigbee.Endpoint(0x01), zigbee.ProfileHomeAutomation, 1, 1, []zigbee.ClusterID{0, 3, 6}, []zigbee.ClusterID{0, 3, 6}); err != nil {
+	if err := z.RegisterAdapterEndpoint(initCtx, zigbee.Endpoint(0x01), zigbee.ProfileHomeAutomation, 1, 1, []zigbee.ClusterID{}, []zigbee.ClusterID{}); err != nil {
 		log.Fatal(err)
 	}
 
 	return z
-}
-
-func loadNodeTableFromDB(t *zstack.NodeTable, dbObj *db.DB) {
-	znodes := make([]zigbee.Node, len(dbObj.Nodes))
-
-	for i, dbNode := range dbObj.Nodes {
-		znodes[i] = zigbee.Node{
-			IEEEAddress:    zigbee.IEEEAddress(dbNode.IEEEAddress),
-			NetworkAddress: zigbee.NetworkAddress(dbNode.NetworkAddress),
-			LogicalType:    zigbee.LogicalType(dbNode.LogicalType),
-			LQI:            dbNode.LQI,
-			Depth:          dbNode.Depth,
-			LastDiscovered: dbNode.LastDiscovered,
-			LastReceived:   dbNode.LastReceived,
-		}
-	}
-
-	t.Load(znodes)
 }

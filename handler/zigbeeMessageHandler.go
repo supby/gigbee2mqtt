@@ -18,6 +18,7 @@ import (
 )
 
 type ZigbeeMessageHandler struct {
+	zstack             *zstack.ZStack
 	configuration      *configuration.Configuration
 	zclCommandRegistry *zcl.CommandRegistry
 	zclDefMap          *zcldef.ZCLDefMap
@@ -93,6 +94,7 @@ func CreateZigbeeMessageHandler(
 	database *db.DB,
 	cfg *configuration.Configuration) *ZigbeeMessageHandler {
 	ret := ZigbeeMessageHandler{
+		zstack:             z,
 		configuration:      cfg,
 		zclCommandRegistry: zclCommandRegistry,
 		zclDefMap:          zclDefMap,
@@ -100,16 +102,17 @@ func CreateZigbeeMessageHandler(
 		database:           database,
 	}
 
-	ret.startEventLoop(z)
-
 	return &ret
 }
 
-func (mh *ZigbeeMessageHandler) startEventLoop(z *zstack.ZStack) {
+func (mh *ZigbeeMessageHandler) Start(ctx context.Context) {
+	go mh.startEventLoop(ctx)
+}
+
+func (mh *ZigbeeMessageHandler) startEventLoop(ctx context.Context) {
 	log.Println("Start event loop ====")
 	for {
-		ctx := context.Background()
-		event, err := z.ReadEvent(ctx)
+		event, err := mh.zstack.ReadEvent(ctx)
 
 		if err != nil {
 			log.Printf("Error read event: %v\n", err)
@@ -118,7 +121,7 @@ func (mh *ZigbeeMessageHandler) startEventLoop(z *zstack.ZStack) {
 		switch e := event.(type) {
 		case zigbee.NodeJoinEvent:
 			log.Printf("join: %v\n", e.Node)
-			exploreDevice(z, e.Node)
+			mh.exploreDevice(e.Node)
 			go mh.processNodeJoin(e)
 		case zigbee.NodeLeaveEvent:
 			log.Printf("leave: %v\n", e.Node)
@@ -132,13 +135,13 @@ func (mh *ZigbeeMessageHandler) startEventLoop(z *zstack.ZStack) {
 	}
 }
 
-func exploreDevice(z *zstack.ZStack, node zigbee.Node) {
+func (mh *ZigbeeMessageHandler) exploreDevice(node zigbee.Node) {
 	log.Printf("node %v: querying\n", node.IEEEAddress)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Minute)
 	defer cancel()
 
-	descriptor, err := z.QueryNodeDescription(ctx, node.IEEEAddress)
+	descriptor, err := mh.zstack.QueryNodeDescription(ctx, node.IEEEAddress)
 
 	if err != nil {
 		log.Printf("failed to get node descriptor: %v\n", err)
@@ -147,7 +150,7 @@ func exploreDevice(z *zstack.ZStack, node zigbee.Node) {
 
 	log.Printf("node %v: descriptor: %+v\n", node.IEEEAddress, descriptor)
 
-	endpoints, err := z.QueryNodeEndpoints(ctx, node.IEEEAddress)
+	endpoints, err := mh.zstack.QueryNodeEndpoints(ctx, node.IEEEAddress)
 
 	if err != nil {
 		log.Printf("failed to get node endpoints: %v\n", err)
@@ -157,7 +160,7 @@ func exploreDevice(z *zstack.ZStack, node zigbee.Node) {
 	log.Printf("node %v: endpoints: %+v\n", node.IEEEAddress, endpoints)
 
 	for _, endpoint := range endpoints {
-		endpointDes, err := z.QueryNodeEndpointDescription(ctx, node.IEEEAddress, endpoint)
+		endpointDes, err := mh.zstack.QueryNodeEndpointDescription(ctx, node.IEEEAddress, endpoint)
 
 		if err != nil {
 			log.Printf("failed to get node endpoint description: %v / %d\n", err, endpoint)
