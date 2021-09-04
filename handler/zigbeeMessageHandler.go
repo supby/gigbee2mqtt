@@ -121,7 +121,7 @@ func (mh *ZigbeeMessageHandler) startEventLoop(ctx context.Context) {
 		switch e := event.(type) {
 		case zigbee.NodeJoinEvent:
 			log.Printf("join: %v\n", e.Node)
-			mh.exploreDevice(e.Node)
+			mh.exploreDevice(ctx, e.Node)
 			go mh.processNodeJoin(e)
 		case zigbee.NodeLeaveEvent:
 			log.Printf("leave: %v\n", e.Node)
@@ -135,10 +135,10 @@ func (mh *ZigbeeMessageHandler) startEventLoop(ctx context.Context) {
 	}
 }
 
-func (mh *ZigbeeMessageHandler) exploreDevice(node zigbee.Node) {
+func (mh *ZigbeeMessageHandler) exploreDevice(ctx context.Context, node zigbee.Node) {
 	log.Printf("node %v: querying\n", node.IEEEAddress)
 
-	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Minute)
+	ctx, cancel := context.WithTimeout(ctx, 1*time.Minute)
 	defer cancel()
 
 	descriptor, err := mh.zstack.QueryNodeDescription(ctx, node.IEEEAddress)
