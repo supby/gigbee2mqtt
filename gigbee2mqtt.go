@@ -7,6 +7,7 @@ import (
 
 	"github.com/shimmeringbee/zcl"
 	"github.com/shimmeringbee/zcl/commands/global"
+	"github.com/shimmeringbee/zcl/commands/local/onoff"
 	"github.com/shimmeringbee/zigbee"
 	"github.com/shimmeringbee/zstack"
 
@@ -34,6 +35,7 @@ func main() {
 
 	zclCommandRegistry := zcl.NewCommandRegistry()
 	global.Register(zclCommandRegistry)
+	onoff.Register(zclCommandRegistry)
 
 	zclDefMap := zcldef.Load("./zcldef/zcldef.json")
 	if zclDefMap == nil {
@@ -65,9 +67,10 @@ func initZStack(pctx context.Context, cfg *configuration.Configuration, db1 *db.
 	port.SetRTS(true)
 
 	/* Construct node table, cache of network nodes. */
+	dbNodes := db1.GetNodes()
 	t := zstack.NewNodeTable()
-	znodes := make([]zigbee.Node, len(db1.Nodes))
-	for i, dbNode := range db1.Nodes {
+	znodes := make([]zigbee.Node, len(dbNodes))
+	for i, dbNode := range dbNodes {
 		znodes[i] = zigbee.Node{
 			IEEEAddress:    zigbee.IEEEAddress(dbNode.IEEEAddress),
 			NetworkAddress: zigbee.NetworkAddress(dbNode.NetworkAddress),

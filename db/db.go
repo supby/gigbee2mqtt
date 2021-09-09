@@ -32,12 +32,22 @@ func Init(filename string) *DB {
 	return &ret
 }
 
+func (db *DB) GetNodes() []Node {
+	return db.Nodes
+}
+
 func (db *DB) SaveNode(node Node) {
+	existingNodeIndex := -1
 	for i, n := range db.Nodes {
 		if n.IEEEAddress == node.IEEEAddress {
-			db.Nodes[i] = node
+			existingNodeIndex = i
 			break
 		}
+	}
+	if existingNodeIndex > -1 {
+		db.Nodes[existingNodeIndex] = node
+	} else {
+		db.Nodes = append(db.Nodes, node)
 	}
 
 	db.save()
@@ -61,7 +71,10 @@ func (db *DB) load() {
 	jsonBuf, _ := os.ReadFile(db.filename)
 	json.Unmarshal(jsonBuf, &loadedDB)
 
-	db.Nodes = loadedDB.Nodes
+	db.Nodes = make([]Node, 0)
+	if loadedDB.Nodes != nil && len(loadedDB.Nodes) > 0 {
+		db.Nodes = loadedDB.Nodes
+	}
 
 	log.Printf("[DB] %v nodes are loaded from DB\n", len(db.Nodes))
 }

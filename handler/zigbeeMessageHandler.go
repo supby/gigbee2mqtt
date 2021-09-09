@@ -46,6 +46,30 @@ func (mh *ZigbeeMessageHandler) processNodeJoin(e zigbee.NodeJoinEvent) {
 
 func (mh *ZigbeeMessageHandler) processNodeUpdate(e zigbee.NodeUpdateEvent) {
 	saveNodeDB(e.Node, mh.database)
+
+	// log.Printf("!!!DEBUG!!! Sending Toggle command...\n")
+	// appMsg, err := mh.zclCommandRegistry.Marshal(zcl.Message{
+	// 	FrameType:           zcl.FrameLocal,
+	// 	Direction:           zcl.ClientToServer,
+	// 	TransactionSequence: 1,
+	// 	Manufacturer:        zigbee.NoManufacturer,
+	// 	ClusterID:           zcl.OnOffId,
+	// 	SourceEndpoint:      zigbee.Endpoint(0x01),
+	// 	DestinationEndpoint: zigbee.Endpoint(0x06),
+	// 	CommandIdentifier:   onoff.ToggleId,
+	// 	Command:             &onoff.Toggle{},
+	// })
+
+	// if err != nil {
+	// 	log.Printf("!!!DEBUG!!! Error Marshal command: %v\n", err)
+	// 	return
+	// }
+
+	// err = mh.zstack.SendApplicationMessageToNode(context.Background(), 0x00124b00217301e4, appMsg, true)
+	// if err != nil {
+	// 	log.Printf("!!!DEBUG!!! Error sending message: %v\n", err)
+	// 	return
+	// }
 }
 
 func (mh *ZigbeeMessageHandler) processIncomingMessage(e zigbee.NodeIncomingMessageEvent) {
