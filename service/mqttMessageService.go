@@ -29,7 +29,7 @@ func CreateMQTTMessageService(
 		configuration: configuration,
 	}
 
-	mqttClient.SubscribeAsync(ret.mqqtMessage)
+	mqttClient.Subscribe(ret.mqqtMessage)
 
 	return &ret
 }
@@ -51,10 +51,6 @@ func (h *MQTTMessageService) SubscribeOnSetMessage(callback func(devMsg mqtt.Dev
 func (h *MQTTMessageService) mqqtMessage(topic string, message []byte) {
 	topicParts := strings.Split(topic, "/")
 	if len(topicParts) < 3 {
-		return
-	}
-
-	if topicParts[0] != h.configuration.MqttConfiguration.Topic {
 		return
 	}
 

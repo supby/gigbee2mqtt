@@ -1,1 +1,16 @@
 node 00124b00217301e4: endpoint: 6 desc: {Endpoint:6 ProfileID:260 DeviceID:0 DeviceVersion:0 InClusterList:[0 3] OutClusterList:[6]}
+
+------
+
+gigbee2mqtt/00124b00217301e4/set
+
+{
+  "IEEEAddress": "00124b00217301e4",
+  "ClusterCommand": {
+    "ID": "1212",
+	  "Name": "Toggle",
+	  "Type": "tttt",
+	  "CommandIdentifier": "Toggle",
+	  "CommandData": ""
+  }
+}
