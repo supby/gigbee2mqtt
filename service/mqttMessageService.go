@@ -4,10 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"strconv"
 	"strings"
 
 	"github.com/supby/gigbee2mqtt/configuration"
 	"github.com/supby/gigbee2mqtt/mqtt"
+	"github.com/supby/gigbee2mqtt/types"
 )
 
 const (
@@ -18,7 +20,7 @@ const (
 type MQTTMessageService struct {
 	mqttClient    *mqtt.MqttClient
 	configuration *configuration.Configuration
-	onSetMessage  func(devMsg mqtt.DeviceSetMessage)
+	onSetMessage  func(devCmd types.DeviceCommandMessage)
 }
 
 func CreateMQTTMessageService(
@@ -44,7 +46,7 @@ func (h *MQTTMessageService) ProccessMessageFromDevice(devMsg mqtt.DeviceAttribu
 	h.mqttClient.Publish(fmt.Sprintf("%v/%v", h.configuration.MqttConfiguration.Topic, devMsg.IEEEAddress), jsonData)
 }
 
-func (h *MQTTMessageService) SubscribeOnSetMessage(callback func(devMsg mqtt.DeviceSetMessage)) {
+func (h *MQTTMessageService) SubscribeOnSetMessage(callback func(devCmd types.DeviceCommandMessage)) {
 	h.onSetMessage = callback
 }
 
@@ -54,20 +56,26 @@ func (h *MQTTMessageService) mqqtMessage(topic string, message []byte) {
 		return
 	}
 
+	deviceAddr, err := strconv.ParseUint(topicParts[1], 10, 64)
+	if err != nil {
+		log.Printf("Error parsing device address as uint64: %v\n", err)
+	}
+
 	if topicParts[2] == MQTT_GET {
-		h.handleGetCommand(topicParts[1], message)
+
+		h.handleGetCommand(deviceAddr, message)
 	}
 
 	if topicParts[2] == MQTT_SET {
-		h.handleSetCommand(topicParts[1], message)
+		h.handleSetCommand(deviceAddr, message)
 	}
 }
 
-func (h *MQTTMessageService) handleGetCommand(deviceAddr string, message []byte) {
+func (h *MQTTMessageService) handleGetCommand(deviceAddr uint64, message []byte) {
 
 }
 
-func (h *MQTTMessageService) handleSetCommand(deviceAddr string, message []byte) {
+func (h *MQTTMessageService) handleSetCommand(deviceAddr uint64, message []byte) {
 	var devMsg mqtt.DeviceSetMessage
 	err := json.Unmarshal(message, &devMsg)
 	if err != nil {
@@ -76,7 +84,13 @@ func (h *MQTTMessageService) handleSetCommand(deviceAddr string, message []byte)
 	}
 
 	if h.onSetMessage != nil {
-		h.onSetMessage(devMsg)
+		h.onSetMessage(types.DeviceCommandMessage{
+			IEEEAddress:       deviceAddr,
+			ClusterID:         devMsg.ClusterID,
+			Endpoint:          devMsg.Endpoint,
+			CommandIdentifier: devMsg.CommandIdentifier,
+			CommandData:       devMsg.CommandData,
+		})
 	}
 
 }

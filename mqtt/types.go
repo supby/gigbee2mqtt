@@ -12,16 +12,9 @@ type ClusterAttributesData struct {
 	Type       string
 	Attributes map[string]interface{}
 }
-
 type DeviceSetMessage struct {
-	IEEEAddress    uint64
-	ClusterCommand ClusterCommandData
-}
-
-type ClusterCommandData struct {
-	ID                uint16
-	Name              string
-	Type              string
-	CommandIdentifier string
-	CommandData       string
+	ClusterID         uint16
+	Endpoint          uint8
+	CommandIdentifier uint8
+	CommandData       interface{}
 }

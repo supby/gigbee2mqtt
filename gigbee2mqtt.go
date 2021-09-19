@@ -15,6 +15,7 @@ import (
 	"github.com/supby/gigbee2mqtt/db"
 	"github.com/supby/gigbee2mqtt/mqtt"
 	"github.com/supby/gigbee2mqtt/service"
+	"github.com/supby/gigbee2mqtt/types"
 	"github.com/supby/gigbee2mqtt/zcldef"
 
 	"go.bug.st/serial.v1"
@@ -49,8 +50,8 @@ func main() {
 	zService := service.CreateZigbeeMessageService(z, zclCommandRegistry, zclDefMap, db1, cfg)
 
 	// TODO: move to separate router
-	mqttService.SubscribeOnSetMessage(func(devMsg mqtt.DeviceSetMessage) {
-		zService.ProccessMessageToDevice(devMsg)
+	mqttService.SubscribeOnSetMessage(func(devCmd types.DeviceCommandMessage) {
+		zService.ProccessMessageToDevice(devCmd)
 	})
 	zService.SubscribeOnAttributesReport(func(devMsg mqtt.DeviceAttributesReportMessage) {
 		mqttService.ProccessMessageFromDevice(devMsg)

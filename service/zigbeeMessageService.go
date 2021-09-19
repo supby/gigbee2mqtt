@@ -13,6 +13,7 @@ import (
 	"github.com/supby/gigbee2mqtt/configuration"
 	"github.com/supby/gigbee2mqtt/db"
 	"github.com/supby/gigbee2mqtt/mqtt"
+	"github.com/supby/gigbee2mqtt/types"
 	"github.com/supby/gigbee2mqtt/zcldef"
 )
 
@@ -29,20 +30,19 @@ func (mh *ZigbeeMessageService) SubscribeOnAttributesReport(callback func(devMsg
 	mh.onAttributesReport = callback
 }
 
-func (mh *ZigbeeMessageService) ProccessMessageToDevice(devSetMsg mqtt.DeviceSetMessage) {
-
-	// TODO: map appropriate command from ZCL definition
+func (mh *ZigbeeMessageService) ProccessMessageToDevice(devCmd types.DeviceCommandMessage) {
 
 	appMsg, err := mh.zclCommandRegistry.Marshal(zcl.Message{
 		FrameType:           zcl.FrameLocal,
 		Direction:           zcl.ClientToServer,
 		TransactionSequence: 1,
 		Manufacturer:        zigbee.NoManufacturer,
-		ClusterID:           zcl.OnOffId,
+		ClusterID:           zigbee.ClusterID(devCmd.ClusterID),
 		SourceEndpoint:      zigbee.Endpoint(0x01),
-		DestinationEndpoint: zigbee.Endpoint(0x06),
-		CommandIdentifier:   onoff.ToggleId,
+		DestinationEndpoint: zigbee.Endpoint(devCmd.Endpoint),
+		CommandIdentifier:   zcl.CommandIdentifier(devCmd.CommandIdentifier),
 		Command:             &onoff.Toggle{},
+		//Command:             &devCmd.CommandData,
 	})
 
 	if err != nil {
@@ -50,7 +50,7 @@ func (mh *ZigbeeMessageService) ProccessMessageToDevice(devSetMsg mqtt.DeviceSet
 		return
 	}
 
-	err = mh.zstack.SendApplicationMessageToNode(context.Background(), zigbee.IEEEAddress(devSetMsg.IEEEAddress), appMsg, true)
+	err = mh.zstack.SendApplicationMessageToNode(context.Background(), zigbee.IEEEAddress(devCmd.IEEEAddress), appMsg, true)
 	if err != nil {
 		log.Printf("Error sending message: %v\n", err)
 		return

@@ -3,7 +3,6 @@ package mqtt
 import (
 	"fmt"
 	"log"
-	"strings"
 
 	mqttlib "github.com/eclipse/paho.mqtt.golang"
 	"github.com/supby/gigbee2mqtt/configuration"
@@ -74,8 +73,7 @@ func (cl *MqttClient) UnSubscribe() {
 }
 
 func (cl *MqttClient) onMessageReceived(topic string, message []byte) {
-	topicParts := strings.Split(topic, "/")
-	if topicParts[0] != cl.configuration.MqttConfiguration.Topic {
+	if topic == fmt.Sprintf("%v/gateway", cl.configuration.MqttConfiguration.Topic) {
 		return
 	}
 
