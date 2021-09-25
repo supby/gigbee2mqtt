@@ -18,14 +18,14 @@ const (
 )
 
 type MQTTMessageService struct {
-	mqttClient    *mqtt.MqttClient
+	mqttClient    mqtt.IMqttClient
 	configuration *configuration.Configuration
 	onSetMessage  func(devCmd types.DeviceCommandMessage)
 }
 
 func CreateMQTTMessageService(
 	configuration *configuration.Configuration,
-	mqttClient *mqtt.MqttClient) *MQTTMessageService {
+	mqttClient mqtt.IMqttClient) *MQTTMessageService {
 	ret := MQTTMessageService{
 		mqttClient:    mqttClient,
 		configuration: configuration,

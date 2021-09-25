@@ -22,7 +22,7 @@ type ZigbeeMessageService struct {
 	configuration      *configuration.Configuration
 	zclCommandRegistry *zcl.CommandRegistry
 	zclDefMap          *zcldef.ZCLDefMap
-	database           *db.DB
+	database           db.IDevicesRepo
 	onAttributesReport func(devMsg mqtt.DeviceAttributesReportMessage)
 }
 
@@ -72,7 +72,7 @@ func (mh *ZigbeeMessageService) ProccessMessageToDevice(devCmd types.DeviceComma
 	}
 }
 
-func saveNodeDB(znode zigbee.Node, dbObj *db.DB) {
+func saveNodeDB(znode zigbee.Node, dbObj db.IDevicesRepo) {
 	dbNode := db.Node{
 		IEEEAddress:    uint64(znode.IEEEAddress),
 		NetworkAddress: uint16(znode.NetworkAddress),
@@ -140,7 +140,7 @@ func CreateZigbeeMessageService(
 	z *zstack.ZStack,
 	zclCommandRegistry *zcl.CommandRegistry,
 	zclDefMap *zcldef.ZCLDefMap,
-	database *db.DB,
+	database db.IDevicesRepo,
 	cfg *configuration.Configuration) *ZigbeeMessageService {
 	ret := ZigbeeMessageService{
 		zstack:             z,

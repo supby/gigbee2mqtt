@@ -66,7 +66,7 @@ func main() {
 	log.Println("Exiting app...")
 }
 
-func initZStack(pctx context.Context, cfg *configuration.Configuration, db1 *db.DB) *zstack.ZStack {
+func initZStack(pctx context.Context, cfg *configuration.Configuration, db1 db.IDevicesRepo) *zstack.ZStack {
 	mode := &serial.Mode{
 		BaudRate: int(cfg.SerialConfiguration.BaudRate),
 	}

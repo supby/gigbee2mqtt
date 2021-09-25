@@ -4,26 +4,15 @@ import (
 	"encoding/json"
 	"log"
 	"os"
-	"time"
 )
 
-type Node struct {
-	IEEEAddress    uint64
-	NetworkAddress uint16
-	LogicalType    uint8
-	LQI            uint8
-	Depth          uint8
-	LastDiscovered time.Time
-	LastReceived   time.Time
+type IDevicesRepo interface {
+	GetNodes() []Node
+	SaveNode(node Node)
 }
 
-type DB struct {
-	filename string
-	Nodes    []Node
-}
-
-func Init(filename string) *DB {
-	ret := DB{
+func Init(filename string) IDevicesRepo {
+	ret := devicesRepo{
 		filename: filename,
 	}
 
@@ -32,11 +21,16 @@ func Init(filename string) *DB {
 	return &ret
 }
 
-func (db *DB) GetNodes() []Node {
+type devicesRepo struct {
+	filename string
+	Nodes    []Node
+}
+
+func (db *devicesRepo) GetNodes() []Node {
 	return db.Nodes
 }
 
-func (db *DB) SaveNode(node Node) {
+func (db *devicesRepo) SaveNode(node Node) {
 	existingNodeIndex := -1
 	for i, n := range db.Nodes {
 		if n.IEEEAddress == node.IEEEAddress {
@@ -53,20 +47,20 @@ func (db *DB) SaveNode(node Node) {
 	db.save()
 }
 
-func (db *DB) save() {
+func (db *devicesRepo) save() {
 	log.Println("Saving node to DB")
 
 	res, _ := json.Marshal(db)
 	os.WriteFile(db.filename, res, 0644)
 }
 
-func (db *DB) load() {
+func (db *devicesRepo) load() {
 	_, err := os.Stat(db.filename)
 	if os.IsNotExist(err) {
 		return
 	}
 
-	var loadedDB DB
+	var loadedDB devicesRepo
 
 	jsonBuf, _ := os.ReadFile(db.filename)
 	json.Unmarshal(jsonBuf, &loadedDB)

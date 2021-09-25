@@ -16,8 +16,8 @@ var connectLostHandler mqttlib.ConnectionLostHandler = func(client mqttlib.Clien
 	log.Printf("Connect lost: %v", err)
 }
 
-func NewClient(config *configuration.Configuration) (*MqttClient, func()) {
-	retClient := MqttClient{
+func NewClient(config *configuration.Configuration) (IMqttClient, func()) {
+	retClient := defaultMqttClient{
 		configuration: config,
 	}
 
@@ -50,29 +50,36 @@ func NewClient(config *configuration.Configuration) (*MqttClient, func()) {
 	return &retClient, func() { retClient.Dispose() }
 }
 
-type MqttClient struct {
+type IMqttClient interface {
+	Dispose()
+	Publish(subTopic string, data []byte)
+	Subscribe(callback func(topic string, message []byte))
+	UnSubscribe()
+}
+
+type defaultMqttClient struct {
 	innerClient     mqttlib.Client
 	messageCallback func(topic string, message []byte)
 	configuration   *configuration.Configuration
 }
 
-func (cl *MqttClient) Dispose() {
+func (cl *defaultMqttClient) Dispose() {
 	cl.innerClient.Disconnect(0)
 }
 
-func (cl *MqttClient) Publish(subTopic string, data []byte) {
+func (cl *defaultMqttClient) Publish(subTopic string, data []byte) {
 	cl.innerClient.Publish(fmt.Sprintf("%v/%v", cl.configuration.MqttConfiguration.Topic, subTopic), 0, false, data)
 }
 
-func (cl *MqttClient) Subscribe(callback func(topic string, message []byte)) {
+func (cl *defaultMqttClient) Subscribe(callback func(topic string, message []byte)) {
 	cl.messageCallback = callback
 }
 
-func (cl *MqttClient) UnSubscribe() {
+func (cl *defaultMqttClient) UnSubscribe() {
 	cl.messageCallback = nil
 }
 
-func (cl *MqttClient) onMessageReceived(topic string, message []byte) {
+func (cl *defaultMqttClient) onMessageReceived(topic string, message []byte) {
 	if topic == fmt.Sprintf("%v/gateway", cl.configuration.MqttConfiguration.Topic) {
 		return
 	}
