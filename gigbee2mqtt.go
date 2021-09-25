@@ -7,6 +7,7 @@ import (
 
 	"github.com/shimmeringbee/zcl"
 	"github.com/shimmeringbee/zcl/commands/global"
+	"github.com/shimmeringbee/zcl/commands/local/level"
 	"github.com/shimmeringbee/zcl/commands/local/onoff"
 	"github.com/shimmeringbee/zigbee"
 	"github.com/shimmeringbee/zstack"
@@ -37,6 +38,7 @@ func main() {
 	zclCommandRegistry := zcl.NewCommandRegistry()
 	global.Register(zclCommandRegistry)
 	onoff.Register(zclCommandRegistry)
+	level.Register(zclCommandRegistry)
 
 	zclDefMap := zcldef.Load("./zcldef/zcldef.json")
 	if zclDefMap == nil {

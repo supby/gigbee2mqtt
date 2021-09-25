@@ -56,7 +56,7 @@ func (h *MQTTMessageService) mqqtMessage(topic string, message []byte) {
 		return
 	}
 
-	deviceAddr, err := strconv.ParseUint(topicParts[1], 10, 64)
+	deviceAddr, err := strconv.ParseUint(strings.Replace(topicParts[1], "0x", "", -1), 16, 64)
 	if err != nil {
 		log.Printf("Error parsing device address as uint64: %v\n", err)
 	}

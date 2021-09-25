@@ -45,6 +45,21 @@ func (mh *ZigbeeMessageService) ProccessMessageToDevice(devCmd types.DeviceComma
 		//Command:             &devCmd.CommandData,
 	})
 
+	// appMsg, err := mh.zclCommandRegistry.Marshal(zcl.Message{
+	// 	FrameType:           zcl.FrameLocal,
+	// 	Direction:           zcl.ClientToServer,
+	// 	TransactionSequence: 1,
+	// 	Manufacturer:        zigbee.NoManufacturer,
+	// 	ClusterID:           zigbee.ClusterID(8),
+	// 	SourceEndpoint:      zigbee.Endpoint(0x01),
+	// 	DestinationEndpoint: zigbee.Endpoint(devCmd.Endpoint),
+	// 	CommandIdentifier:   level.MoveToLevelWithOnOffId,
+	// 	Command: &level.MoveToLevelWithOnOff{
+	// 		Level:          108,
+	// 		TransitionTime: 1,
+	// 	},
+	// })
+
 	if err != nil {
 		log.Printf("Error Marshal zcl message: %v\n", err)
 		return
