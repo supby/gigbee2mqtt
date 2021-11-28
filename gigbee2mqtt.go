@@ -3,6 +3,8 @@ package main
 import (
 	"context"
 	"log"
+	"os"
+	"os/signal"
 	"time"
 
 	"github.com/shimmeringbee/zcl"
@@ -15,7 +17,7 @@ import (
 	"github.com/supby/gigbee2mqtt/configuration"
 	"github.com/supby/gigbee2mqtt/db"
 	"github.com/supby/gigbee2mqtt/mqtt"
-	"github.com/supby/gigbee2mqtt/service"
+	"github.com/supby/gigbee2mqtt/router"
 	"github.com/supby/gigbee2mqtt/types"
 	"github.com/supby/gigbee2mqtt/zcldef"
 
@@ -45,22 +47,33 @@ func main() {
 	mqttClient, mqttDisconnect := mqtt.NewClient(cfg)
 	defer mqttDisconnect()
 
-	mqttService := service.CreateMQTTMessageService(cfg, mqttClient)
-	zService := service.CreateZigbeeMessageService(z, zclCommandRegistry, zclDefService, db1, cfg)
+	mqttRouter := router.NewMQTTRouter(cfg, mqttClient)
+	zRouter := router.NewZigbeeRouter(z, zclCommandRegistry, zclDefService, db1, cfg)
 
 	// TODO: move to separate router
-	mqttService.SubscribeOnSetMessage(func(devCmd types.DeviceCommandMessage) {
-		zService.ProccessMessageToDevice(devCmd)
+	mqttRouter.SubscribeOnSetMessage(func(devCmd types.DeviceCommandMessage) {
+		zRouter.ProccessMessageToDevice(devCmd)
 	})
-	zService.SubscribeOnAttributesReport(func(devMsg mqtt.DeviceAttributesReportMessage) {
-		mqttService.ProccessMessageFromDevice(devMsg)
+	zRouter.SubscribeOnAttributesReport(func(devMsg mqtt.DeviceAttributesReportMessage) {
+		mqttRouter.ProccessMessageFromDevice(devMsg)
 	})
 
-	zService.StartAsync(pctx)
+	ctx, cancel := context.WithCancel(pctx)
+	zRouter.StartAsync(ctx)
 
-	<-pctx.Done()
+	waitForSignal(cancel)
 
 	log.Println("Exiting app...")
+}
+
+func waitForSignal(cancel context.CancelFunc) {
+	sigchan := make(chan os.Signal, 1)
+	signal.Notify(sigchan, os.Interrupt)
+	defer func() {
+		cancel()
+		signal.Stop(sigchan)
+	}()
+	<-sigchan
 }
 
 func initZStack(pctx context.Context, cfg *configuration.Configuration, db1 db.DevicesRepo) *zstack.ZStack {

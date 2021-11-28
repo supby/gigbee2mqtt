@@ -1,4 +1,4 @@
-package service
+package router
 
 import (
 	"encoding/json"
@@ -17,16 +17,16 @@ const (
 	MQTT_GET = "get"
 )
 
-type MQTTMessageService struct {
+type MQTTRouter struct {
 	mqttClient    mqtt.MqttClient
 	configuration *configuration.Configuration
 	onSetMessage  func(devCmd types.DeviceCommandMessage)
 }
 
-func CreateMQTTMessageService(
+func NewMQTTRouter(
 	configuration *configuration.Configuration,
-	mqttClient mqtt.MqttClient) *MQTTMessageService {
-	ret := MQTTMessageService{
+	mqttClient mqtt.MqttClient) *MQTTRouter {
+	ret := MQTTRouter{
 		mqttClient:    mqttClient,
 		configuration: configuration,
 	}
@@ -36,7 +36,7 @@ func CreateMQTTMessageService(
 	return &ret
 }
 
-func (h *MQTTMessageService) ProccessMessageFromDevice(devMsg mqtt.DeviceAttributesReportMessage) {
+func (h *MQTTRouter) ProccessMessageFromDevice(devMsg mqtt.DeviceAttributesReportMessage) {
 	jsonData, err := json.Marshal(devMsg)
 	if err != nil {
 		log.Printf("Error Marshal Set DeviceAttributesReportMessage: %v\n", err)
@@ -46,11 +46,11 @@ func (h *MQTTMessageService) ProccessMessageFromDevice(devMsg mqtt.DeviceAttribu
 	h.mqttClient.Publish(fmt.Sprintf("%v/%v", h.configuration.MqttConfiguration.Topic, devMsg.IEEEAddress), jsonData)
 }
 
-func (h *MQTTMessageService) SubscribeOnSetMessage(callback func(devCmd types.DeviceCommandMessage)) {
+func (h *MQTTRouter) SubscribeOnSetMessage(callback func(devCmd types.DeviceCommandMessage)) {
 	h.onSetMessage = callback
 }
 
-func (h *MQTTMessageService) mqttMessage(topic string, message []byte) {
+func (h *MQTTRouter) mqttMessage(topic string, message []byte) {
 	topicParts := strings.Split(topic, "/")
 	if len(topicParts) < 3 {
 		return
@@ -71,11 +71,11 @@ func (h *MQTTMessageService) mqttMessage(topic string, message []byte) {
 	}
 }
 
-func (h *MQTTMessageService) handleGetCommand(deviceAddr uint64, message []byte) {
+func (h *MQTTRouter) handleGetCommand(deviceAddr uint64, message []byte) {
 
 }
 
-func (h *MQTTMessageService) handleSetCommand(deviceAddr uint64, message []byte) {
+func (h *MQTTRouter) handleSetCommand(deviceAddr uint64, message []byte) {
 	var devMsg mqtt.DeviceSetMessage
 	err := json.Unmarshal(message, &devMsg)
 	if err != nil {

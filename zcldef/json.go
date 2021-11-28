@@ -23,7 +23,10 @@ func loadFromFile(filename string) *map[uint16]ClusterDefinition {
 	var jsonLoadedMap jsonZclMap
 
 	jsonBuf, _ := os.ReadFile(filename)
-	json.Unmarshal(jsonBuf, &jsonLoadedMap)
+	err = json.Unmarshal(jsonBuf, &jsonLoadedMap)
+	if err != nil {
+		return nil
+	}
 
 	ret := make(map[uint16]ClusterDefinition)
 
