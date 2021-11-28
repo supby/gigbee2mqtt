@@ -40,16 +40,13 @@ func main() {
 	onoff.Register(zclCommandRegistry)
 	level.Register(zclCommandRegistry)
 
-	zclDefMap := zcldef.Load("./zcldef/zcldef.json")
-	if zclDefMap == nil {
-		log.Fatal("Error loading ZCL map")
-	}
+	zclDefService := zcldef.New("./zcldef/zcldef.json")
 
 	mqttClient, mqttDisconnect := mqtt.NewClient(cfg)
 	defer mqttDisconnect()
 
 	mqttService := service.CreateMQTTMessageService(cfg, mqttClient)
-	zService := service.CreateZigbeeMessageService(z, zclCommandRegistry, zclDefMap, db1, cfg)
+	zService := service.CreateZigbeeMessageService(z, zclCommandRegistry, zclDefService, db1, cfg)
 
 	// TODO: move to separate router
 	mqttService.SubscribeOnSetMessage(func(devCmd types.DeviceCommandMessage) {
@@ -66,7 +63,7 @@ func main() {
 	log.Println("Exiting app...")
 }
 
-func initZStack(pctx context.Context, cfg *configuration.Configuration, db1 db.IDevicesRepo) *zstack.ZStack {
+func initZStack(pctx context.Context, cfg *configuration.Configuration, db1 db.DevicesRepo) *zstack.ZStack {
 	mode := &serial.Mode{
 		BaudRate: int(cfg.SerialConfiguration.BaudRate),
 	}

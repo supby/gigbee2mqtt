@@ -3,7 +3,6 @@ package service
 import (
 	"context"
 	"log"
-	"time"
 
 	"github.com/shimmeringbee/zcl"
 	"github.com/shimmeringbee/zcl/commands/global"
@@ -21,8 +20,8 @@ type ZigbeeMessageService struct {
 	zstack             *zstack.ZStack
 	configuration      *configuration.Configuration
 	zclCommandRegistry *zcl.CommandRegistry
-	zclDefMap          *zcldef.ZCLDefMap
-	database           db.IDevicesRepo
+	zclDefService      zcldef.ZCLDefService
+	database           db.DevicesRepo
 	onAttributesReport func(devMsg mqtt.DeviceAttributesReportMessage)
 }
 
@@ -72,7 +71,7 @@ func (mh *ZigbeeMessageService) ProccessMessageToDevice(devCmd types.DeviceComma
 	}
 }
 
-func saveNodeDB(znode zigbee.Node, dbObj db.IDevicesRepo) {
+func saveNodeDB(znode zigbee.Node, dbObj db.DevicesRepo) {
 	dbNode := db.Node{
 		IEEEAddress:    uint64(znode.IEEEAddress),
 		NetworkAddress: uint16(znode.NetworkAddress),
@@ -112,7 +111,7 @@ func (mh *ZigbeeMessageService) processIncomingMessage(e zigbee.NodeIncomingMess
 }
 
 func (mh *ZigbeeMessageService) processReportAttributes(msg zigbee.IncomingMessage, cmd *global.ReportAttributes) {
-	clusterDef := (*mh.zclDefMap)[uint16(msg.ApplicationMessage.ClusterID)]
+	clusterDef := mh.zclDefService.GetById(uint16(msg.ApplicationMessage.ClusterID))
 
 	mqttMessage := mqtt.DeviceAttributesReportMessage{
 		IEEEAddress: uint64(msg.SourceAddress.IEEEAddress),
@@ -139,14 +138,14 @@ func (mh *ZigbeeMessageService) processReportAttributes(msg zigbee.IncomingMessa
 func CreateZigbeeMessageService(
 	z *zstack.ZStack,
 	zclCommandRegistry *zcl.CommandRegistry,
-	zclDefMap *zcldef.ZCLDefMap,
-	database db.IDevicesRepo,
+	zclDefService zcldef.ZCLDefService,
+	database db.DevicesRepo,
 	cfg *configuration.Configuration) *ZigbeeMessageService {
 	ret := ZigbeeMessageService{
 		zstack:             z,
 		configuration:      cfg,
 		zclCommandRegistry: zclCommandRegistry,
-		zclDefMap:          zclDefMap,
+		zclDefService:      zclDefService,
 		database:           database,
 	}
 
@@ -169,7 +168,7 @@ func (mh *ZigbeeMessageService) startEventLoop(ctx context.Context) {
 		switch e := event.(type) {
 		case zigbee.NodeJoinEvent:
 			log.Printf("join: %v\n", e.Node)
-			mh.exploreDevice(ctx, e.Node)
+			//mh.exploreDevice(ctx, e.Node)
 			go mh.processNodeJoin(e)
 		case zigbee.NodeLeaveEvent:
 			log.Printf("leave: %v\n", e.Node)
@@ -183,37 +182,37 @@ func (mh *ZigbeeMessageService) startEventLoop(ctx context.Context) {
 	}
 }
 
-func (mh *ZigbeeMessageService) exploreDevice(ctx context.Context, node zigbee.Node) {
-	log.Printf("node %v: querying\n", node.IEEEAddress)
+// func (mh *ZigbeeMessageService) exploreDevice(ctx context.Context, node zigbee.Node) {
+// 	log.Printf("node %v: querying\n", node.IEEEAddress)
 
-	ctx, cancel := context.WithTimeout(ctx, 1*time.Minute)
-	defer cancel()
+// 	ctx, cancel := context.WithTimeout(ctx, 1*time.Minute)
+// 	defer cancel()
 
-	descriptor, err := mh.zstack.QueryNodeDescription(ctx, node.IEEEAddress)
+// 	descriptor, err := mh.zstack.QueryNodeDescription(ctx, node.IEEEAddress)
 
-	if err != nil {
-		log.Printf("failed to get node descriptor: %v\n", err)
-		return
-	}
+// 	if err != nil {
+// 		log.Printf("failed to get node descriptor: %v\n", err)
+// 		return
+// 	}
 
-	log.Printf("node %v: descriptor: %+v\n", node.IEEEAddress, descriptor)
+// 	log.Printf("node %v: descriptor: %+v\n", node.IEEEAddress, descriptor)
 
-	endpoints, err := mh.zstack.QueryNodeEndpoints(ctx, node.IEEEAddress)
+// 	endpoints, err := mh.zstack.QueryNodeEndpoints(ctx, node.IEEEAddress)
 
-	if err != nil {
-		log.Printf("failed to get node endpoints: %v\n", err)
-		return
-	}
+// 	if err != nil {
+// 		log.Printf("failed to get node endpoints: %v\n", err)
+// 		return
+// 	}
 
-	log.Printf("node %v: endpoints: %+v\n", node.IEEEAddress, endpoints)
+// 	log.Printf("node %v: endpoints: %+v\n", node.IEEEAddress, endpoints)
 
-	for _, endpoint := range endpoints {
-		endpointDes, err := mh.zstack.QueryNodeEndpointDescription(ctx, node.IEEEAddress, endpoint)
+// 	for _, endpoint := range endpoints {
+// 		endpointDes, err := mh.zstack.QueryNodeEndpointDescription(ctx, node.IEEEAddress, endpoint)
 
-		if err != nil {
-			log.Printf("failed to get node endpoint description: %v / %d\n", err, endpoint)
-		} else {
-			log.Printf("node %v: endpoint: %d desc: %+v", node.IEEEAddress, endpoint, endpointDes)
-		}
-	}
-}
+// 		if err != nil {
+// 			log.Printf("failed to get node endpoint description: %v / %d\n", err, endpoint)
+// 		} else {
+// 			log.Printf("node %v: endpoint: %d desc: %+v", node.IEEEAddress, endpoint, endpointDes)
+// 		}
+// 	}
+// }

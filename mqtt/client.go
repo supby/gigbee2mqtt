@@ -16,7 +16,7 @@ var connectLostHandler mqttlib.ConnectionLostHandler = func(client mqttlib.Clien
 	log.Printf("Connect lost: %v", err)
 }
 
-func NewClient(config *configuration.Configuration) (IMqttClient, func()) {
+func NewClient(config *configuration.Configuration) (MqttClient, func()) {
 	retClient := defaultMqttClient{
 		configuration: config,
 	}
@@ -50,7 +50,7 @@ func NewClient(config *configuration.Configuration) (IMqttClient, func()) {
 	return &retClient, func() { retClient.Dispose() }
 }
 
-type IMqttClient interface {
+type MqttClient interface {
 	Dispose()
 	Publish(subTopic string, data []byte)
 	Subscribe(callback func(topic string, message []byte))

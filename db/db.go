@@ -6,12 +6,12 @@ import (
 	"os"
 )
 
-type IDevicesRepo interface {
+type DevicesRepo interface {
 	GetNodes() []Node
 	SaveNode(node Node)
 }
 
-func Init(filename string) IDevicesRepo {
+func Init(filename string) DevicesRepo {
 	ret := devicesRepo{
 		filename: filename,
 	}

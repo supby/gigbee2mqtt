@@ -18,20 +18,20 @@ const (
 )
 
 type MQTTMessageService struct {
-	mqttClient    mqtt.IMqttClient
+	mqttClient    mqtt.MqttClient
 	configuration *configuration.Configuration
 	onSetMessage  func(devCmd types.DeviceCommandMessage)
 }
 
 func CreateMQTTMessageService(
 	configuration *configuration.Configuration,
-	mqttClient mqtt.IMqttClient) *MQTTMessageService {
+	mqttClient mqtt.MqttClient) *MQTTMessageService {
 	ret := MQTTMessageService{
 		mqttClient:    mqttClient,
 		configuration: configuration,
 	}
 
-	mqttClient.Subscribe(ret.mqqtMessage)
+	mqttClient.Subscribe(ret.mqttMessage)
 
 	return &ret
 }
@@ -50,7 +50,7 @@ func (h *MQTTMessageService) SubscribeOnSetMessage(callback func(devCmd types.De
 	h.onSetMessage = callback
 }
 
-func (h *MQTTMessageService) mqqtMessage(topic string, message []byte) {
+func (h *MQTTMessageService) mqttMessage(topic string, message []byte) {
 	topicParts := strings.Split(topic, "/")
 	if len(topicParts) < 3 {
 		return
