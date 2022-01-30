@@ -11,7 +11,7 @@ type ClusterDefinition struct {
 type AttributeDefinition struct {
 	ID   uint16
 	Name string
-	Type byte
+	Type string
 }
 
 type CommandDefinition struct {

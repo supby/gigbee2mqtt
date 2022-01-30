@@ -2,10 +2,13 @@ node 00124b00217301e4: endpoint: 6 desc: {Endpoint:6 ProfileID:260 DeviceID:0 De
 
 ------
 
-gigbee2mqtt/0x00124b00217301e4/set
+gigbee2mqtt/0x00124b0018e1a13f/set
 {
-  "ClusterID": 6,
+  "ClusterID": 8,
   "Endpoint": 6,
-	"CommandIdentifier": 2,
-	"CommandData": {}
+	"CommandIdentifier": 4,
+	"CommandData": {
+    Level: 108,
+	 	TransitionTime: 1,
+  }
 }

@@ -43,7 +43,7 @@ func (h *MQTTRouter) ProccessMessageFromDevice(devMsg mqtt.DeviceAttributesRepor
 		return
 	}
 
-	h.mqttClient.Publish(fmt.Sprintf("%v/%v", h.configuration.MqttConfiguration.Topic, devMsg.IEEEAddress), jsonData)
+	h.mqttClient.Publish(fmt.Sprintf("0x%x", devMsg.IEEEAddress), jsonData)
 }
 
 func (h *MQTTRouter) SubscribeOnSetMessage(callback func(devCmd types.DeviceCommandMessage)) {

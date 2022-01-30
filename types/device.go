@@ -5,5 +5,5 @@ type DeviceCommandMessage struct {
 	ClusterID         uint16
 	Endpoint          uint8
 	CommandIdentifier uint8
-	CommandData       interface{}
+	CommandData       map[string]interface{}
 }

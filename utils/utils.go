@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/shimmeringbee/zigbee"
-	//"github.com/supby/gigbee2mqtt/zstack"
 	"github.com/shimmeringbee/zstack"
 )
 

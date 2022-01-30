@@ -2,6 +2,7 @@ package zcldef
 
 import (
 	"encoding/json"
+	"log"
 	"os"
 )
 
@@ -17,6 +18,7 @@ type jsonClusterDefinition struct {
 func loadFromFile(filename string) *map[uint16]ClusterDefinition {
 	_, err := os.Stat(filename)
 	if os.IsNotExist(err) {
+		log.Printf("ZCL definition file: %v does not exist", filename)
 		return nil
 	}
 
@@ -25,6 +27,7 @@ func loadFromFile(filename string) *map[uint16]ClusterDefinition {
 	jsonBuf, _ := os.ReadFile(filename)
 	err = json.Unmarshal(jsonBuf, &jsonLoadedMap)
 	if err != nil {
+		log.Printf("Failed to unmarshal JSON ZCL definition file: %v. Err: %v", filename, err)
 		return nil
 	}
 

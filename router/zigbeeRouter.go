@@ -6,13 +6,13 @@ import (
 
 	"github.com/shimmeringbee/zcl"
 	"github.com/shimmeringbee/zcl/commands/global"
-	"github.com/shimmeringbee/zcl/commands/local/onoff"
 	"github.com/shimmeringbee/zigbee"
 	"github.com/shimmeringbee/zstack"
 	"github.com/supby/gigbee2mqtt/configuration"
 	"github.com/supby/gigbee2mqtt/db"
 	"github.com/supby/gigbee2mqtt/mqtt"
 	"github.com/supby/gigbee2mqtt/types"
+	"github.com/supby/gigbee2mqtt/utils"
 	"github.com/supby/gigbee2mqtt/zcldef"
 )
 
@@ -31,7 +31,7 @@ func (mh *ZigbeeRouter) SubscribeOnAttributesReport(callback func(devMsg mqtt.De
 
 func (mh *ZigbeeRouter) ProccessMessageToDevice(devCmd types.DeviceCommandMessage) {
 
-	appMsg, err := mh.zclCommandRegistry.Marshal(zcl.Message{
+	message := zcl.Message{
 		FrameType:           zcl.FrameLocal,
 		Direction:           zcl.ClientToServer,
 		TransactionSequence: 1,
@@ -40,24 +40,24 @@ func (mh *ZigbeeRouter) ProccessMessageToDevice(devCmd types.DeviceCommandMessag
 		SourceEndpoint:      zigbee.Endpoint(0x01),
 		DestinationEndpoint: zigbee.Endpoint(devCmd.Endpoint),
 		CommandIdentifier:   zcl.CommandIdentifier(devCmd.CommandIdentifier),
-		Command:             &onoff.Toggle{},
-		//Command:             &devCmd.CommandData,
-	})
+	}
 
-	// appMsg, err := mh.zclCommandRegistry.Marshal(zcl.Message{
-	// 	FrameType:           zcl.FrameLocal,
-	// 	Direction:           zcl.ClientToServer,
-	// 	TransactionSequence: 1,
-	// 	Manufacturer:        zigbee.NoManufacturer,
-	// 	ClusterID:           zigbee.ClusterID(8),
-	// 	SourceEndpoint:      zigbee.Endpoint(0x01),
-	// 	DestinationEndpoint: zigbee.Endpoint(devCmd.Endpoint),
-	// 	CommandIdentifier:   level.MoveToLevelWithOnOffId,
-	// 	Command: &level.MoveToLevelWithOnOff{
-	// 		Level:          108,
-	// 		TransitionTime: 1,
-	// 	},
-	// })
+	command, err := mh.zclCommandRegistry.GetLocalCommand(message.ClusterID, message.Manufacturer, message.Direction, message.CommandIdentifier)
+	if err != nil {
+		log.Printf("Error Local command for ClusterID: %v, Manufacturer: %v, Direction: %v, CommandIdentifier: %v. Error: %v \n",
+			message.ClusterID,
+			message.Manufacturer,
+			message.Direction,
+			message.CommandIdentifier,
+			err)
+		return
+	}
+
+	utils.SetStructProperties(devCmd.CommandData, command)
+
+	message.Command = command
+
+	appMsg, err := mh.zclCommandRegistry.Marshal(message)
 
 	if err != nil {
 		log.Printf("Error Marshal zcl message: %v\n", err)
