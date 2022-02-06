@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"flag"
 	"log"
 	"os"
 	"os/signal"
@@ -25,9 +26,12 @@ import (
 )
 
 func main() {
+	var configFile = flag.String("c", "./configuration.yaml", "path to config file name")
+	flag.Parse()
+
 	pctx := context.Background()
 
-	cfg := configuration.Init("./configuration_livolo.yaml")
+	cfg := configuration.Init(*configFile)
 
 	db1 := db.Init("./db.json")
 
