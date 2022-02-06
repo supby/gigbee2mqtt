@@ -24,10 +24,6 @@ import (
 	"go.bug.st/serial.v1"
 )
 
-// Example of message:
-// MQTT publish: topic 'zigbee2mqtt/0x00124b000724ae04',
-// payload '{"cluster":"ssIasZone","data":{"batteryPercentageRemaining":200,"batteryVoltage":30,"zoneStatus":1},"device":{"friendlyName":"0x00124b000724ae04","ieeeAddr":"0x00124b000724ae04","model":"unknown","networkAddress":31211,"type":"Unknown"},"endpoint":{"ID":1,"_binds":[],"_configuredReportings":[],"clusters":{"genPowerCfg":{"attributes":{"batteryPercentageRemaining":200,"batteryVoltage":30}},"ssIasZone":{"attributes":{"zoneStatus":1}}},"deviceIeeeAddress":"0x00124b000724ae04","deviceNetworkAddress":31211,"inputClusters":[],"meta":{},"outputClusters":[]},"groupID":0,"linkquality":52,"meta":{"frameControl":{"direction":1,"disableDefaultResponse":true,"frameType":0,"manufacturerSpecific":false,"reservedBits":0},"manufacturerCode":null,"zclTransactionSequenceNumber":219},"type":"attributeReport"}'
-
 func main() {
 	pctx := context.Background()
 
@@ -56,7 +52,7 @@ func main() {
 	mqttRouter.SubscribeOnSetMessage(func(devCmd types.DeviceCommandMessage) {
 		zRouter.ProccessMessageToDevice(ctx, devCmd)
 	})
-	zRouter.SubscribeOnAttributesReport(func(devMsg mqtt.DeviceAttributesReportMessage) {
+	zRouter.SubscribeOnAttributesReport(func(devMsg mqtt.DeviceMessage) {
 		mqttRouter.ProccessMessageFromDevice(devMsg)
 	})
 

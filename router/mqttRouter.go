@@ -36,10 +36,10 @@ func NewMQTTRouter(
 	return &ret
 }
 
-func (h *MQTTRouter) ProccessMessageFromDevice(devMsg mqtt.DeviceAttributesReportMessage) {
+func (h *MQTTRouter) ProccessMessageFromDevice(devMsg mqtt.DeviceMessage) {
 	jsonData, err := json.Marshal(devMsg)
 	if err != nil {
-		log.Printf("Error Marshal Set DeviceAttributesReportMessage: %v\n", err)
+		log.Printf("Error Marshal DeviceMessage: %v\n", err)
 		return
 	}
 
@@ -62,7 +62,6 @@ func (h *MQTTRouter) mqttMessage(topic string, message []byte) {
 	}
 
 	if topicParts[2] == MQTT_GET {
-
 		h.handleGetCommand(deviceAddr, message)
 	}
 

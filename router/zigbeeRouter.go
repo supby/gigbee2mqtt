@@ -22,12 +22,11 @@ type ZigbeeRouter struct {
 	zclCommandRegistry *zcl.CommandRegistry
 	zclDefService      zcldef.ZCLDefService
 	database           db.DevicesRepo
-	onAttributesReport func(devMsg mqtt.DeviceAttributesReportMessage)
-	onDefaultResponse  func(devMsg mqtt.DeviceDefaultResponseMessage)
+	onDeviceMessage    func(devMsg mqtt.DeviceMessage)
 }
 
-func (mh *ZigbeeRouter) SubscribeOnAttributesReport(callback func(devMsg mqtt.DeviceAttributesReportMessage)) {
-	mh.onAttributesReport = callback
+func (mh *ZigbeeRouter) SubscribeOnAttributesReport(callback func(devMsg mqtt.DeviceMessage)) {
+	mh.onDeviceMessage = callback
 }
 
 func (mh *ZigbeeRouter) ProccessMessageToDevice(ctx context.Context, devCmd types.DeviceCommandMessage) {
@@ -59,7 +58,6 @@ func (mh *ZigbeeRouter) ProccessMessageToDevice(ctx context.Context, devCmd type
 	message.Command = command
 
 	appMsg, err := mh.zclCommandRegistry.Marshal(message)
-
 	if err != nil {
 		log.Printf("Error Marshal zcl message: %v\n", err)
 		return
@@ -70,6 +68,8 @@ func (mh *ZigbeeRouter) ProccessMessageToDevice(ctx context.Context, devCmd type
 		log.Printf("Error sending message: %v\n", err)
 		return
 	}
+
+	log.Printf("Message (ClusterID: %v, Command: %v) is sent to %v device\n", message.ClusterID, message.CommandIdentifier, devCmd.IEEEAddress)
 }
 
 func saveNodeDB(znode zigbee.Node, dbObj db.DevicesRepo) {
@@ -116,37 +116,42 @@ func (mh *ZigbeeRouter) processIncomingMessage(e zigbee.NodeIncomingMessageEvent
 func (mh *ZigbeeRouter) processReportAttributes(msg zigbee.IncomingMessage, cmd *global.ReportAttributes) {
 	clusterDef := mh.zclDefService.GetById(uint16(msg.ApplicationMessage.ClusterID))
 
-	mqttMessage := mqtt.DeviceAttributesReportMessage{
-		IEEEAddress:       uint64(msg.SourceAddress.IEEEAddress),
-		LinkQuality:       msg.LinkQuality,
+	mqttMessage := mqtt.DeviceMessage{
+		IEEEAddress: uint64(msg.SourceAddress.IEEEAddress),
+		LinkQuality: msg.LinkQuality,
+	}
+
+	deviceMessage := mqtt.DeviceAttributesReportMessage{
 		ClusterID:         clusterDef.ID,
 		ClusterName:       clusterDef.Name,
 		ClusterAttributes: make(map[string]interface{}),
 	}
 
 	for _, r := range cmd.Records {
-		log.Printf("AttrId: %v, DataType: %v, Value (%T): %v\n", r.Identifier, r.DataTypeValue.DataType, r.DataTypeValue.Value, r.DataTypeValue.Value)
-
 		attrDef := clusterDef.Attributes[uint16(r.Identifier)]
-		mqttMessage.ClusterAttributes[attrDef.Name] = r.DataTypeValue.Value
+		deviceMessage.ClusterAttributes[attrDef.Name] = r.DataTypeValue.Value
 	}
 
-	if mh.onAttributesReport != nil {
-		mh.onAttributesReport(mqttMessage)
+	mqttMessage.Message = deviceMessage
+
+	if mh.onDeviceMessage != nil {
+		mh.onDeviceMessage(mqttMessage)
 	}
 }
 
 func (mh *ZigbeeRouter) processDefaultResponse(msg zigbee.IncomingMessage, cmd *global.DefaultResponse) {
-	mqttMessage := mqtt.DeviceDefaultResponseMessage{
-		IEEEAddress:       uint64(msg.SourceAddress.IEEEAddress),
-		LinkQuality:       msg.LinkQuality,
-		ClusterID:         uint16(msg.ApplicationMessage.ClusterID),
-		CommandIdentifier: cmd.CommandIdentifier,
-		Status:            cmd.Status,
+	mqttMessage := mqtt.DeviceMessage{
+		IEEEAddress: uint64(msg.SourceAddress.IEEEAddress),
+		LinkQuality: msg.LinkQuality,
+		Message: mqtt.DeviceDefaultResponseMessage{
+			ClusterID:         uint16(msg.ApplicationMessage.ClusterID),
+			CommandIdentifier: cmd.CommandIdentifier,
+			Status:            cmd.Status,
+		},
 	}
 
-	if mh.onAttributesReport != nil {
-		mh.onDefaultResponse(mqttMessage)
+	if mh.onDeviceMessage != nil {
+		mh.onDeviceMessage(mqttMessage)
 	}
 }
 
@@ -189,7 +194,6 @@ func (mh *ZigbeeRouter) startEventLoop(ctx context.Context) {
 		switch e := event.(type) {
 		case zigbee.NodeJoinEvent:
 			log.Printf("join: %v\n", e.Node)
-			//mh.exploreDevice(ctx, e.Node)
 			go mh.processNodeJoin(e)
 		case zigbee.NodeLeaveEvent:
 			log.Printf("leave: %v\n", e.Node)
