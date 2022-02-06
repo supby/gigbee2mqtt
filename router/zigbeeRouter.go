@@ -23,13 +23,14 @@ type ZigbeeRouter struct {
 	zclDefService      zcldef.ZCLDefService
 	database           db.DevicesRepo
 	onAttributesReport func(devMsg mqtt.DeviceAttributesReportMessage)
+	onDefaultResponse  func(devMsg mqtt.DeviceDefaultResponseMessage)
 }
 
 func (mh *ZigbeeRouter) SubscribeOnAttributesReport(callback func(devMsg mqtt.DeviceAttributesReportMessage)) {
 	mh.onAttributesReport = callback
 }
 
-func (mh *ZigbeeRouter) ProccessMessageToDevice(devCmd types.DeviceCommandMessage) {
+func (mh *ZigbeeRouter) ProccessMessageToDevice(ctx context.Context, devCmd types.DeviceCommandMessage) {
 
 	message := zcl.Message{
 		FrameType:           zcl.FrameLocal,
@@ -64,7 +65,7 @@ func (mh *ZigbeeRouter) ProccessMessageToDevice(devCmd types.DeviceCommandMessag
 		return
 	}
 
-	err = mh.zstack.SendApplicationMessageToNode(context.Background(), zigbee.IEEEAddress(devCmd.IEEEAddress), appMsg, true)
+	err = mh.zstack.SendApplicationMessageToNode(ctx, zigbee.IEEEAddress(devCmd.IEEEAddress), appMsg, true)
 	if err != nil {
 		log.Printf("Error sending message: %v\n", err)
 		return
@@ -107,6 +108,8 @@ func (mh *ZigbeeRouter) processIncomingMessage(e zigbee.NodeIncomingMessageEvent
 	switch cmd := message.Command.(type) {
 	case *global.ReportAttributes:
 		mh.processReportAttributes(msg, cmd)
+	case *global.DefaultResponse:
+		mh.processDefaultResponse(msg, cmd)
 	}
 }
 
@@ -114,24 +117,36 @@ func (mh *ZigbeeRouter) processReportAttributes(msg zigbee.IncomingMessage, cmd 
 	clusterDef := mh.zclDefService.GetById(uint16(msg.ApplicationMessage.ClusterID))
 
 	mqttMessage := mqtt.DeviceAttributesReportMessage{
-		IEEEAddress: uint64(msg.SourceAddress.IEEEAddress),
-		LinkQuality: msg.LinkQuality,
-		ClusterAttributes: mqtt.ClusterAttributesData{
-			ID:         clusterDef.ID,
-			Name:       clusterDef.Name,
-			Attributes: make(map[string]interface{}),
-		},
+		IEEEAddress:       uint64(msg.SourceAddress.IEEEAddress),
+		LinkQuality:       msg.LinkQuality,
+		ClusterID:         clusterDef.ID,
+		ClusterName:       clusterDef.Name,
+		ClusterAttributes: make(map[string]interface{}),
 	}
 
 	for _, r := range cmd.Records {
 		log.Printf("AttrId: %v, DataType: %v, Value (%T): %v\n", r.Identifier, r.DataTypeValue.DataType, r.DataTypeValue.Value, r.DataTypeValue.Value)
 
 		attrDef := clusterDef.Attributes[uint16(r.Identifier)]
-		mqttMessage.ClusterAttributes.Attributes[attrDef.Name] = r.DataTypeValue.Value
+		mqttMessage.ClusterAttributes[attrDef.Name] = r.DataTypeValue.Value
 	}
 
 	if mh.onAttributesReport != nil {
 		mh.onAttributesReport(mqttMessage)
+	}
+}
+
+func (mh *ZigbeeRouter) processDefaultResponse(msg zigbee.IncomingMessage, cmd *global.DefaultResponse) {
+	mqttMessage := mqtt.DeviceDefaultResponseMessage{
+		IEEEAddress:       uint64(msg.SourceAddress.IEEEAddress),
+		LinkQuality:       msg.LinkQuality,
+		ClusterID:         uint16(msg.ApplicationMessage.ClusterID),
+		CommandIdentifier: cmd.CommandIdentifier,
+		Status:            cmd.Status,
+	}
+
+	if mh.onAttributesReport != nil {
+		mh.onDefaultResponse(mqttMessage)
 	}
 }
 
@@ -187,38 +202,3 @@ func (mh *ZigbeeRouter) startEventLoop(ctx context.Context) {
 		}
 	}
 }
-
-// func (mh *ZigbeeMessageService) exploreDevice(ctx context.Context, node zigbee.Node) {
-// 	log.Printf("node %v: querying\n", node.IEEEAddress)
-
-// 	ctx, cancel := context.WithTimeout(ctx, 1*time.Minute)
-// 	defer cancel()
-
-// 	descriptor, err := mh.zstack.QueryNodeDescription(ctx, node.IEEEAddress)
-
-// 	if err != nil {
-// 		log.Printf("failed to get node descriptor: %v\n", err)
-// 		return
-// 	}
-
-// 	log.Printf("node %v: descriptor: %+v\n", node.IEEEAddress, descriptor)
-
-// 	endpoints, err := mh.zstack.QueryNodeEndpoints(ctx, node.IEEEAddress)
-
-// 	if err != nil {
-// 		log.Printf("failed to get node endpoints: %v\n", err)
-// 		return
-// 	}
-
-// 	log.Printf("node %v: endpoints: %+v\n", node.IEEEAddress, endpoints)
-
-// 	for _, endpoint := range endpoints {
-// 		endpointDes, err := mh.zstack.QueryNodeEndpointDescription(ctx, node.IEEEAddress, endpoint)
-
-// 		if err != nil {
-// 			log.Printf("failed to get node endpoint description: %v / %d\n", err, endpoint)
-// 		} else {
-// 			log.Printf("node %v: endpoint: %d desc: %+v", node.IEEEAddress, endpoint, endpointDes)
-// 		}
-// 	}
-// }

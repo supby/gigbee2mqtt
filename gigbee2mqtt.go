@@ -36,6 +36,7 @@ func main() {
 	db1 := db.Init("./db.json")
 
 	z := initZStack(pctx, cfg, db1)
+	defer z.Stop()
 
 	zclCommandRegistry := zcl.NewCommandRegistry()
 	global.Register(zclCommandRegistry)
@@ -50,15 +51,15 @@ func main() {
 	mqttRouter := router.NewMQTTRouter(cfg, mqttClient)
 	zRouter := router.NewZigbeeRouter(z, zclCommandRegistry, zclDefService, db1, cfg)
 
-	// TODO: move to separate router
+	ctx, cancel := context.WithCancel(pctx)
+
 	mqttRouter.SubscribeOnSetMessage(func(devCmd types.DeviceCommandMessage) {
-		zRouter.ProccessMessageToDevice(devCmd)
+		zRouter.ProccessMessageToDevice(ctx, devCmd)
 	})
 	zRouter.SubscribeOnAttributesReport(func(devMsg mqtt.DeviceAttributesReportMessage) {
 		mqttRouter.ProccessMessageFromDevice(devMsg)
 	})
 
-	ctx, cancel := context.WithCancel(pctx)
 	zRouter.StartAsync(ctx)
 
 	waitForSignal(cancel)
