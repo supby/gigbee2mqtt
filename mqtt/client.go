@@ -29,7 +29,6 @@ func NewClient(config *configuration.Configuration) (MqttClient, func()) {
 	opts.AutoReconnect = true
 	opts.SetOrderMatters(false)
 	opts.SetDefaultPublishHandler(func(client mqttlib.Client, msg mqttlib.Message) {
-		log.Printf("[MQTT Client] Received message: %s for topic: %s\n", msg.Payload(), msg.Topic())
 		retClient.onMessageReceived(msg.Topic(), msg.Payload())
 	})
 	opts.OnConnect = connectHandler

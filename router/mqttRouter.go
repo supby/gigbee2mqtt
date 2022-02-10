@@ -82,6 +82,8 @@ func (h *MQTTRouter) handleSetCommand(deviceAddr uint64, message []byte) {
 		return
 	}
 
+	log.Printf("[MQTT Router] SET message received. Device:%v, ClusterID:%v, CommandID:%v", deviceAddr, devMsg.ClusterID, devMsg.CommandIdentifier)
+
 	if h.onSetMessage != nil {
 		h.onSetMessage(types.DeviceCommandMessage{
 			IEEEAddress:       deviceAddr,

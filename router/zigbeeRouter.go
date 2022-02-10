@@ -3,7 +3,6 @@ package router
 import (
 	"context"
 	"log"
-	"time"
 
 	"github.com/shimmeringbee/zcl"
 	"github.com/shimmeringbee/zcl/commands/global"
@@ -64,10 +63,11 @@ func (mh *ZigbeeRouter) ProccessMessageToDevice(ctx context.Context, devCmd type
 		return
 	}
 
-	timeoutCtx, timeoutCancel := context.WithTimeout(ctx, time.Minute)
-	defer timeoutCancel()
+	// timeoutCtx, timeoutCancel := context.WithTimeout(ctx, time.Minute)
+	// defer timeoutCancel()
 
-	err = mh.zstack.SendApplicationMessageToNode(timeoutCtx, zigbee.IEEEAddress(devCmd.IEEEAddress), appMsg, true)
+	//err = mh.zstack.SendApplicationMessageToNode(timeoutCtx, zigbee.IEEEAddress(devCmd.IEEEAddress), appMsg, true)
+	err = mh.zstack.SendApplicationMessageToNode(ctx, zigbee.IEEEAddress(devCmd.IEEEAddress), appMsg, false)
 	if err != nil {
 		log.Printf("[ProccessMessageToDevice] Error sending message: %v\n", err)
 		return
