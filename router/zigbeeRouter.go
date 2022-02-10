@@ -3,6 +3,7 @@ package router
 import (
 	"context"
 	"log"
+	"time"
 
 	"github.com/shimmeringbee/zcl"
 	"github.com/shimmeringbee/zcl/commands/global"
@@ -25,7 +26,7 @@ type ZigbeeRouter struct {
 	onDeviceMessage    func(devMsg mqtt.DeviceMessage)
 }
 
-func (mh *ZigbeeRouter) SubscribeOnAttributesReport(callback func(devMsg mqtt.DeviceMessage)) {
+func (mh *ZigbeeRouter) SubscribeOnDeviceMessage(callback func(devMsg mqtt.DeviceMessage)) {
 	mh.onDeviceMessage = callback
 }
 
@@ -44,7 +45,7 @@ func (mh *ZigbeeRouter) ProccessMessageToDevice(ctx context.Context, devCmd type
 
 	command, err := mh.zclCommandRegistry.GetLocalCommand(message.ClusterID, message.Manufacturer, message.Direction, message.CommandIdentifier)
 	if err != nil {
-		log.Printf("Error Local command for ClusterID: %v, Manufacturer: %v, Direction: %v, CommandIdentifier: %v. Error: %v \n",
+		log.Printf("[ProccessMessageToDevice] Error Local command for ClusterID: %v, Manufacturer: %v, Direction: %v, CommandIdentifier: %v. Error: %v \n",
 			message.ClusterID,
 			message.Manufacturer,
 			message.Direction,
@@ -59,17 +60,20 @@ func (mh *ZigbeeRouter) ProccessMessageToDevice(ctx context.Context, devCmd type
 
 	appMsg, err := mh.zclCommandRegistry.Marshal(message)
 	if err != nil {
-		log.Printf("Error Marshal zcl message: %v\n", err)
+		log.Printf("[ProccessMessageToDevice] Error Marshal zcl message: %v\n", err)
 		return
 	}
 
-	err = mh.zstack.SendApplicationMessageToNode(ctx, zigbee.IEEEAddress(devCmd.IEEEAddress), appMsg, true)
+	timeoutCtx, timeoutCancel := context.WithTimeout(ctx, time.Minute)
+	defer timeoutCancel()
+
+	err = mh.zstack.SendApplicationMessageToNode(timeoutCtx, zigbee.IEEEAddress(devCmd.IEEEAddress), appMsg, true)
 	if err != nil {
-		log.Printf("Error sending message: %v\n", err)
+		log.Printf("[ProccessMessageToDevice] Error sending message: %v\n", err)
 		return
 	}
 
-	log.Printf("Message (ClusterID: %v, Command: %v) is sent to %v device\n", message.ClusterID, message.CommandIdentifier, devCmd.IEEEAddress)
+	log.Printf("[ProccessMessageToDevice] Message (ClusterID: %v, Command: %v) is sent to %v device\n", message.ClusterID, message.CommandIdentifier, devCmd.IEEEAddress)
 }
 
 func saveNodeDB(znode zigbee.Node, dbObj db.DevicesRepo) {
@@ -90,6 +94,10 @@ func (mh *ZigbeeRouter) processNodeJoin(e zigbee.NodeJoinEvent) {
 	saveNodeDB(e.Node, mh.database)
 }
 
+func (mh *ZigbeeRouter) processNodeLeave(e zigbee.NodeLeaveEvent) {
+
+}
+
 func (mh *ZigbeeRouter) processNodeUpdate(e zigbee.NodeUpdateEvent) {
 	saveNodeDB(e.Node, mh.database)
 }
@@ -99,11 +107,11 @@ func (mh *ZigbeeRouter) processIncomingMessage(e zigbee.NodeIncomingMessageEvent
 	msg := e.IncomingMessage
 	message, err := mh.zclCommandRegistry.Unmarshal(msg.ApplicationMessage)
 	if err != nil {
-		log.Printf("Error parse incomming message: %v\n", err)
+		log.Printf("[ProcessIncomingMessage] Error parse incomming message: %v\n", err)
 		return
 	}
 
-	log.Printf("Incomming command of type (%T) is received. ClusterId is %v\n", message.Command, message.ClusterID)
+	log.Printf("[ProcessIncomingMessage] Incomming command of type (%T) is received. ClusterId is %v\n", message.Command, message.ClusterID)
 
 	switch cmd := message.Command.(type) {
 	case *global.ReportAttributes:
@@ -177,7 +185,7 @@ func (mh *ZigbeeRouter) StartAsync(ctx context.Context) {
 }
 
 func (mh *ZigbeeRouter) startEventLoop(ctx context.Context) {
-	log.Println("Start event loop ====")
+	log.Println("[Event loop] Start event")
 	for {
 		select {
 		case <-ctx.Done():
@@ -186,22 +194,22 @@ func (mh *ZigbeeRouter) startEventLoop(ctx context.Context) {
 		}
 
 		event, err := mh.zstack.ReadEvent(ctx)
-
 		if err != nil {
-			log.Printf("Error read event: %v\n", err)
+			log.Printf("[Event loop] Error read event: %v\n", err)
 		}
 
 		switch e := event.(type) {
 		case zigbee.NodeJoinEvent:
-			log.Printf("join: %v\n", e.Node)
+			log.Printf("[Event loop] Node join: %v\n", e)
 			go mh.processNodeJoin(e)
 		case zigbee.NodeLeaveEvent:
-			log.Printf("leave: %v\n", e.Node)
+			log.Printf("[Event loop] Node leave: %v\n", e)
+			go mh.processNodeLeave(e)
 		case zigbee.NodeUpdateEvent:
-			log.Printf("update: %v\n", e.Node)
+			log.Printf("[Event loop] Node update: %v\n", e)
 			go mh.processNodeUpdate(e)
 		case zigbee.NodeIncomingMessageEvent:
-			log.Printf("message: %v\n", e)
+			log.Printf("[Event loop] Node message: %v\n", e)
 			go mh.processIncomingMessage(e)
 		}
 	}

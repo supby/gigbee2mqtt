@@ -29,7 +29,7 @@ func NewClient(config *configuration.Configuration) (MqttClient, func()) {
 	opts.AutoReconnect = true
 	opts.SetOrderMatters(false)
 	opts.SetDefaultPublishHandler(func(client mqttlib.Client, msg mqttlib.Message) {
-		log.Printf("Received message: %s for topic: %s\n", msg.Payload(), msg.Topic())
+		log.Printf("[MQTT Client] Received message: %s for topic: %s\n", msg.Payload(), msg.Topic())
 		retClient.onMessageReceived(msg.Topic(), msg.Payload())
 	})
 	opts.OnConnect = connectHandler
@@ -42,7 +42,7 @@ func NewClient(config *configuration.Configuration) (MqttClient, func()) {
 	token := innerClient.Subscribe(fmt.Sprintf("%v/#", config.MqttConfiguration.Topic), 0, nil)
 	token.Wait()
 
-	log.Printf("Connected to MQTT on '%v:%v'", config.MqttConfiguration.Address, config.MqttConfiguration.Port)
+	log.Printf("[MQTT Client] Connected to MQTT on '%v:%v'", config.MqttConfiguration.Address, config.MqttConfiguration.Port)
 	innerClient.Publish(fmt.Sprintf("%v/gateway", config.MqttConfiguration.Topic), 0, false, "Online")
 
 	retClient.innerClient = innerClient

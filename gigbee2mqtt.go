@@ -56,7 +56,7 @@ func main() {
 	mqttRouter.SubscribeOnSetMessage(func(devCmd types.DeviceCommandMessage) {
 		zRouter.ProccessMessageToDevice(ctx, devCmd)
 	})
-	zRouter.SubscribeOnAttributesReport(func(devMsg mqtt.DeviceMessage) {
+	zRouter.SubscribeOnDeviceMessage(func(devMsg mqtt.DeviceMessage) {
 		mqttRouter.ProccessMessageFromDevice(devMsg)
 	})
 
@@ -64,7 +64,7 @@ func main() {
 
 	waitForSignal(cancel)
 
-	log.Println("Exiting app...")
+	log.Println("[Main] Exiting app...")
 }
 
 func waitForSignal(cancel context.CancelFunc) {

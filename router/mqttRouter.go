@@ -39,7 +39,7 @@ func NewMQTTRouter(
 func (h *MQTTRouter) ProccessMessageFromDevice(devMsg mqtt.DeviceMessage) {
 	jsonData, err := json.Marshal(devMsg)
 	if err != nil {
-		log.Printf("Error Marshal DeviceMessage: %v\n", err)
+		log.Printf("[MQTT Router] Error Marshal DeviceMessage: %v\n", err)
 		return
 	}
 
@@ -58,7 +58,7 @@ func (h *MQTTRouter) mqttMessage(topic string, message []byte) {
 
 	deviceAddr, err := strconv.ParseUint(strings.Replace(topicParts[1], "0x", "", -1), 16, 64)
 	if err != nil {
-		log.Printf("Error parsing device address as uint64: %v\n", err)
+		log.Printf("[MQTT Router] Error parsing device address as uint64: %v\n", err)
 	}
 
 	if topicParts[2] == MQTT_GET {
@@ -78,7 +78,7 @@ func (h *MQTTRouter) handleSetCommand(deviceAddr uint64, message []byte) {
 	var devMsg mqtt.DeviceSetMessage
 	err := json.Unmarshal(message, &devMsg)
 	if err != nil {
-		log.Printf("Error unmarshal Set message: %v\n", err)
+		log.Printf("[MQTT Router] Error unmarshal SET message: %v\n", err)
 		return
 	}
 

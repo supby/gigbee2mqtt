@@ -48,7 +48,7 @@ func (db *devicesRepo) SaveNode(node Node) {
 }
 
 func (db *devicesRepo) save() {
-	log.Println("Saving node to DB")
+	log.Println("[DB] Saving node to DB")
 
 	res, _ := json.Marshal(db)
 	os.WriteFile(db.filename, res, 0644)
