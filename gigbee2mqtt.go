@@ -33,7 +33,10 @@ func main() {
 
 	cfg := configuration.Init(*configFile)
 
-	db1 := db.Init("./db.json")
+	db1 := db.Init(db.DBOption{
+		Filename:   "./data/db.json",
+		FlushAfter: 10,
+	})
 
 	z := initZStack(pctx, cfg, db1)
 	defer z.Stop()

@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"os"
+	"sync"
 )
 
 type DevicesRepo interface {
@@ -11,19 +12,27 @@ type DevicesRepo interface {
 	SaveNode(node Node)
 }
 
-func Init(filename string) DevicesRepo {
+type DBOption struct {
+	Filename   string
+	FlushAfter uint
+}
+
+func Init(options DBOption) DevicesRepo {
 	ret := devicesRepo{
-		filename: filename,
+		options: options,
+		Nodes:   make([]Node, 0),
 	}
 
-	ret.load()
+	ret.init()
 
 	return &ret
 }
 
 type devicesRepo struct {
-	filename string
-	Nodes    []Node
+	Nodes       []Node
+	mtx         sync.Mutex
+	options     DBOption
+	saveCounter uint
 }
 
 func (db *devicesRepo) GetNodes() []Node {
@@ -31,6 +40,9 @@ func (db *devicesRepo) GetNodes() []Node {
 }
 
 func (db *devicesRepo) SaveNode(node Node) {
+	db.mtx.Lock()
+	defer db.mtx.Unlock()
+
 	existingNodeIndex := -1
 	for i, n := range db.Nodes {
 		if n.IEEEAddress == node.IEEEAddress {
@@ -44,25 +56,34 @@ func (db *devicesRepo) SaveNode(node Node) {
 		db.Nodes = append(db.Nodes, node)
 	}
 
-	db.save()
+	db.saveCounter++
+
+	if db.saveCounter < db.options.FlushAfter {
+		return
+	}
+
+	db.saveCounter = 0
+
+	db.flush()
 }
 
-func (db *devicesRepo) save() {
-	log.Println("[DB] Saving node to DB")
+func (db *devicesRepo) flush() {
+	log.Println("[DB] Flushing DB to file.")
 
 	res, _ := json.Marshal(db)
-	os.WriteFile(db.filename, res, 0644)
+	os.WriteFile(db.options.Filename, res, 0644)
 }
 
-func (db *devicesRepo) load() {
-	_, err := os.Stat(db.filename)
+func (db *devicesRepo) init() {
+	_, err := os.Stat(db.options.Filename)
 	if os.IsNotExist(err) {
+		log.Printf("[DB] File %v is not found. Using empty state.\n", db.options.Filename)
 		return
 	}
 
 	var loadedDB devicesRepo
 
-	jsonBuf, _ := os.ReadFile(db.filename)
+	jsonBuf, _ := os.ReadFile(db.options.Filename)
 	json.Unmarshal(jsonBuf, &loadedDB)
 
 	db.Nodes = make([]Node, 0)
