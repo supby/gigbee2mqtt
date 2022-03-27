@@ -38,11 +38,11 @@ func NewClient(config *configuration.Configuration) (MqttClient, func()) {
 		log.Fatal(token.Error())
 	}
 
-	token := innerClient.Subscribe(fmt.Sprintf("%v/#", config.MqttConfiguration.Topic), 0, nil)
+	token := innerClient.Subscribe(fmt.Sprintf("%v/#", config.MqttConfiguration.RootTopic), 0, nil)
 	token.Wait()
 
 	log.Printf("[MQTT Client] Connected to MQTT on '%v:%v'", config.MqttConfiguration.Address, config.MqttConfiguration.Port)
-	innerClient.Publish(fmt.Sprintf("%v/gateway", config.MqttConfiguration.Topic), 0, false, "Online")
+	innerClient.Publish(fmt.Sprintf("%v/gateway/status", config.MqttConfiguration.RootTopic), 0, false, "Online")
 
 	retClient.innerClient = innerClient
 
@@ -67,7 +67,7 @@ func (cl *defaultMqttClient) Dispose() {
 }
 
 func (cl *defaultMqttClient) Publish(subTopic string, data []byte) {
-	cl.innerClient.Publish(fmt.Sprintf("%v/%v", cl.configuration.MqttConfiguration.Topic, subTopic), 0, false, data)
+	cl.innerClient.Publish(fmt.Sprintf("%v/%v", cl.configuration.MqttConfiguration.RootTopic, subTopic), 0, false, data)
 }
 
 func (cl *defaultMqttClient) Subscribe(callback func(topic string, message []byte)) {
@@ -79,7 +79,7 @@ func (cl *defaultMqttClient) UnSubscribe() {
 }
 
 func (cl *defaultMqttClient) onMessageReceived(topic string, message []byte) {
-	if topic == fmt.Sprintf("%v/gateway", cl.configuration.MqttConfiguration.Topic) {
+	if topic == fmt.Sprintf("%v/gateway/status", cl.configuration.MqttConfiguration.RootTopic) {
 		return
 	}
 

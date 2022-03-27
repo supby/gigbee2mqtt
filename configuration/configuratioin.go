@@ -16,11 +16,11 @@ type ZNetworkConfiguration struct {
 }
 
 type MqttConfiguration struct {
-	Address  string
-	Port     uint16
-	Topic    string
-	Username string
-	Password string
+	Address   string
+	Port      uint16
+	RootTopic string
+	Username  string
+	Password  string
 }
 
 type SerialConfiguration struct {
@@ -49,8 +49,8 @@ func Init(filename string) *Configuration {
 		},
 		PermitJoin: true,
 		MqttConfiguration: MqttConfiguration{
-			Port:  1883,
-			Topic: "gigbee2mqtt",
+			Port:      1883,
+			RootTopic: "gigbee2mqtt",
 		},
 	}
 
