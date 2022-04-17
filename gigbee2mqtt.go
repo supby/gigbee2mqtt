@@ -51,7 +51,7 @@ func main() {
 	mqttClient, mqttDisconnect := mqtt.NewClient(cfg)
 	defer mqttDisconnect()
 
-	mqttRouter := router.NewMQTTRouter(cfg, mqttClient)
+	mqttRouter := router.NewMQTTRouter(cfg, mqttClient, db1)
 	zRouter := router.NewZigbeeRouter(z, zclCommandRegistry, zclDefService, db1, cfg)
 
 	ctx, cancel := context.WithCancel(pctx)

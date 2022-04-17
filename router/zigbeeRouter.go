@@ -16,7 +16,7 @@ import (
 	"github.com/supby/gigbee2mqtt/zcldef"
 )
 
-type ZigbeeRouter struct {
+type zigbeeRouter struct {
 	zstack             *zstack.ZStack
 	configuration      *configuration.Configuration
 	zclCommandRegistry *zcl.CommandRegistry
@@ -25,11 +25,11 @@ type ZigbeeRouter struct {
 	onDeviceMessage    func(devMsg mqtt.DeviceMessage)
 }
 
-func (mh *ZigbeeRouter) SubscribeOnDeviceMessage(callback func(devMsg mqtt.DeviceMessage)) {
+func (mh *zigbeeRouter) SubscribeOnDeviceMessage(callback func(devMsg mqtt.DeviceMessage)) {
 	mh.onDeviceMessage = callback
 }
 
-func (mh *ZigbeeRouter) ProccessMessageToDevice(ctx context.Context, devCmd types.DeviceCommandMessage) {
+func (mh *zigbeeRouter) ProccessMessageToDevice(ctx context.Context, devCmd types.DeviceCommandMessage) {
 
 	message := zcl.Message{
 		FrameType:           zcl.FrameLocal,
@@ -90,19 +90,19 @@ func saveNodeDB(znode zigbee.Node, dbObj db.DevicesRepo) {
 	dbObj.SaveNode(dbNode)
 }
 
-func (mh *ZigbeeRouter) processNodeJoin(e zigbee.NodeJoinEvent) {
+func (mh *zigbeeRouter) processNodeJoin(e zigbee.NodeJoinEvent) {
 	saveNodeDB(e.Node, mh.database)
 }
 
-func (mh *ZigbeeRouter) processNodeLeave(e zigbee.NodeLeaveEvent) {
+func (mh *zigbeeRouter) processNodeLeave(e zigbee.NodeLeaveEvent) {
 
 }
 
-func (mh *ZigbeeRouter) processNodeUpdate(e zigbee.NodeUpdateEvent) {
+func (mh *zigbeeRouter) processNodeUpdate(e zigbee.NodeUpdateEvent) {
 	saveNodeDB(e.Node, mh.database)
 }
 
-func (mh *ZigbeeRouter) processIncomingMessage(e zigbee.NodeIncomingMessageEvent) {
+func (mh *zigbeeRouter) processIncomingMessage(e zigbee.NodeIncomingMessageEvent) {
 	go saveNodeDB(e.Node, mh.database)
 	msg := e.IncomingMessage
 	message, err := mh.zclCommandRegistry.Unmarshal(msg.ApplicationMessage)
@@ -121,7 +121,7 @@ func (mh *ZigbeeRouter) processIncomingMessage(e zigbee.NodeIncomingMessageEvent
 	}
 }
 
-func (mh *ZigbeeRouter) processReportAttributes(msg zigbee.IncomingMessage, cmd *global.ReportAttributes) {
+func (mh *zigbeeRouter) processReportAttributes(msg zigbee.IncomingMessage, cmd *global.ReportAttributes) {
 	clusterDef := mh.zclDefService.GetById(uint16(msg.ApplicationMessage.ClusterID))
 
 	mqttMessage := mqtt.DeviceMessage{
@@ -147,7 +147,7 @@ func (mh *ZigbeeRouter) processReportAttributes(msg zigbee.IncomingMessage, cmd 
 	}
 }
 
-func (mh *ZigbeeRouter) processDefaultResponse(msg zigbee.IncomingMessage, cmd *global.DefaultResponse) {
+func (mh *zigbeeRouter) processDefaultResponse(msg zigbee.IncomingMessage, cmd *global.DefaultResponse) {
 	mqttMessage := mqtt.DeviceMessage{
 		IEEEAddress: uint64(msg.SourceAddress.IEEEAddress),
 		LinkQuality: msg.LinkQuality,
@@ -168,8 +168,8 @@ func NewZigbeeRouter(
 	zclCommandRegistry *zcl.CommandRegistry,
 	zclDefService zcldef.ZCLDefService,
 	database db.DevicesRepo,
-	cfg *configuration.Configuration) *ZigbeeRouter {
-	ret := ZigbeeRouter{
+	cfg *configuration.Configuration) ZigbeeRouter {
+	ret := zigbeeRouter{
 		zstack:             z,
 		configuration:      cfg,
 		zclCommandRegistry: zclCommandRegistry,
@@ -180,11 +180,11 @@ func NewZigbeeRouter(
 	return &ret
 }
 
-func (mh *ZigbeeRouter) StartAsync(ctx context.Context) {
+func (mh *zigbeeRouter) StartAsync(ctx context.Context) {
 	go mh.startEventLoop(ctx)
 }
 
-func (mh *ZigbeeRouter) startEventLoop(ctx context.Context) {
+func (mh *zigbeeRouter) startEventLoop(ctx context.Context) {
 	log.Println("[Event loop] Start event")
 	for {
 		select {
