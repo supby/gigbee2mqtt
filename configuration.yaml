@@ -7,7 +7,7 @@ znetworkconfiguration:
 mqttconfiguration:
   address: "192.168.1.25"
   port:    1883
-  topic:   "gigbee2mqtt"
+  roottopic:   "gigbee2mqtt"
 
 serialconfiguration:
   portname: "/dev/ttyACM0"
