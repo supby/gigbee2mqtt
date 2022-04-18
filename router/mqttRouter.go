@@ -25,6 +25,7 @@ type mqttRouter struct {
 	mqttClient    mqtt.MqttClient
 	configuration *configuration.Configuration
 	onSetMessage  func(devCmd types.DeviceCommandMessage)
+	onGetMessage  func(devCmd types.DeviceGetMessage)
 	db            db.DevicesRepo
 }
 
@@ -55,6 +56,10 @@ func (h *mqttRouter) ProccessMessageFromDevice(devMsg mqtt.DeviceMessage) {
 
 func (h *mqttRouter) SubscribeOnSetMessage(callback func(devCmd types.DeviceCommandMessage)) {
 	h.onSetMessage = callback
+}
+
+func (h *mqttRouter) SubscribeOnGetMessage(callback func(devCmd types.DeviceGetMessage)) {
+	h.onGetMessage = callback
 }
 
 func (h *mqttRouter) mqttMessage(topic string, message []byte) {
@@ -104,7 +109,22 @@ func (h *mqttRouter) handleDeviceMessage(deviceAddrStr string, command string, m
 }
 
 func (h *mqttRouter) handleDeviceGetCommand(deviceAddr uint64, message []byte) {
+	var devMsg mqtt.DeviceGetMessage
+	err := json.Unmarshal(message, &devMsg)
+	if err != nil {
+		log.Printf("[MQTT Router] Error unmarshal GET message: %v\n", err)
+		return
+	}
 
+	log.Printf("[MQTT Router] GET message received. Device:%v", deviceAddr)
+
+	if h.onGetMessage != nil {
+		h.onGetMessage(types.DeviceGetMessage{
+			IEEEAddress: deviceAddr,
+			ClusterID:   devMsg.ClusterID,
+			Endpoint:    devMsg.Endpoint,
+		})
+	}
 }
 
 func (h *mqttRouter) handleDeviceSetCommand(deviceAddr uint64, message []byte) {

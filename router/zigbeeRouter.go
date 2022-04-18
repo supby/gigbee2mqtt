@@ -29,12 +29,40 @@ func (mh *zigbeeRouter) SubscribeOnDeviceMessage(callback func(devMsg mqtt.Devic
 	mh.onDeviceMessage = callback
 }
 
+func (mh *zigbeeRouter) ProccessGetMessageToDevice(ctx context.Context, devCmd types.DeviceGetMessage) {
+	message := zcl.Message{
+		FrameType:           zcl.FrameGlobal,
+		Direction:           zcl.ClientToServer,
+		TransactionSequence: 1, // TODO: do something with this
+		Manufacturer:        zigbee.NoManufacturer,
+		ClusterID:           zigbee.ClusterID(devCmd.ClusterID),
+		SourceEndpoint:      zigbee.Endpoint(0x01),
+		DestinationEndpoint: zigbee.Endpoint(devCmd.Endpoint),
+		CommandIdentifier:   global.ReadAttributesID,
+		Command:             &global.ReadAttributes{},
+	}
+
+	appMsg, err := mh.zclCommandRegistry.Marshal(message)
+	if err != nil {
+		log.Printf("[ProccessGetMessageToDevice] Error Marshal zcl message: %v\n", err)
+		return
+	}
+
+	err = mh.zstack.SendApplicationMessageToNode(ctx, zigbee.IEEEAddress(devCmd.IEEEAddress), appMsg, false)
+	if err != nil {
+		log.Printf("[ProccessGetMessageToDevice] Error sending message: %v\n", err)
+		return
+	}
+
+	log.Printf("[ProccessMessageToDevice] Message (ClusterID: %v, Command: %v) is sent to %v device\n", message.ClusterID, message.CommandIdentifier, devCmd.IEEEAddress)
+}
+
 func (mh *zigbeeRouter) ProccessMessageToDevice(ctx context.Context, devCmd types.DeviceCommandMessage) {
 
 	message := zcl.Message{
 		FrameType:           zcl.FrameLocal,
 		Direction:           zcl.ClientToServer,
-		TransactionSequence: 1,
+		TransactionSequence: 1, // TODO: do something with this
 		Manufacturer:        zigbee.NoManufacturer,
 		ClusterID:           zigbee.ClusterID(devCmd.ClusterID),
 		SourceEndpoint:      zigbee.Endpoint(0x01),

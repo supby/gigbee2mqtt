@@ -14,6 +14,11 @@ type DeviceSetMessage struct {
 	CommandData       map[string]interface{}
 }
 
+type DeviceGetMessage struct {
+	ClusterID uint16
+	Endpoint  uint8
+}
+
 type DeviceDefaultResponseMessage struct {
 	ClusterID         uint16
 	CommandIdentifier uint8

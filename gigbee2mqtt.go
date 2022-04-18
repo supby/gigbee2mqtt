@@ -59,6 +59,9 @@ func main() {
 	mqttRouter.SubscribeOnSetMessage(func(devCmd types.DeviceCommandMessage) {
 		zRouter.ProccessMessageToDevice(ctx, devCmd)
 	})
+	mqttRouter.SubscribeOnGetMessage(func(devCmd types.DeviceGetMessage) {
+		zRouter.ProccessGetMessageToDevice(ctx, devCmd)
+	})
 	zRouter.SubscribeOnDeviceMessage(func(devMsg mqtt.DeviceMessage) {
 		mqttRouter.ProccessMessageFromDevice(devMsg)
 	})
