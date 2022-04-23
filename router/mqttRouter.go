@@ -22,21 +22,21 @@ const (
 )
 
 type mqttRouter struct {
-	mqttClient    mqtt.MqttClient
-	configuration *configuration.Configuration
-	onSetMessage  func(devCmd types.DeviceCommandMessage)
-	onGetMessage  func(devCmd types.DeviceGetMessage)
-	db            db.DevicesRepo
+	mqttClient           mqtt.MqttClient
+	configurationService configuration.ConfigurationService
+	onSetMessage         func(devCmd types.DeviceCommandMessage)
+	onGetMessage         func(devCmd types.DeviceGetMessage)
+	db                   db.DevicesRepo
 }
 
 func NewMQTTRouter(
-	configuration *configuration.Configuration,
+	configurationService configuration.ConfigurationService,
 	mqttClient mqtt.MqttClient,
 	db db.DevicesRepo) MQTTRouter {
 	ret := mqttRouter{
-		mqttClient:    mqttClient,
-		configuration: configuration,
-		db:            db,
+		mqttClient:           mqttClient,
+		configurationService: configurationService,
+		db:                   db,
 	}
 
 	mqttClient.Subscribe(ret.mqttMessage)

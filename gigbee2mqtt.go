@@ -31,14 +31,19 @@ func main() {
 
 	pctx := context.Background()
 
-	cfg := configuration.Init(*configFile)
+	configService, err := configuration.Init(*configFile)
+	if err != nil {
+		log.Fatalf("Configuration initialization error: %v\n", err)
+	}
 
 	db1 := db.Init(db.DBOption{
 		Filename:   "./data/db.json",
 		FlushAfter: 10,
 	})
 
-	z := initZStack(pctx, cfg, db1)
+	cfg := configService.GetConfiguration()
+
+	z := initZStack(pctx, &cfg, db1)
 	defer z.Stop()
 
 	zclCommandRegistry := zcl.NewCommandRegistry()
@@ -48,11 +53,11 @@ func main() {
 
 	zclDefService := zcldef.New("./zcldef/zcldef.json")
 
-	mqttClient, mqttDisconnect := mqtt.NewClient(cfg)
+	mqttClient, mqttDisconnect := mqtt.NewClient(&cfg)
 	defer mqttDisconnect()
 
-	mqttRouter := router.NewMQTTRouter(cfg, mqttClient, db1)
-	zRouter := router.NewZigbeeRouter(z, zclCommandRegistry, zclDefService, db1, cfg)
+	mqttRouter := router.NewMQTTRouter(configService, mqttClient, db1)
+	zRouter := router.NewZigbeeRouter(z, zclCommandRegistry, zclDefService, db1, &cfg)
 
 	ctx, cancel := context.WithCancel(pctx)
 

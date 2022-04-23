@@ -1,41 +1,36 @@
 package configuration
 
 import (
-	"log"
+	"fmt"
 	"os"
 
 	"github.com/supby/gigbee2mqtt/utils"
 	"gopkg.in/yaml.v2"
 )
 
-type ZNetworkConfiguration struct {
-	PANID         uint16
-	ExtendedPANID uint64
-	NetworkKey    [16]byte
-	Channel       uint8
+type configurationService struct {
+	filename      string
+	configuration Configuration
 }
 
-type MqttConfiguration struct {
-	Address   string
-	Port      uint16
-	RootTopic string
-	Username  string
-	Password  string
+func (cs *configurationService) GetConfiguration() Configuration {
+	return cs.configuration
 }
 
-type SerialConfiguration struct {
-	PortName string
-	BaudRate uint32
+func (cs *configurationService) Update(updatedConfig Configuration) error {
+	return nil
 }
 
-type Configuration struct {
-	ZNetworkConfiguration ZNetworkConfiguration
-	MqttConfiguration     MqttConfiguration
-	SerialConfiguration   SerialConfiguration
-	PermitJoin            bool
-}
+func Init(filename string) (ConfigurationService, error) {
+	_, err := os.Stat(filename)
+	if os.IsNotExist(err) {
+		return nil, fmt.Errorf("Configuration file '%v' does not exist", filename)
+	}
 
-func Init(filename string) *Configuration {
+	data, err := os.ReadFile(filename)
+	if err != nil {
+		return nil, err
+	}
 
 	cfg := Configuration{
 		ZNetworkConfiguration: ZNetworkConfiguration{
@@ -54,17 +49,13 @@ func Init(filename string) *Configuration {
 		},
 	}
 
-	_, err := os.Stat(filename)
-	if os.IsNotExist(err) {
-		log.Fatalf("Configuration file '%v' does not exist.", filename)
-	}
-
-	data, _ := os.ReadFile(filename)
-
 	err = yaml.Unmarshal([]byte(data), &cfg)
 	if err != nil {
-		log.Fatalf("error loading YAML config: %v", err)
+		return nil, err
 	}
 
-	return &cfg
+	return &configurationService{
+		filename:      filename,
+		configuration: cfg,
+	}, nil
 }
