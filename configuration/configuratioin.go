@@ -18,6 +18,16 @@ func (cs *configurationService) GetConfiguration() Configuration {
 }
 
 func (cs *configurationService) Update(updatedConfig Configuration) error {
+	buf, err := yaml.Marshal(&updatedConfig)
+	if err != nil {
+		return err
+	}
+
+	err = os.WriteFile(cs.filename, buf, 0666)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 

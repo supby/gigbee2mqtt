@@ -9,11 +9,11 @@ import (
 )
 
 var connectHandler mqttlib.OnConnectHandler = func(client mqttlib.Client) {
-	log.Println("Connected")
+	log.Println("[MQTT Client] Connected")
 }
 
 var connectLostHandler mqttlib.ConnectionLostHandler = func(client mqttlib.Client, err error) {
-	log.Printf("Connect lost: %v", err)
+	log.Printf("[MQTT Client] Connect lost: %v", err)
 }
 
 func NewClient(config *configuration.Configuration) (MqttClient, func()) {
@@ -23,22 +23,21 @@ func NewClient(config *configuration.Configuration) (MqttClient, func()) {
 
 	opts := mqttlib.NewClientOptions()
 	opts.AddBroker(fmt.Sprintf("tcp://%s:%d", config.MqttConfiguration.Address, config.MqttConfiguration.Port))
-	opts.SetClientID("gigbee2mqtt")
+	opts.SetClientID(config.MqttConfiguration.RootTopic)
 	opts.SetUsername(config.MqttConfiguration.Username)
 	opts.SetPassword(config.MqttConfiguration.Password)
 	opts.AutoReconnect = true
 	opts.SetOrderMatters(false)
-	opts.SetDefaultPublishHandler(func(client mqttlib.Client, msg mqttlib.Message) {
-		retClient.onMessageReceived(msg.Topic(), msg.Payload())
-	})
 	opts.OnConnect = connectHandler
 	opts.OnConnectionLost = connectLostHandler
+
 	innerClient := mqttlib.NewClient(opts)
+
 	if token := innerClient.Connect(); token.Wait() && token.Error() != nil {
 		log.Fatal(token.Error())
 	}
 
-	token := innerClient.Subscribe(fmt.Sprintf("%v/#", config.MqttConfiguration.RootTopic), 0, nil)
+	token := innerClient.Subscribe(fmt.Sprintf("%v/#", config.MqttConfiguration.RootTopic), 0, retClient.onMessageReceived)
 	token.Wait()
 
 	log.Printf("[MQTT Client] Connected to MQTT on '%v:%v'", config.MqttConfiguration.Address, config.MqttConfiguration.Port)
@@ -78,7 +77,10 @@ func (cl *defaultMqttClient) UnSubscribe() {
 	cl.messageCallback = nil
 }
 
-func (cl *defaultMqttClient) onMessageReceived(topic string, message []byte) {
+func (cl *defaultMqttClient) onMessageReceived(client mqttlib.Client, msg mqttlib.Message) {
+	topic := msg.Topic()
+	message := msg.Payload()
+
 	if topic == fmt.Sprintf("%v/gateway/status", cl.configuration.MqttConfiguration.RootTopic) {
 		return
 	}

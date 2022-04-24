@@ -13,3 +13,7 @@ type DeviceGetMessage struct {
 	ClusterID   uint16
 	Endpoint    uint8
 }
+
+type DeviceConfigSetMessage struct {
+	PermitJoin bool
+}

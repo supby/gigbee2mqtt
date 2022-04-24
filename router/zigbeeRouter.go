@@ -29,6 +29,25 @@ func (mh *zigbeeRouter) SubscribeOnDeviceMessage(callback func(devMsg mqtt.Devic
 	mh.onDeviceMessage = callback
 }
 
+func (mh *zigbeeRouter) ProccessSetDeviceConfigMessage(ctx context.Context, devCmd types.DeviceConfigSetMessage) {
+	if devCmd.PermitJoin == mh.configuration.PermitJoin {
+		return
+	}
+
+	if devCmd.PermitJoin {
+		err := mh.zstack.PermitJoin(ctx, true)
+		if err != nil {
+			log.Printf("[Device Eouter] Error PermitJoin, %v\n", err)
+		}
+	} else {
+		err := mh.zstack.DenyJoin(ctx)
+		if err != nil {
+			log.Printf("[Device Eouter] Error DenyJoin to true, %v\n", err)
+		}
+
+	}
+}
+
 func (mh *zigbeeRouter) ProccessGetMessageToDevice(ctx context.Context, devCmd types.DeviceGetMessage) {
 	message := zcl.Message{
 		FrameType:           zcl.FrameGlobal,

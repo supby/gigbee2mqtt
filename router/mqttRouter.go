@@ -17,16 +17,20 @@ const (
 	MQTT_DEVICE_SET  = "set"
 	MQTT_DEVICE_GET  = "get"
 	MQTT_GET_DEVICES = "get_devices"
+	MQTT_GET_CONFIG  = "get_config"
+	MQTT_SET_CONFIG  = "set_config"
 	MQTT_DEVICES     = "devices"
+	MQTT_CONFIG      = "config"
 	MQTT_GATEWAY     = "gateway"
 )
 
 type mqttRouter struct {
-	mqttClient           mqtt.MqttClient
-	configurationService configuration.ConfigurationService
-	onSetMessage         func(devCmd types.DeviceCommandMessage)
-	onGetMessage         func(devCmd types.DeviceGetMessage)
-	db                   db.DevicesRepo
+	mqttClient               mqtt.MqttClient
+	configurationService     configuration.ConfigurationService
+	onSetMessage             func(devCmd types.DeviceCommandMessage)
+	onGetMessage             func(devCmd types.DeviceGetMessage)
+	onSetDeviceConfigMessage func(devCmd types.DeviceConfigSetMessage)
+	db                       db.DevicesRepo
 }
 
 func NewMQTTRouter(
@@ -62,6 +66,10 @@ func (h *mqttRouter) SubscribeOnGetMessage(callback func(devCmd types.DeviceGetM
 	h.onGetMessage = callback
 }
 
+func (h *mqttRouter) SubscribeOnSetDeviceConfigMessage(callback func(devCmd types.DeviceConfigSetMessage)) {
+	h.onSetDeviceConfigMessage = callback
+}
+
 func (h *mqttRouter) mqttMessage(topic string, message []byte) {
 	topicParts := strings.Split(topic, "/")
 	if len(topicParts) < 3 {
@@ -79,6 +87,46 @@ func (h *mqttRouter) mqttMessage(topic string, message []byte) {
 func (h *mqttRouter) handleGatewayMessage(command string, message []byte) {
 	if command == MQTT_GET_DEVICES {
 		h.publishDevicesList()
+	}
+	if command == MQTT_GET_CONFIG {
+		h.publishConfig()
+	}
+	if command == MQTT_SET_CONFIG {
+		h.handleSetConfig(message)
+	}
+}
+
+func (h *mqttRouter) publishConfig() {
+	jsonData, err := json.Marshal(h.configurationService.GetConfiguration())
+	if err != nil {
+		log.Printf("[MQTT Router] Error Marshal Configuration: %v\n", err)
+		return
+	}
+
+	h.mqttClient.Publish(fmt.Sprintf("%v/%v", MQTT_GATEWAY, MQTT_CONFIG), jsonData)
+}
+
+func (h *mqttRouter) handleSetConfig(message []byte) {
+	var mqttMsg mqtt.SetGatewayConfig
+	err := json.Unmarshal(message, &mqttMsg)
+	if err != nil {
+		log.Printf("[MQTT Router] Error unmarshal Config SET message: %v\n", err)
+		return
+	}
+
+	cfg := h.configurationService.GetConfiguration()
+	cfg.PermitJoin = mqttMsg.PermitJoin
+
+	err = h.configurationService.Update(cfg)
+	if err != nil {
+		log.Printf("[MQTT Router] Applying new configuration error: %v\n", err)
+		return
+	}
+
+	if h.onSetDeviceConfigMessage != nil {
+		h.onSetDeviceConfigMessage(types.DeviceConfigSetMessage{
+			PermitJoin: mqttMsg.PermitJoin,
+		})
 	}
 }
 

@@ -30,3 +30,7 @@ type DeviceMessage struct {
 	LinkQuality uint8
 	Message     interface{}
 }
+
+type SetGatewayConfig struct {
+	PermitJoin bool
+}

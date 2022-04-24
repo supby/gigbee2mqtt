@@ -67,6 +67,9 @@ func main() {
 	mqttRouter.SubscribeOnGetMessage(func(devCmd types.DeviceGetMessage) {
 		zRouter.ProccessGetMessageToDevice(ctx, devCmd)
 	})
+	mqttRouter.SubscribeOnSetDeviceConfigMessage(func(devCmd types.DeviceConfigSetMessage) {
+		zRouter.ProccessSetDeviceConfigMessage(ctx, devCmd)
+	})
 	zRouter.SubscribeOnDeviceMessage(func(devMsg mqtt.DeviceMessage) {
 		mqttRouter.ProccessMessageFromDevice(devMsg)
 	})
@@ -140,6 +143,11 @@ func initZStack(pctx context.Context, cfg *configuration.Configuration, db1 db.D
 		err = z.PermitJoin(initCtx, true)
 		if err != nil {
 			log.Printf("Error permit join: %v\n", err)
+		}
+	} else {
+		err = z.DenyJoin(initCtx)
+		if err != nil {
+			log.Printf("Error deny join: %v\n", err)
 		}
 	}
 
