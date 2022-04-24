@@ -14,6 +14,12 @@ type DeviceSetMessage struct {
 	CommandData       map[string]interface{}
 }
 
+type DeviceGetMessage struct {
+	ClusterID  uint16
+	Endpoint   uint8
+	Attributes []uint16
+}
+
 type DeviceDefaultResponseMessage struct {
 	ClusterID         uint16
 	CommandIdentifier uint8
@@ -24,4 +30,8 @@ type DeviceMessage struct {
 	IEEEAddress uint64
 	LinkQuality uint8
 	Message     interface{}
+}
+
+type SetGatewayConfig struct {
+	PermitJoin bool
 }

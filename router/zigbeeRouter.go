@@ -29,12 +29,67 @@ func (mh *zigbeeRouter) SubscribeOnDeviceMessage(callback func(devMsg mqtt.Devic
 	mh.onDeviceMessage = callback
 }
 
+func (mh *zigbeeRouter) ProccessSetDeviceConfigMessage(ctx context.Context, devCmd types.DeviceConfigSetMessage) {
+	if devCmd.PermitJoin == mh.configuration.PermitJoin {
+		return
+	}
+
+	if devCmd.PermitJoin {
+		err := mh.zstack.PermitJoin(ctx, true)
+		if err != nil {
+			log.Printf("[Device Eouter] Error PermitJoin, %v\n", err)
+		}
+	} else {
+		err := mh.zstack.DenyJoin(ctx)
+		if err != nil {
+			log.Printf("[Device Eouter] Error DenyJoin to true, %v\n", err)
+		}
+
+	}
+}
+
+func (mh *zigbeeRouter) ProccessGetMessageToDevice(ctx context.Context, devCmd types.DeviceGetMessage) {
+
+	attributeIds := make([]zcl.AttributeID, 0)
+	for _, attr := range devCmd.Attributes {
+		attributeIds = append(attributeIds, zcl.AttributeID(attr))
+	}
+
+	message := zcl.Message{
+		FrameType:           zcl.FrameGlobal,
+		Direction:           zcl.ClientToServer,
+		TransactionSequence: 1, // TODO: do something with this
+		Manufacturer:        zigbee.NoManufacturer,
+		ClusterID:           zigbee.ClusterID(devCmd.ClusterID),
+		SourceEndpoint:      zigbee.Endpoint(0x01),
+		DestinationEndpoint: zigbee.Endpoint(devCmd.Endpoint),
+		CommandIdentifier:   global.ReadAttributesID,
+		Command: &global.ReadAttributes{
+			Identifier: attributeIds,
+		},
+	}
+
+	appMsg, err := mh.zclCommandRegistry.Marshal(message)
+	if err != nil {
+		log.Printf("[ProccessGetMessageToDevice] Error Marshal zcl message: %v\n", err)
+		return
+	}
+
+	err = mh.zstack.SendApplicationMessageToNode(ctx, zigbee.IEEEAddress(devCmd.IEEEAddress), appMsg, false)
+	if err != nil {
+		log.Printf("[ProccessGetMessageToDevice] Error sending message: %v\n", err)
+		return
+	}
+
+	log.Printf("[ProccessMessageToDevice] Message (ClusterID: %v, Command: %v) is sent to %v device\n", message.ClusterID, message.CommandIdentifier, devCmd.IEEEAddress)
+}
+
 func (mh *zigbeeRouter) ProccessMessageToDevice(ctx context.Context, devCmd types.DeviceCommandMessage) {
 
 	message := zcl.Message{
 		FrameType:           zcl.FrameLocal,
 		Direction:           zcl.ClientToServer,
-		TransactionSequence: 1,
+		TransactionSequence: 1, // TODO: do something with this
 		Manufacturer:        zigbee.NoManufacturer,
 		ClusterID:           zigbee.ClusterID(devCmd.ClusterID),
 		SourceEndpoint:      zigbee.Endpoint(0x01),
@@ -111,13 +166,42 @@ func (mh *zigbeeRouter) processIncomingMessage(e zigbee.NodeIncomingMessageEvent
 		return
 	}
 
-	log.Printf("[ProcessIncomingMessage] Incomming command of type (%T) is received. ClusterId is %v\n", message.Command, message.ClusterID)
+	log.Printf("[ProcessIncomingMessage] Incomming command of type (%T) is received. ClusterId=%v, SourceEndpoint=%v\n",
+		message.Command, message.ClusterID, message.SourceEndpoint)
 
 	switch cmd := message.Command.(type) {
 	case *global.ReportAttributes:
 		mh.processReportAttributes(msg, cmd)
 	case *global.DefaultResponse:
 		mh.processDefaultResponse(msg, cmd)
+	case *global.ReadAttributesResponse:
+		mh.processReadAttributesResponse(msg, cmd)
+	}
+}
+
+func (mh *zigbeeRouter) processReadAttributesResponse(msg zigbee.IncomingMessage, cmd *global.ReadAttributesResponse) {
+	clusterDef := mh.zclDefService.GetById(uint16(msg.ApplicationMessage.ClusterID))
+
+	mqttMessage := mqtt.DeviceMessage{
+		IEEEAddress: uint64(msg.SourceAddress.IEEEAddress),
+		LinkQuality: msg.LinkQuality,
+	}
+
+	deviceMessage := mqtt.DeviceAttributesReportMessage{
+		ClusterID:         clusterDef.ID,
+		ClusterName:       clusterDef.Name,
+		ClusterAttributes: make(map[string]interface{}),
+	}
+
+	for _, r := range cmd.Records {
+		attrDef := clusterDef.Attributes[uint16(r.Identifier)]
+		deviceMessage.ClusterAttributes[attrDef.Name] = r.DataTypeValue.Value
+	}
+
+	mqttMessage.Message = deviceMessage
+
+	if mh.onDeviceMessage != nil {
+		mh.onDeviceMessage(mqttMessage)
 	}
 }
 

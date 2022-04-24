@@ -17,25 +17,30 @@ const (
 	MQTT_DEVICE_SET  = "set"
 	MQTT_DEVICE_GET  = "get"
 	MQTT_GET_DEVICES = "get_devices"
+	MQTT_GET_CONFIG  = "get_config"
+	MQTT_SET_CONFIG  = "set_config"
 	MQTT_DEVICES     = "devices"
+	MQTT_CONFIG      = "config"
 	MQTT_GATEWAY     = "gateway"
 )
 
 type mqttRouter struct {
-	mqttClient    mqtt.MqttClient
-	configuration *configuration.Configuration
-	onSetMessage  func(devCmd types.DeviceCommandMessage)
-	db            db.DevicesRepo
+	mqttClient               mqtt.MqttClient
+	configurationService     configuration.ConfigurationService
+	onSetMessage             func(devCmd types.DeviceCommandMessage)
+	onGetMessage             func(devCmd types.DeviceGetMessage)
+	onSetDeviceConfigMessage func(devCmd types.DeviceConfigSetMessage)
+	db                       db.DevicesRepo
 }
 
 func NewMQTTRouter(
-	configuration *configuration.Configuration,
+	configurationService configuration.ConfigurationService,
 	mqttClient mqtt.MqttClient,
 	db db.DevicesRepo) MQTTRouter {
 	ret := mqttRouter{
-		mqttClient:    mqttClient,
-		configuration: configuration,
-		db:            db,
+		mqttClient:           mqttClient,
+		configurationService: configurationService,
+		db:                   db,
 	}
 
 	mqttClient.Subscribe(ret.mqttMessage)
@@ -57,6 +62,14 @@ func (h *mqttRouter) SubscribeOnSetMessage(callback func(devCmd types.DeviceComm
 	h.onSetMessage = callback
 }
 
+func (h *mqttRouter) SubscribeOnGetMessage(callback func(devCmd types.DeviceGetMessage)) {
+	h.onGetMessage = callback
+}
+
+func (h *mqttRouter) SubscribeOnSetDeviceConfigMessage(callback func(devCmd types.DeviceConfigSetMessage)) {
+	h.onSetDeviceConfigMessage = callback
+}
+
 func (h *mqttRouter) mqttMessage(topic string, message []byte) {
 	topicParts := strings.Split(topic, "/")
 	if len(topicParts) < 3 {
@@ -74,6 +87,46 @@ func (h *mqttRouter) mqttMessage(topic string, message []byte) {
 func (h *mqttRouter) handleGatewayMessage(command string, message []byte) {
 	if command == MQTT_GET_DEVICES {
 		h.publishDevicesList()
+	}
+	if command == MQTT_GET_CONFIG {
+		h.publishConfig()
+	}
+	if command == MQTT_SET_CONFIG {
+		h.handleSetConfig(message)
+	}
+}
+
+func (h *mqttRouter) publishConfig() {
+	jsonData, err := json.Marshal(h.configurationService.GetConfiguration())
+	if err != nil {
+		log.Printf("[MQTT Router] Error Marshal Configuration: %v\n", err)
+		return
+	}
+
+	h.mqttClient.Publish(fmt.Sprintf("%v/%v", MQTT_GATEWAY, MQTT_CONFIG), jsonData)
+}
+
+func (h *mqttRouter) handleSetConfig(message []byte) {
+	var mqttMsg mqtt.SetGatewayConfig
+	err := json.Unmarshal(message, &mqttMsg)
+	if err != nil {
+		log.Printf("[MQTT Router] Error unmarshal Config SET message: %v\n", err)
+		return
+	}
+
+	cfg := h.configurationService.GetConfiguration()
+	cfg.PermitJoin = mqttMsg.PermitJoin
+
+	err = h.configurationService.Update(cfg)
+	if err != nil {
+		log.Printf("[MQTT Router] Applying new configuration error: %v\n", err)
+		return
+	}
+
+	if h.onSetDeviceConfigMessage != nil {
+		h.onSetDeviceConfigMessage(types.DeviceConfigSetMessage{
+			PermitJoin: mqttMsg.PermitJoin,
+		})
 	}
 }
 
@@ -104,7 +157,23 @@ func (h *mqttRouter) handleDeviceMessage(deviceAddrStr string, command string, m
 }
 
 func (h *mqttRouter) handleDeviceGetCommand(deviceAddr uint64, message []byte) {
+	var devMsg mqtt.DeviceGetMessage
+	err := json.Unmarshal(message, &devMsg)
+	if err != nil {
+		log.Printf("[MQTT Router] Error unmarshal GET message: %v\n", err)
+		return
+	}
 
+	log.Printf("[MQTT Router] GET message received. Device:%v", deviceAddr)
+
+	if h.onGetMessage != nil {
+		h.onGetMessage(types.DeviceGetMessage{
+			IEEEAddress: deviceAddr,
+			ClusterID:   devMsg.ClusterID,
+			Endpoint:    devMsg.Endpoint,
+			Attributes:  devMsg.Attributes,
+		})
+	}
 }
 
 func (h *mqttRouter) handleDeviceSetCommand(deviceAddr uint64, message []byte) {

@@ -1,0 +1,14 @@
+[Unit]
+Description=gigbee2mqtt
+After=network.target
+
+[Service]
+ExecStart=/opt/gigbee2mqtt/gigbee2mqtt
+WorkingDirectory=/opt/gigbee2mqtt
+StandardOutput=inherit
+StandardError=inherit
+Restart=always
+User=pi
+
+[Install]
+WantedBy=multi-user.target

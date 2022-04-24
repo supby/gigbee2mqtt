@@ -31,14 +31,19 @@ func main() {
 
 	pctx := context.Background()
 
-	cfg := configuration.Init(*configFile)
+	configService, err := configuration.Init(*configFile)
+	if err != nil {
+		log.Fatalf("Configuration initialization error: %v\n", err)
+	}
 
 	db1 := db.Init(db.DBOption{
 		Filename:   "./data/db.json",
 		FlushAfter: 10,
 	})
 
-	z := initZStack(pctx, cfg, db1)
+	cfg := configService.GetConfiguration()
+
+	z := initZStack(pctx, &cfg, db1)
 	defer z.Stop()
 
 	zclCommandRegistry := zcl.NewCommandRegistry()
@@ -48,16 +53,22 @@ func main() {
 
 	zclDefService := zcldef.New("./zcldef/zcldef.json")
 
-	mqttClient, mqttDisconnect := mqtt.NewClient(cfg)
+	mqttClient, mqttDisconnect := mqtt.NewClient(&cfg)
 	defer mqttDisconnect()
 
-	mqttRouter := router.NewMQTTRouter(cfg, mqttClient, db1)
-	zRouter := router.NewZigbeeRouter(z, zclCommandRegistry, zclDefService, db1, cfg)
+	mqttRouter := router.NewMQTTRouter(configService, mqttClient, db1)
+	zRouter := router.NewZigbeeRouter(z, zclCommandRegistry, zclDefService, db1, &cfg)
 
 	ctx, cancel := context.WithCancel(pctx)
 
 	mqttRouter.SubscribeOnSetMessage(func(devCmd types.DeviceCommandMessage) {
 		zRouter.ProccessMessageToDevice(ctx, devCmd)
+	})
+	mqttRouter.SubscribeOnGetMessage(func(devCmd types.DeviceGetMessage) {
+		zRouter.ProccessGetMessageToDevice(ctx, devCmd)
+	})
+	mqttRouter.SubscribeOnSetDeviceConfigMessage(func(devCmd types.DeviceConfigSetMessage) {
+		zRouter.ProccessSetDeviceConfigMessage(ctx, devCmd)
 	})
 	zRouter.SubscribeOnDeviceMessage(func(devMsg mqtt.DeviceMessage) {
 		mqttRouter.ProccessMessageFromDevice(devMsg)
@@ -132,6 +143,11 @@ func initZStack(pctx context.Context, cfg *configuration.Configuration, db1 db.D
 		err = z.PermitJoin(initCtx, true)
 		if err != nil {
 			log.Printf("Error permit join: %v\n", err)
+		}
+	} else {
+		err = z.DenyJoin(initCtx)
+		if err != nil {
+			log.Printf("Error deny join: %v\n", err)
 		}
 	}
 

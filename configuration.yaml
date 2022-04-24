@@ -1,16 +1,31 @@
 znetworkconfiguration:
-  panid: 9945
-  extendedpanid: 15960156597840108925
-  networkkey: [0x01, 0x03, 0x05, 0x07, 0x09, 0x0B, 0x0D, 0x0F, 0x00, 0x02, 0x04, 0x06, 0x08, 0x0A, 0x0C, 0x0D]
-  channel: 15
-
+  panid: 1819
+  extendedpanid: 11960156591840108824
+  networkkey:
+  - 1
+  - 3
+  - 5
+  - 7
+  - 9
+  - 15
+  - 13
+  - 15
+  - 0
+  - 1
+  - 4
+  - 6
+  - 7
+  - 10
+  - 14
+  - 13
+  channel: 18
 mqttconfiguration:
-  address: "192.168.1.25"
-  port:    1883
-  roottopic:   "gigbee2mqtt"
-
+  address: 192.168.1.25
+  port: 1883
+  roottopic: gigbee2mqtt_dev
+  username: ""
+  password: ""
 serialconfiguration:
-  portname: "/dev/ttyACM0"
+  portname: /dev/ttyACM0
   baudrate: 115200
-
 permitjoin: true
