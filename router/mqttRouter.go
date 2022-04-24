@@ -171,6 +171,7 @@ func (h *mqttRouter) handleDeviceGetCommand(deviceAddr uint64, message []byte) {
 			IEEEAddress: deviceAddr,
 			ClusterID:   devMsg.ClusterID,
 			Endpoint:    devMsg.Endpoint,
+			Attributes:  devMsg.Attributes,
 		})
 	}
 }

@@ -2,6 +2,7 @@ node 00124b00217301e4: endpoint: 6 desc: {Endpoint:6 ProfileID:260 DeviceID:0 De
 
 ------
 
+// Set level
 gigbee2mqtt/0x00124b00217301e4/set
 {
   "ClusterID": 8,
@@ -11,4 +12,21 @@ gigbee2mqtt/0x00124b00217301e4/set
     "Level": 108,
 	 	"TransitionTime": 1
   }
+}
+
+// OnOff toggle
+gigbee2mqtt/0x842e14fffe05b879/set
+{
+  "ClusterID": 6,
+  "Endpoint": 1,
+	"CommandIdentifier": 2,
+	"CommandData": {}
+}
+
+// OnOff get
+gigbee2mqtt_dev/0x842e14fffe05b879/get
+{
+  "ClusterID": 6,
+  "Endpoint": 1,
+  "Attributes": [0]
 }

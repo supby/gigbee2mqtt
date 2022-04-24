@@ -15,8 +15,9 @@ type DeviceSetMessage struct {
 }
 
 type DeviceGetMessage struct {
-	ClusterID uint16
-	Endpoint  uint8
+	ClusterID  uint16
+	Endpoint   uint8
+	Attributes []uint16
 }
 
 type DeviceDefaultResponseMessage struct {

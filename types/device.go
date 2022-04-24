@@ -12,6 +12,7 @@ type DeviceGetMessage struct {
 	IEEEAddress uint64
 	ClusterID   uint16
 	Endpoint    uint8
+	Attributes  []uint16
 }
 
 type DeviceConfigSetMessage struct {
