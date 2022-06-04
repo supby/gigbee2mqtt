@@ -76,6 +76,45 @@ gigbee2mqtt/0x00124b00217301e4/set
   }
 }
 ```
+**Explore device**
+
+In order to get device description, send empty message on topic `gigbee2mqtt/<device addr>/explore`.
+Response will be received on topic `gigbee2mqtt/<device addr>/description` in format:
+```
+{
+  "IEEEAddress": <device address>,
+  "LogicalType": <logical type>,
+  "ManufacturerCode": <int manufacturer code>,
+  "Endpoints": [ // list of enpoints supported by device
+    {
+      "Endpoint": <endpoint number>,
+      "ProfileID": <ZB profile id>,
+      "DeviceID": <devie ID>,
+      "DeviceVersion": <device version>,
+      "InClusterList":[<list of inbound clusters>],
+      "OutClusterList":[<list of outbound clusters>]
+    }]
+}
+
+```
+Example:
+```
+gigbee2mqtt_dev/0x842e14fffe05b879/description
+{
+  "IEEEAddress":9524573351646181497,
+  "LogicalType":1,
+  "ManufacturerCode":4098,
+  "Endpoints": [
+    {
+      "Endpoint":1,
+      "ProfileID":260,
+      "DeviceID":9,
+      "DeviceVersion":1,
+      "InClusterList":[0,4,5,6],
+      "OutClusterList":[25,10]
+    }]
+}
+```
 
 **Get list of joined devices**
 
