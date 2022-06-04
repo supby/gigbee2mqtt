@@ -177,14 +177,7 @@ func (h *mqttRouter) handleDeviceMessage(deviceAddrStr string, command string, m
 }
 
 func (h *mqttRouter) handleDeviceExploreCommand(deviceAddr uint64, message []byte) {
-	var devMsg mqtt.DeviceGetMessage
-	err := json.Unmarshal(message, &devMsg)
-	if err != nil {
-		log.Printf("[MQTT Router] Error unmarshal EXPLORE message: %v\n", err)
-		return
-	}
-
-	log.Printf("[MQTT Router] EXPLORE message received. Device:%v", deviceAddr)
+	log.Printf("[MQTT Router] EXPLORE message received. Device: 0x%x", deviceAddr)
 
 	if h.onGetMessage != nil {
 		h.onExploreMessage(types.DeviceExploreMessage{

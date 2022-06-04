@@ -55,7 +55,7 @@ func (mh *zigbeeRouter) ProccessSetDeviceConfigMessage(ctx context.Context, devC
 }
 
 func (mh *zigbeeRouter) ProccessGetDeviceDescriptionMessage(ctx context.Context, devCmd types.DeviceExploreMessage) {
-	log.Printf("[Device Router] Quering description of node %v\n", devCmd.IEEEAddress)
+	log.Printf("[Device Router] Quering description of node 0x%x\n", devCmd.IEEEAddress)
 
 	ret := mqtt.DeviceDescriptionMessage{
 		IEEEAddress: devCmd.IEEEAddress,
@@ -107,6 +107,8 @@ func (mh *zigbeeRouter) ProccessGetDeviceDescriptionMessage(ctx context.Context,
 
 		ret.Endpoints = append(ret.Endpoints, newEl)
 	}
+
+	mh.onDeviceDescriptionMessage(ret)
 }
 
 func (mh *zigbeeRouter) ProccessGetMessageToDevice(ctx context.Context, devCmd types.DeviceGetMessage) {
@@ -356,41 +358,6 @@ func (mh *zigbeeRouter) startEventLoop(ctx context.Context) {
 		case zigbee.NodeIncomingMessageEvent:
 			log.Printf("[Event loop] Node message: %v\n", e)
 			go mh.processIncomingMessage(e)
-		}
-	}
-}
-
-func exploreDevice(z *zstack.ZStack, node zigbee.Node) {
-	log.Printf("node %v: querying\n", node.IEEEAddress)
-
-	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Minute)
-	defer cancel()
-
-	descriptor, err := z.QueryNodeDescription(ctx, node.IEEEAddress)
-
-	if err != nil {
-		log.Printf("failed to get node descriptor: %v\n", err)
-		return
-	}
-
-	log.Printf("node %v: descriptor: %+v\n", node.IEEEAddress, descriptor)
-
-	endpoints, err := z.QueryNodeEndpoints(ctx, node.IEEEAddress)
-
-	if err != nil {
-		log.Printf("failed to get node endpoints: %v\n", err)
-		return
-	}
-
-	log.Printf("node %v: endpoints: %+v\n", node.IEEEAddress, endpoints)
-
-	for _, endpoint := range endpoints {
-		endpointDes, err := z.QueryNodeEndpointDescription(ctx, node.IEEEAddress, endpoint)
-
-		if err != nil {
-			log.Printf("failed to get node endpoint description: %v / %d\n", err, endpoint)
-		} else {
-			log.Printf("node %v: endpoint: %d desc: %+v", node.IEEEAddress, endpoint, endpointDes)
 		}
 	}
 }
