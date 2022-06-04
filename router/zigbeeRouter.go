@@ -3,6 +3,7 @@ package router
 import (
 	"context"
 	"log"
+	"time"
 
 	"github.com/shimmeringbee/zcl"
 	"github.com/shimmeringbee/zcl/commands/global"
@@ -17,16 +18,21 @@ import (
 )
 
 type zigbeeRouter struct {
-	zstack             *zstack.ZStack
-	configuration      *configuration.Configuration
-	zclCommandRegistry *zcl.CommandRegistry
-	zclDefService      zcldef.ZCLDefService
-	database           db.DevicesRepo
-	onDeviceMessage    func(devMsg mqtt.DeviceMessage)
+	zstack                     *zstack.ZStack
+	configuration              *configuration.Configuration
+	zclCommandRegistry         *zcl.CommandRegistry
+	zclDefService              zcldef.ZCLDefService
+	database                   db.DevicesRepo
+	onDeviceMessage            func(devMsg mqtt.DeviceMessage)
+	onDeviceDescriptionMessage func(devMsg mqtt.DeviceDescriptionMessage)
 }
 
 func (mh *zigbeeRouter) SubscribeOnDeviceMessage(callback func(devMsg mqtt.DeviceMessage)) {
 	mh.onDeviceMessage = callback
+}
+
+func (mh *zigbeeRouter) SubscribeOnDeviceDescription(callback func(devMsg mqtt.DeviceDescriptionMessage)) {
+	mh.onDeviceDescriptionMessage = callback
 }
 
 func (mh *zigbeeRouter) ProccessSetDeviceConfigMessage(ctx context.Context, devCmd types.DeviceConfigSetMessage) {
@@ -37,14 +43,69 @@ func (mh *zigbeeRouter) ProccessSetDeviceConfigMessage(ctx context.Context, devC
 	if devCmd.PermitJoin {
 		err := mh.zstack.PermitJoin(ctx, true)
 		if err != nil {
-			log.Printf("[Device Eouter] Error PermitJoin, %v\n", err)
+			log.Printf("[Device Router] Error PermitJoin, %v\n", err)
 		}
 	} else {
 		err := mh.zstack.DenyJoin(ctx)
 		if err != nil {
-			log.Printf("[Device Eouter] Error DenyJoin to true, %v\n", err)
+			log.Printf("[Device Router] Error DenyJoin to true, %v\n", err)
 		}
 
+	}
+}
+
+func (mh *zigbeeRouter) ProccessGetDeviceDescriptionMessage(ctx context.Context, devCmd types.DeviceExploreMessage) {
+	log.Printf("[Device Router] Quering description of node %v\n", devCmd.IEEEAddress)
+
+	ret := mqtt.DeviceDescriptionMessage{
+		IEEEAddress: devCmd.IEEEAddress,
+		Endpoints:   make([]mqtt.EndpointDescription, 0),
+	}
+
+	ctx, cancel := context.WithTimeout(ctx, 1*time.Minute)
+	defer cancel()
+
+	descriptor, err := mh.zstack.QueryNodeDescription(ctx, zigbee.IEEEAddress(devCmd.IEEEAddress))
+	if err != nil {
+		log.Printf("[Device Router] Failed to get node descriptor: %v\n", err)
+		return
+	}
+
+	ret.LogicalType = uint8(descriptor.LogicalType)
+	ret.ManufacturerCode = uint16(descriptor.ManufacturerCode)
+
+	endpoints, err := mh.zstack.QueryNodeEndpoints(ctx, zigbee.IEEEAddress(devCmd.IEEEAddress))
+	if err != nil {
+		log.Printf("[Device Router] Failed to get node endpoints: %v\n", err)
+		return
+	}
+
+	for _, endpoint := range endpoints {
+		endpointDes, err := mh.zstack.QueryNodeEndpointDescription(ctx, zigbee.IEEEAddress(devCmd.IEEEAddress), endpoint)
+
+		if err != nil {
+			log.Printf("[Device Router] Failed to get node endpoint description: %v / %d\n", err, endpoint)
+			continue
+		}
+
+		newEl := mqtt.EndpointDescription{
+			Endpoint:       uint8(endpointDes.Endpoint),
+			ProfileID:      uint16(endpointDes.ProfileID),
+			DeviceID:       endpointDes.DeviceID,
+			DeviceVersion:  endpointDes.DeviceVersion,
+			InClusterList:  make([]uint16, len(endpointDes.InClusterList)),
+			OutClusterList: make([]uint16, len(endpointDes.OutClusterList)),
+		}
+
+		for i, v := range endpointDes.InClusterList {
+			newEl.InClusterList[i] = uint16(v)
+		}
+
+		for i, v := range endpointDes.OutClusterList {
+			newEl.OutClusterList[i] = uint16(v)
+		}
+
+		ret.Endpoints = append(ret.Endpoints, newEl)
 	}
 }
 
@@ -295,6 +356,41 @@ func (mh *zigbeeRouter) startEventLoop(ctx context.Context) {
 		case zigbee.NodeIncomingMessageEvent:
 			log.Printf("[Event loop] Node message: %v\n", e)
 			go mh.processIncomingMessage(e)
+		}
+	}
+}
+
+func exploreDevice(z *zstack.ZStack, node zigbee.Node) {
+	log.Printf("node %v: querying\n", node.IEEEAddress)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Minute)
+	defer cancel()
+
+	descriptor, err := z.QueryNodeDescription(ctx, node.IEEEAddress)
+
+	if err != nil {
+		log.Printf("failed to get node descriptor: %v\n", err)
+		return
+	}
+
+	log.Printf("node %v: descriptor: %+v\n", node.IEEEAddress, descriptor)
+
+	endpoints, err := z.QueryNodeEndpoints(ctx, node.IEEEAddress)
+
+	if err != nil {
+		log.Printf("failed to get node endpoints: %v\n", err)
+		return
+	}
+
+	log.Printf("node %v: endpoints: %+v\n", node.IEEEAddress, endpoints)
+
+	for _, endpoint := range endpoints {
+		endpointDes, err := z.QueryNodeEndpointDescription(ctx, node.IEEEAddress, endpoint)
+
+		if err != nil {
+			log.Printf("failed to get node endpoint description: %v / %d\n", err, endpoint)
+		} else {
+			log.Printf("node %v: endpoint: %d desc: %+v", node.IEEEAddress, endpoint, endpointDes)
 		}
 	}
 }

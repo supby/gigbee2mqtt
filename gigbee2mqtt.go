@@ -67,11 +67,17 @@ func main() {
 	mqttRouter.SubscribeOnGetMessage(func(devCmd types.DeviceGetMessage) {
 		zRouter.ProccessGetMessageToDevice(ctx, devCmd)
 	})
+	mqttRouter.SubscribeOnExploreMessage(func(devCmd types.DeviceExploreMessage) {
+		zRouter.ProccessGetDeviceDescriptionMessage(ctx, devCmd)
+	})
 	mqttRouter.SubscribeOnSetDeviceConfigMessage(func(devCmd types.DeviceConfigSetMessage) {
 		zRouter.ProccessSetDeviceConfigMessage(ctx, devCmd)
 	})
 	zRouter.SubscribeOnDeviceMessage(func(devMsg mqtt.DeviceMessage) {
 		mqttRouter.ProccessMessageFromDevice(devMsg)
+	})
+	zRouter.SubscribeOnDeviceDescription(func(devDscMsg mqtt.DeviceDescriptionMessage) {
+		mqttRouter.ProccessDeviceDescriptionMessage(devDscMsg)
 	})
 
 	zRouter.StartAsync(ctx)

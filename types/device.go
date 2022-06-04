@@ -15,6 +15,10 @@ type DeviceGetMessage struct {
 	Attributes  []uint16
 }
 
+type DeviceExploreMessage struct {
+	IEEEAddress uint64
+}
+
 type DeviceConfigSetMessage struct {
 	PermitJoin bool
 }

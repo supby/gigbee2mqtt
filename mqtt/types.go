@@ -32,6 +32,22 @@ type DeviceMessage struct {
 	Message     interface{}
 }
 
+type DeviceDescriptionMessage struct {
+	IEEEAddress      uint64
+	LogicalType      uint8
+	ManufacturerCode uint16
+	Endpoints        []EndpointDescription
+}
+
+type EndpointDescription struct {
+	Endpoint       uint8
+	ProfileID      uint16
+	DeviceID       uint16
+	DeviceVersion  uint8
+	InClusterList  []uint16
+	OutClusterList []uint16
+}
+
 type SetGatewayConfig struct {
 	PermitJoin bool
 }
