@@ -28,6 +28,8 @@ func (cs *configurationService) Update(updatedConfig Configuration) error {
 		return err
 	}
 
+	cs.configuration = updatedConfig
+
 	return nil
 }
 
