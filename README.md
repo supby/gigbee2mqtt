@@ -126,10 +126,12 @@ Send empty object to `gigbee2mqtt/gateway/get_config`
 
 **Set gateway config**
 
-Send object to `gigbee2mqtt/gateway/get_config`:
+Send object to `gigbee2mqtt/gateway/set_config`
+```
 {
     "PermitJoin": <true/false>
 }
+```
 
 For now only `PermitJoin` can be changed.
 
