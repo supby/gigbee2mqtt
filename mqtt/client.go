@@ -6,19 +6,13 @@ import (
 
 	mqttlib "github.com/eclipse/paho.mqtt.golang"
 	"github.com/supby/gigbee2mqtt/configuration"
+	"github.com/supby/gigbee2mqtt/logger"
 )
-
-var connectHandler mqttlib.OnConnectHandler = func(client mqttlib.Client) {
-	log.Println("[MQTT Client] Connected")
-}
-
-var connectLostHandler mqttlib.ConnectionLostHandler = func(client mqttlib.Client, err error) {
-	log.Printf("[MQTT Client] Connect lost: %v", err)
-}
 
 func NewClient(config *configuration.Configuration) (MqttClient, func()) {
 	retClient := defaultMqttClient{
 		configuration: config,
+		logger:        logger.GetLogger("[MQTT Client]"),
 	}
 
 	opts := mqttlib.NewClientOptions()
@@ -28,8 +22,12 @@ func NewClient(config *configuration.Configuration) (MqttClient, func()) {
 	opts.SetPassword(config.MqttConfiguration.Password)
 	opts.AutoReconnect = true
 	opts.SetOrderMatters(false)
-	opts.OnConnect = connectHandler
-	opts.OnConnectionLost = connectLostHandler
+	opts.OnConnect = func(client mqttlib.Client) {
+		retClient.logger.Log("Connected")
+	}
+	opts.OnConnectionLost = func(client mqttlib.Client, err error) {
+		retClient.logger.Log("Connect lost: %v", err)
+	}
 
 	innerClient := mqttlib.NewClient(opts)
 
@@ -40,7 +38,7 @@ func NewClient(config *configuration.Configuration) (MqttClient, func()) {
 	token := innerClient.Subscribe(fmt.Sprintf("%v/#", config.MqttConfiguration.RootTopic), 0, retClient.onMessageReceived)
 	token.Wait()
 
-	log.Printf("[MQTT Client] Connected to MQTT on '%v:%v'", config.MqttConfiguration.Address, config.MqttConfiguration.Port)
+	retClient.logger.Log("Connected to MQTT on '%v:%v'", config.MqttConfiguration.Address, config.MqttConfiguration.Port)
 	innerClient.Publish(fmt.Sprintf("%v/gateway/status", config.MqttConfiguration.RootTopic), 0, false, "Online")
 
 	retClient.innerClient = innerClient
@@ -59,6 +57,7 @@ type defaultMqttClient struct {
 	innerClient     mqttlib.Client
 	messageCallback func(topic string, message []byte)
 	configuration   *configuration.Configuration
+	logger          logger.Logger
 }
 
 func (cl *defaultMqttClient) Dispose() {

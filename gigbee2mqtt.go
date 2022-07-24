@@ -17,6 +17,7 @@ import (
 
 	"github.com/supby/gigbee2mqtt/configuration"
 	"github.com/supby/gigbee2mqtt/db"
+	"github.com/supby/gigbee2mqtt/logger"
 	"github.com/supby/gigbee2mqtt/mqtt"
 	"github.com/supby/gigbee2mqtt/router"
 	"github.com/supby/gigbee2mqtt/types"
@@ -26,6 +27,8 @@ import (
 )
 
 func main() {
+	logger := logger.GetLogger("[main]")
+
 	var configFile = flag.String("c", "./configuration.yaml", "path to config file name")
 	flag.Parse()
 
@@ -33,7 +36,8 @@ func main() {
 
 	configService, err := configuration.Init(*configFile)
 	if err != nil {
-		log.Fatalf("Configuration initialization error: %v\n", err)
+		logger.Log("Configuration initialization error: %v\n", err)
+		os.Exit(1)
 	}
 
 	db1 := db.Init(db.DBOption{
@@ -84,7 +88,7 @@ func main() {
 
 	waitForSignal(cancel)
 
-	log.Println("[Main] Exiting app...")
+	logger.Log("exiting app...")
 }
 
 func waitForSignal(cancel context.CancelFunc) {
@@ -98,6 +102,8 @@ func waitForSignal(cancel context.CancelFunc) {
 }
 
 func initZStack(pctx context.Context, cfg *configuration.Configuration, db1 db.DevicesRepo) *zstack.ZStack {
+	logger := logger.GetLogger("[init zstack]")
+
 	mode := &serial.Mode{
 		BaudRate: int(cfg.SerialConfiguration.BaudRate),
 	}
@@ -148,12 +154,12 @@ func initZStack(pctx context.Context, cfg *configuration.Configuration, db1 db.D
 	if cfg.PermitJoin {
 		err = z.PermitJoin(initCtx, true)
 		if err != nil {
-			log.Printf("Error permit join: %v\n", err)
+			logger.Log("error permit join: %v\n", err)
 		}
 	} else {
 		err = z.DenyJoin(initCtx)
 		if err != nil {
-			log.Printf("Error deny join: %v\n", err)
+			logger.Log("error deny join: %v\n", err)
 		}
 	}
 
