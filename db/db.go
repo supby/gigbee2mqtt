@@ -2,9 +2,10 @@ package db
 
 import (
 	"encoding/json"
-	"log"
 	"os"
 	"sync"
+
+	"github.com/supby/gigbee2mqtt/logger"
 )
 
 type DevicesRepo interface {
@@ -21,6 +22,7 @@ func Init(options DBOption) DevicesRepo {
 	ret := devicesRepo{
 		options: options,
 		Nodes:   make([]Node, 0),
+		logger:  logger.GetLogger("[db]"),
 	}
 
 	ret.init()
@@ -33,6 +35,7 @@ type devicesRepo struct {
 	mtx         sync.Mutex
 	options     DBOption
 	saveCounter uint
+	logger      logger.Logger
 }
 
 func (db *devicesRepo) GetNodes() []Node {
@@ -68,7 +71,7 @@ func (db *devicesRepo) SaveNode(node Node) {
 }
 
 func (db *devicesRepo) flush() {
-	log.Println("[DB] Flushing DB to file.")
+	db.logger.Log("Flushing DB to file.")
 
 	res, _ := json.Marshal(db)
 	os.WriteFile(db.options.Filename, res, 0644)
@@ -77,7 +80,7 @@ func (db *devicesRepo) flush() {
 func (db *devicesRepo) init() {
 	_, err := os.Stat(db.options.Filename)
 	if os.IsNotExist(err) {
-		log.Printf("[DB] File %v is not found. Using empty state.\n", db.options.Filename)
+		db.logger.Log("File %v is not found. Using empty state.\n", db.options.Filename)
 		return
 	}
 
@@ -91,5 +94,5 @@ func (db *devicesRepo) init() {
 		db.Nodes = loadedDB.Nodes
 	}
 
-	log.Printf("[DB] %v nodes are loaded from DB\n", len(db.Nodes))
+	db.logger.Log("%v nodes are loaded from DB\n", len(db.Nodes))
 }
