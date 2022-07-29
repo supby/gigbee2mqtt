@@ -54,6 +54,7 @@ func main() {
 	global.Register(zclCommandRegistry)
 	onoff.Register(zclCommandRegistry)
 	level.Register(zclCommandRegistry)
+	// TODO: register all clusters
 
 	zclDefService := zcldef.New("./zcldef/zcldef.json")
 
