@@ -66,6 +66,16 @@ func main() {
 
 	ctx, cancel := context.WithCancel(pctx)
 
+	setupSubscriptions(mqttRouter, zRouter, ctx)
+
+	zRouter.StartAsync(ctx)
+
+	waitForSignal(cancel)
+
+	logger.Log("exiting app...")
+}
+
+func setupSubscriptions(mqttRouter router.MQTTRouter, zRouter router.ZigbeeRouter, ctx context.Context) {
 	mqttRouter.SubscribeOnSetMessage(func(devCmd types.DeviceCommandMessage) {
 		zRouter.ProccessMessageToDevice(ctx, devCmd)
 	})
@@ -84,7 +94,6 @@ func main() {
 	zRouter.SubscribeOnDeviceDescription(func(devDscMsg mqtt.DeviceDescriptionMessage) {
 		mqttRouter.PublishDeviceMessage(devDscMsg.IEEEAddress, devDscMsg, "description")
 	})
-
 	zRouter.SubscribeOnDeviceJoin(func(e zigbee.NodeJoinEvent) {
 		mqttRouter.PublishDeviceMessage(uint64(e.IEEEAddress), e, "join")
 	})
@@ -94,12 +103,6 @@ func main() {
 	zRouter.SubscribeOnDeviceUpdate(func(e zigbee.NodeUpdateEvent) {
 		mqttRouter.PublishDeviceMessage(uint64(e.IEEEAddress), e, "update")
 	})
-
-	zRouter.StartAsync(ctx)
-
-	waitForSignal(cancel)
-
-	logger.Log("exiting app...")
 }
 
 func waitForSignal(cancel context.CancelFunc) {
