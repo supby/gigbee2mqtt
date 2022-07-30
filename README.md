@@ -135,6 +135,23 @@ Send object to `gigbee2mqtt/gateway/set_config`
 
 For now only `PermitJoin` can be changed.
 
+**Device Events**
+
+Device Join/Leave/Update events will be published to MQTT under `gigbee2mqtt/<device addr>/<join|leave|update>` topic.
+
+Example of update event:
+```
+gigbee2mqtt_dev/0x842e14fffe05b879/update
+{
+  "IEEEAddress":9524573351646181497,
+  "NetworkAddress":59230,
+  "LogicalType":1,
+  "LQI":170,
+  "Depth":1,
+  "LastDiscovered":"2022-07-30T17:05:24.527442908+02:00","LastReceived":"2022-06-04T19:07:45.186907544+02:00"
+}
+```
+
 
 ## Configuration
 

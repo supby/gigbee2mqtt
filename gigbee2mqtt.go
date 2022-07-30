@@ -54,6 +54,7 @@ func main() {
 	global.Register(zclCommandRegistry)
 	onoff.Register(zclCommandRegistry)
 	level.Register(zclCommandRegistry)
+	// TODO: register all clusters
 
 	zclDefService := zcldef.New("./zcldef/zcldef.json")
 
@@ -65,6 +66,16 @@ func main() {
 
 	ctx, cancel := context.WithCancel(pctx)
 
+	setupSubscriptions(mqttRouter, zRouter, ctx)
+
+	zRouter.StartAsync(ctx)
+
+	waitForSignal(cancel)
+
+	logger.Log("exiting app...")
+}
+
+func setupSubscriptions(mqttRouter router.MQTTRouter, zRouter router.ZigbeeRouter, ctx context.Context) {
 	mqttRouter.SubscribeOnSetMessage(func(devCmd types.DeviceCommandMessage) {
 		zRouter.ProccessMessageToDevice(ctx, devCmd)
 	})
@@ -78,17 +89,20 @@ func main() {
 		zRouter.ProccessSetDeviceConfigMessage(ctx, devCmd)
 	})
 	zRouter.SubscribeOnDeviceMessage(func(devMsg mqtt.DeviceMessage) {
-		mqttRouter.ProccessMessageFromDevice(devMsg)
+		mqttRouter.PublishDeviceMessage(devMsg.IEEEAddress, devMsg, "")
 	})
 	zRouter.SubscribeOnDeviceDescription(func(devDscMsg mqtt.DeviceDescriptionMessage) {
-		mqttRouter.ProccessDeviceDescriptionMessage(devDscMsg)
+		mqttRouter.PublishDeviceMessage(devDscMsg.IEEEAddress, devDscMsg, "description")
 	})
-
-	zRouter.StartAsync(ctx)
-
-	waitForSignal(cancel)
-
-	logger.Log("exiting app...")
+	zRouter.SubscribeOnDeviceJoin(func(e zigbee.NodeJoinEvent) {
+		mqttRouter.PublishDeviceMessage(uint64(e.IEEEAddress), e, "join")
+	})
+	zRouter.SubscribeOnDeviceLeave(func(e zigbee.NodeLeaveEvent) {
+		mqttRouter.PublishDeviceMessage(uint64(e.IEEEAddress), e, "leave")
+	})
+	zRouter.SubscribeOnDeviceUpdate(func(e zigbee.NodeUpdateEvent) {
+		mqttRouter.PublishDeviceMessage(uint64(e.IEEEAddress), e, "update")
+	})
 }
 
 func waitForSignal(cancel context.CancelFunc) {

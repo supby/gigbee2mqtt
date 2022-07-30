@@ -25,6 +25,9 @@ type zigbeeRouter struct {
 	database                   db.DevicesRepo
 	onDeviceMessage            func(devMsg mqtt.DeviceMessage)
 	onDeviceDescriptionMessage func(devMsg mqtt.DeviceDescriptionMessage)
+	onDeviceJoin               func(e zigbee.NodeJoinEvent)
+	onDeviceLeave              func(e zigbee.NodeLeaveEvent)
+	onDeviceUpdate             func(e zigbee.NodeUpdateEvent)
 	logger                     logger.Logger
 }
 
@@ -34,6 +37,18 @@ func (mh *zigbeeRouter) SubscribeOnDeviceMessage(callback func(devMsg mqtt.Devic
 
 func (mh *zigbeeRouter) SubscribeOnDeviceDescription(callback func(devMsg mqtt.DeviceDescriptionMessage)) {
 	mh.onDeviceDescriptionMessage = callback
+}
+
+func (mh *zigbeeRouter) SubscribeOnDeviceJoin(cb func(e zigbee.NodeJoinEvent)) {
+	mh.onDeviceJoin = cb
+}
+
+func (mh *zigbeeRouter) SubscribeOnDeviceLeave(cb func(e zigbee.NodeLeaveEvent)) {
+	mh.onDeviceLeave = cb
+}
+
+func (mh *zigbeeRouter) SubscribeOnDeviceUpdate(cb func(e zigbee.NodeUpdateEvent)) {
+	mh.onDeviceUpdate = cb
 }
 
 func (mh *zigbeeRouter) ProccessSetDeviceConfigMessage(ctx context.Context, devCmd types.DeviceConfigSetMessage) {
@@ -210,15 +225,26 @@ func saveNodeDB(znode zigbee.Node, dbObj db.DevicesRepo) {
 }
 
 func (mh *zigbeeRouter) processNodeJoin(e zigbee.NodeJoinEvent) {
-	saveNodeDB(e.Node, mh.database)
+	go saveNodeDB(e.Node, mh.database)
+
+	if mh.onDeviceJoin != nil {
+		mh.onDeviceJoin(e)
+	}
 }
 
 func (mh *zigbeeRouter) processNodeLeave(e zigbee.NodeLeaveEvent) {
 
+	if mh.onDeviceLeave != nil {
+		mh.onDeviceLeave(e)
+	}
 }
 
 func (mh *zigbeeRouter) processNodeUpdate(e zigbee.NodeUpdateEvent) {
-	saveNodeDB(e.Node, mh.database)
+	go saveNodeDB(e.Node, mh.database)
+
+	if mh.onDeviceUpdate != nil {
+		mh.onDeviceUpdate(e)
+	}
 }
 
 func (mh *zigbeeRouter) processIncomingMessage(e zigbee.NodeIncomingMessageEvent) {

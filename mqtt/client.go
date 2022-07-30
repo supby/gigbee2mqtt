@@ -80,10 +80,6 @@ func (cl *defaultMqttClient) onMessageReceived(client mqttlib.Client, msg mqttli
 	topic := msg.Topic()
 	message := msg.Payload()
 
-	if topic == fmt.Sprintf("%v/gateway/status", cl.configuration.MqttConfiguration.RootTopic) {
-		return
-	}
-
 	if cl.messageCallback != nil {
 		go cl.messageCallback(topic, message)
 	}

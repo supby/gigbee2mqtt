@@ -52,24 +52,19 @@ func NewMQTTRouter(
 	return &ret
 }
 
-func (h *mqttRouter) ProccessMessageFromDevice(devMsg mqtt.DeviceMessage) {
-	jsonData, err := json.Marshal(devMsg)
+func (h *mqttRouter) PublishDeviceMessage(ieeeAddress uint64, msg interface{}, subtopic string) {
+	jsonData, err := json.Marshal(msg)
 	if err != nil {
 		h.logger.Log("Error Marshal DeviceMessage: %v\n", err)
 		return
 	}
 
-	h.mqttClient.Publish(fmt.Sprintf("0x%x", devMsg.IEEEAddress), jsonData)
-}
-
-func (h *mqttRouter) ProccessDeviceDescriptionMessage(devDscMsg mqtt.DeviceDescriptionMessage) {
-	jsonData, err := json.Marshal(devDscMsg)
-	if err != nil {
-		h.logger.Log("Error Marshal DeviceDescriptionMessage: %v\n", err)
-		return
+	topic := fmt.Sprintf("0x%x", ieeeAddress)
+	if subtopic != "" {
+		topic = fmt.Sprintf("%v/%v", topic, subtopic)
 	}
 
-	h.mqttClient.Publish(fmt.Sprintf("0x%x/description", devDscMsg.IEEEAddress), jsonData)
+	h.mqttClient.Publish(topic, jsonData)
 }
 
 func (h *mqttRouter) SubscribeOnSetMessage(callback func(devCmd types.DeviceCommandMessage)) {
