@@ -3,13 +3,14 @@ package router
 import (
 	"context"
 
+	"github.com/shimmeringbee/zigbee"
 	"github.com/supby/gigbee2mqtt/mqtt"
 	"github.com/supby/gigbee2mqtt/types"
 )
 
 type MQTTRouter interface {
-	ProccessMessageFromDevice(devMsg mqtt.DeviceMessage)
-	ProccessDeviceDescriptionMessage(devDscMsg mqtt.DeviceDescriptionMessage)
+	PublishDeviceMessage(ieeeAddress uint64, msg interface{}, subtopic string)
+
 	SubscribeOnSetMessage(callback func(devCmd types.DeviceCommandMessage))
 	SubscribeOnGetMessage(callback func(devCmd types.DeviceGetMessage))
 	SubscribeOnExploreMessage(callback func(devCmd types.DeviceExploreMessage))
@@ -19,6 +20,9 @@ type MQTTRouter interface {
 type ZigbeeRouter interface {
 	SubscribeOnDeviceMessage(callback func(devMsg mqtt.DeviceMessage))
 	SubscribeOnDeviceDescription(callback func(devMsg mqtt.DeviceDescriptionMessage))
+	SubscribeOnDeviceJoin(cb func(e zigbee.NodeJoinEvent))
+	SubscribeOnDeviceLeave(cb func(e zigbee.NodeLeaveEvent))
+	SubscribeOnDeviceUpdate(cb func(e zigbee.NodeUpdateEvent))
 	ProccessMessageToDevice(ctx context.Context, devCmd types.DeviceCommandMessage)
 	ProccessGetMessageToDevice(ctx context.Context, devCmd types.DeviceGetMessage)
 	ProccessSetDeviceConfigMessage(ctx context.Context, devCmd types.DeviceConfigSetMessage)

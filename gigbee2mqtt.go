@@ -79,10 +79,20 @@ func main() {
 		zRouter.ProccessSetDeviceConfigMessage(ctx, devCmd)
 	})
 	zRouter.SubscribeOnDeviceMessage(func(devMsg mqtt.DeviceMessage) {
-		mqttRouter.ProccessMessageFromDevice(devMsg)
+		mqttRouter.PublishDeviceMessage(devMsg.IEEEAddress, devMsg, "")
 	})
 	zRouter.SubscribeOnDeviceDescription(func(devDscMsg mqtt.DeviceDescriptionMessage) {
-		mqttRouter.ProccessDeviceDescriptionMessage(devDscMsg)
+		mqttRouter.PublishDeviceMessage(devDscMsg.IEEEAddress, devDscMsg, "description")
+	})
+
+	zRouter.SubscribeOnDeviceJoin(func(e zigbee.NodeJoinEvent) {
+		mqttRouter.PublishDeviceMessage(uint64(e.IEEEAddress), e, "join")
+	})
+	zRouter.SubscribeOnDeviceLeave(func(e zigbee.NodeLeaveEvent) {
+		mqttRouter.PublishDeviceMessage(uint64(e.IEEEAddress), e, "leave")
+	})
+	zRouter.SubscribeOnDeviceUpdate(func(e zigbee.NodeUpdateEvent) {
+		mqttRouter.PublishDeviceMessage(uint64(e.IEEEAddress), e, "update")
 	})
 
 	zRouter.StartAsync(ctx)
