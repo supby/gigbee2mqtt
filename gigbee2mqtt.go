@@ -40,14 +40,19 @@ func main() {
 		os.Exit(1)
 	}
 
-	db1 := db.Init(db.DBOption{
-		Filename:   "./data/db.json",
-		FlushAfter: 10,
-	})
+	db1, err := db.NewDeviceDB("./data")
+	if err != nil {
+		logger.Log("db initialization error: %v\n", err)
+		os.Exit(1)
+	}
 
 	cfg := configService.GetConfiguration()
 
-	z := initZStack(pctx, &cfg, db1)
+	z, err := initZStack(pctx, &cfg, db1)
+	if err != nil {
+		logger.Log("zstack initialization error: %v\n", err)
+		os.Exit(1)
+	}
 	defer z.Stop()
 
 	zclCommandRegistry := zcl.NewCommandRegistry()
@@ -115,8 +120,12 @@ func waitForSignal(cancel context.CancelFunc) {
 	<-sigchan
 }
 
-func initZStack(pctx context.Context, cfg *configuration.Configuration, db1 db.DevicesRepo) *zstack.ZStack {
+func initZStack(pctx context.Context, cfg *configuration.Configuration, db1 db.DeviceDB) (*zstack.ZStack, error) {
 	logger := logger.GetLogger("[init zstack]")
+
+	/* Obtain context for timeout of initialisation. */
+	initCtx, cancel := context.WithTimeout(pctx, 2*time.Minute)
+	defer cancel()
 
 	mode := &serial.Mode{
 		BaudRate: int(cfg.SerialConfiguration.BaudRate),
@@ -129,10 +138,13 @@ func initZStack(pctx context.Context, cfg *configuration.Configuration, db1 db.D
 	port.SetRTS(true)
 
 	/* Construct node table, cache of network nodes. */
-	dbNodes := db1.GetNodes()
+	dbDevices, err := db1.GetDevices(initCtx)
+	if err != nil {
+		return nil, err
+	}
 	t := zstack.NewNodeTable()
-	znodes := make([]zigbee.Node, len(dbNodes))
-	for i, dbNode := range dbNodes {
+	znodes := make([]zigbee.Node, len(dbDevices))
+	for i, dbNode := range dbDevices {
 		znodes[i] = zigbee.Node{
 			IEEEAddress:    zigbee.IEEEAddress(dbNode.IEEEAddress),
 			NetworkAddress: zigbee.NetworkAddress(dbNode.NetworkAddress),
@@ -154,10 +166,6 @@ func initZStack(pctx context.Context, cfg *configuration.Configuration, db1 db.D
 		NetworkKey:    cfg.ZNetworkConfiguration.NetworkKey,
 		Channel:       cfg.ZNetworkConfiguration.Channel,
 	}
-
-	/* Obtain context for timeout of initialisation. */
-	initCtx, cancel := context.WithTimeout(pctx, 2*time.Minute)
-	defer cancel()
 
 	/* Initialise ZStack and CC253X */
 	err = z.Initialise(initCtx, netCfg)
@@ -181,5 +189,5 @@ func initZStack(pctx context.Context, cfg *configuration.Configuration, db1 db.D
 		log.Fatal(err)
 	}
 
-	return z
+	return z, nil
 }

@@ -22,7 +22,7 @@ type zigbeeRouter struct {
 	configuration              *configuration.Configuration
 	zclCommandRegistry         *zcl.CommandRegistry
 	zclDefService              zcldef.ZCLDefService
-	database                   db.DevicesRepo
+	database                   db.DeviceDB
 	onDeviceMessage            func(devMsg mqtt.DeviceMessage)
 	onDeviceDescriptionMessage func(devMsg mqtt.DeviceDescriptionMessage)
 	onDeviceJoin               func(e zigbee.NodeJoinEvent)
@@ -210,8 +210,8 @@ func (mh *zigbeeRouter) ProccessMessageToDevice(ctx context.Context, devCmd type
 	mh.logger.Log("[ProccessMessageToDevice] Message (ClusterID: %v, Command: %v) is sent to %v device\n", message.ClusterID, message.CommandIdentifier, devCmd.IEEEAddress)
 }
 
-func saveNodeDB(znode zigbee.Node, dbObj db.DevicesRepo) {
-	dbNode := db.Node{
+func saveNodeDB(znode zigbee.Node, dbObj db.DeviceDB) {
+	newDevice := db.Device{
 		IEEEAddress:    uint64(znode.IEEEAddress),
 		NetworkAddress: uint16(znode.NetworkAddress),
 		LogicalType:    uint8(znode.LogicalType),
@@ -221,7 +221,7 @@ func saveNodeDB(znode zigbee.Node, dbObj db.DevicesRepo) {
 		LastReceived:   znode.LastReceived,
 	}
 
-	dbObj.SaveNode(dbNode)
+	dbObj.SaveDevice(context.Background(), newDevice)
 }
 
 func (mh *zigbeeRouter) processNodeJoin(e zigbee.NodeJoinEvent) {
@@ -341,7 +341,7 @@ func NewZigbeeRouter(
 	z *zstack.ZStack,
 	zclCommandRegistry *zcl.CommandRegistry,
 	zclDefService zcldef.ZCLDefService,
-	database db.DevicesRepo,
+	database db.DeviceDB,
 	cfg *configuration.Configuration) ZigbeeRouter {
 	ret := zigbeeRouter{
 		zstack:             z,

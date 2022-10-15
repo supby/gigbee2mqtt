@@ -2,7 +2,7 @@ package db
 
 import "time"
 
-type Node struct {
+type Device struct {
 	IEEEAddress    uint64
 	NetworkAddress uint16
 	LogicalType    uint8

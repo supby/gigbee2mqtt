@@ -1,6 +1,7 @@
 package router
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"strconv"
@@ -32,14 +33,14 @@ type mqttRouter struct {
 	onGetMessage             func(devCmd types.DeviceGetMessage)
 	onExploreMessage         func(devCmd types.DeviceExploreMessage)
 	onSetDeviceConfigMessage func(devCmd types.DeviceConfigSetMessage)
-	db                       db.DevicesRepo
+	db                       db.DeviceDB
 	logger                   logger.Logger
 }
 
 func NewMQTTRouter(
 	configurationService configuration.ConfigurationService,
 	mqttClient mqtt.MqttClient,
-	db db.DevicesRepo) MQTTRouter {
+	db db.DeviceDB) MQTTRouter {
 	ret := mqttRouter{
 		mqttClient:           mqttClient,
 		configurationService: configurationService,
@@ -144,7 +145,13 @@ func (h *mqttRouter) handleSetConfig(message []byte) {
 }
 
 func (h *mqttRouter) publishDevicesList() {
-	jsonData, err := json.Marshal(h.db.GetNodes())
+	dbDevices, err := h.db.GetDevices(context.Background())
+	if err != nil {
+		h.logger.Log("error getting devices from db: %v\n", err)
+		return
+	}
+
+	jsonData, err := json.Marshal(dbDevices)
 	if err != nil {
 		h.logger.Log("Error Marshal Devices list: %v\n", err)
 		return
