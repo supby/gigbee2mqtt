@@ -17,7 +17,10 @@ type DeviceDB interface {
 }
 
 func NewDeviceDB(dirname string) (DeviceDB, error) {
-	db, err := badger.Open(badger.DefaultOptions(dirname))
+	opt := badger.DefaultOptions(dirname)
+	opt.ValueLogFileSize = 1024 * 1024 * 40
+
+	db, err := badger.Open(opt)
 	if err != nil {
 		return nil, err
 	}
