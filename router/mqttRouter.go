@@ -86,6 +86,7 @@ func (h *mqttRouter) SubscribeOnSetDeviceConfigMessage(callback func(devCmd type
 func (h *mqttRouter) mqttMessage(topic string, message []byte) {
 	topicParts := strings.Split(topic, "/")
 	if len(topicParts) < 3 {
+		h.logger.Log("invalid topic \"%s\"", topic)
 		return
 	}
 
@@ -99,12 +100,15 @@ func (h *mqttRouter) mqttMessage(topic string, message []byte) {
 
 func (h *mqttRouter) handleGatewayMessage(command string, message []byte) {
 	if command == MQTT_GET_DEVICES {
+		h.logger.Log("list of connected devies is requested.\n")
 		h.publishDevicesList()
 	}
 	if command == MQTT_GET_CONFIG {
+		h.logger.Log("gateway configuration is requested.\n")
 		h.publishConfig()
 	}
 	if command == MQTT_SET_CONFIG {
+		h.logger.Log("setting gateway configuration.\n")
 		h.handleSetConfig(message)
 	}
 }
@@ -161,14 +165,17 @@ func (h *mqttRouter) handleDeviceMessage(deviceAddrStr string, command string, m
 	}
 
 	if command == MQTT_DEVICE_GET {
+		h.logger.Log("get command received for device: %s", deviceAddrStr)
 		h.handleDeviceGetCommand(deviceAddr, message)
 	}
 
 	if command == MQTT_DEVICE_SET {
+		h.logger.Log("set command received for device: %s", deviceAddrStr)
 		h.handleDeviceSetCommand(deviceAddr, message)
 	}
 
 	if command == MQTT_DEVICE_EXPLORE {
+		h.logger.Log("explore command received for device: %s", deviceAddrStr)
 		h.handleDeviceExploreCommand(deviceAddr, message)
 	}
 }
