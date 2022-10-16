@@ -3,6 +3,7 @@ package mqtt
 import (
 	"fmt"
 	"log"
+	"time"
 
 	mqttlib "github.com/eclipse/paho.mqtt.golang"
 	"github.com/supby/gigbee2mqtt/configuration"
@@ -15,12 +16,18 @@ func NewClient(config *configuration.Configuration) (MqttClient, func()) {
 		logger:        logger.GetLogger("[MQTT Client]"),
 	}
 
+	// TODO: introduce log level to config
+	// mqttlib.DEBUG = log.New(retClient.logger.GetWriter(), "[MQTT Client]", 0)
+	mqttlib.ERROR = log.New(retClient.logger.GetWriter(), "[MQTT Client]", 0)
+
 	opts := mqttlib.NewClientOptions()
 	opts.AddBroker(fmt.Sprintf("tcp://%s:%d", config.MqttConfiguration.Address, config.MqttConfiguration.Port))
 	opts.SetClientID(config.MqttConfiguration.RootTopic)
 	opts.SetUsername(config.MqttConfiguration.Username)
 	opts.SetPassword(config.MqttConfiguration.Password)
 	opts.AutoReconnect = true
+	opts.SetKeepAlive(60 * time.Second)
+	opts.SetPingTimeout(1 * time.Second)
 	opts.SetOrderMatters(false)
 	opts.OnConnect = func(client mqttlib.Client) {
 		retClient.logger.Log("Connected")
@@ -35,8 +42,9 @@ func NewClient(config *configuration.Configuration) (MqttClient, func()) {
 		log.Fatal(token.Error())
 	}
 
-	token := innerClient.Subscribe(fmt.Sprintf("%v/#", config.MqttConfiguration.RootTopic), 0, retClient.onMessageReceived)
-	token.Wait()
+	if token := innerClient.Subscribe(fmt.Sprintf("%s/#", config.MqttConfiguration.RootTopic), 0, retClient.onMessageReceived); token.Wait() && token.Error() != nil {
+		log.Fatal(token.Error())
+	}
 
 	retClient.logger.Log("Connected to MQTT on '%v:%v'", config.MqttConfiguration.Address, config.MqttConfiguration.Port)
 	innerClient.Publish(fmt.Sprintf("%v/gateway/status", config.MqttConfiguration.RootTopic), 0, false, "Online")
@@ -61,6 +69,7 @@ type defaultMqttClient struct {
 }
 
 func (cl *defaultMqttClient) Dispose() {
+	cl.logger.Log("Disposing MQTT client")
 	cl.innerClient.Disconnect(0)
 }
 

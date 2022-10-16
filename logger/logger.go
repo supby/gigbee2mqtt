@@ -2,6 +2,7 @@ package logger
 
 import (
 	"fmt"
+	"io"
 	"log"
 	"os"
 )
@@ -20,4 +21,8 @@ func GetLogger(prefix string) Logger {
 
 func (l *logger) Log(message string, v ...interface{}) {
 	l.innerLogger.Printf("%v %v\n", l.prefix, fmt.Sprintf(message, v...))
+}
+
+func (l *logger) GetWriter() io.Writer {
+	return l.innerLogger.Writer()
 }
