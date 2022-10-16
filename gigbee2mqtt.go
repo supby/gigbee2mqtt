@@ -37,6 +37,7 @@ func main() {
 		logger.Log("db initialization error: %v\n", err)
 		os.Exit(1)
 	}
+	defer db1.Close(ctx)
 
 	zclDefService := zcldef.New("./zcldef/zcldef.json")
 
