@@ -1,98 +1,92 @@
 package db
 
 import (
-	"encoding/json"
-	"os"
-	"sync"
+	"bytes"
+	"context"
+	"encoding/binary"
+	"encoding/gob"
 
-	"github.com/supby/gigbee2mqtt/logger"
+	"github.com/cockroachdb/pebble"
 )
 
-type DevicesRepo interface {
-	GetNodes() []Node
-	SaveNode(node Node)
+type DeviceDB interface {
+	GetDevices(ctx context.Context) ([]Device, error)
+	SaveDevice(ctx context.Context, device Device) error
+	DeleteDevice(ctx context.Context, ieeeAddress uint64) error
+	Close(ctx context.Context) error
 }
 
-type DBOption struct {
-	Filename   string
-	FlushAfter uint
-}
-
-func Init(options DBOption) DevicesRepo {
-	ret := devicesRepo{
-		options: options,
-		Nodes:   make([]Node, 0),
-		logger:  logger.GetLogger("[db]"),
+func NewDeviceDB(dirname string) (DeviceDB, error) {
+	db, err := pebble.Open(dirname, &pebble.Options{})
+	if err != nil {
+		return nil, err
 	}
 
-	ret.init()
-
-	return &ret
+	return &deviceDB{
+		db: db,
+	}, nil
 }
 
-type devicesRepo struct {
-	Nodes       []Node
-	mtx         sync.Mutex
-	options     DBOption
-	saveCounter uint
-	logger      logger.Logger
+type deviceDB struct {
+	db *pebble.DB
 }
 
-func (db *devicesRepo) GetNodes() []Node {
-	return db.Nodes
-}
+func (d *deviceDB) GetDevices(ctx context.Context) ([]Device, error) {
+	iter := d.db.NewIter(nil)
+	defer iter.Close()
 
-func (db *devicesRepo) SaveNode(node Node) {
-	db.mtx.Lock()
-	defer db.mtx.Unlock()
-
-	existingNodeIndex := -1
-	for i, n := range db.Nodes {
-		if n.IEEEAddress == node.IEEEAddress {
-			existingNodeIndex = i
-			break
+	var ret []Device
+	for iter.First(); iter.Valid(); iter.Next() {
+		d := Device{
+			IEEEAddress: binary.LittleEndian.Uint64(iter.Key()),
 		}
-	}
-	if existingNodeIndex > -1 {
-		db.Nodes[existingNodeIndex] = node
-	} else {
-		db.Nodes = append(db.Nodes, node)
-	}
 
-	db.saveCounter++
+		dec := gob.NewDecoder(bytes.NewReader(iter.Value()))
+		err := dec.Decode(&d)
+		if err != nil {
+			return nil, err
+		}
 
-	if db.saveCounter < db.options.FlushAfter {
-		return
+		ret = append(ret, d)
 	}
 
-	db.saveCounter = 0
-
-	db.flush()
+	return ret, nil
 }
 
-func (db *devicesRepo) flush() {
-	db.logger.Log("Flushing DB to file.")
+func (d *deviceDB) SaveDevice(ctx context.Context, device Device) error {
+	key := make([]byte, 8)
+	binary.LittleEndian.PutUint64(key, uint64(device.IEEEAddress))
 
-	res, _ := json.Marshal(db)
-	os.WriteFile(db.options.Filename, res, 0644)
+	buf := bytes.Buffer{}
+	enc := gob.NewEncoder(&buf)
+	err := enc.Encode(device)
+	if err != nil {
+		return err
+	}
+
+	if err := d.db.Set(key, buf.Bytes(), pebble.Sync); err != nil {
+		return err
+	}
+
+	return nil
 }
 
-func (db *devicesRepo) init() {
-	_, err := os.Stat(db.options.Filename)
-	if os.IsNotExist(err) {
-		db.logger.Log("File %v is not found. Using empty state.\n", db.options.Filename)
-		return
+func (d *deviceDB) DeleteDevice(ctx context.Context, ieeeAddress uint64) error {
+	key := make([]byte, 8)
+	binary.LittleEndian.PutUint64(key, uint64(ieeeAddress))
+
+	err := d.db.Delete(key, &pebble.WriteOptions{})
+	if err != nil {
+		return err
 	}
 
-	var loadedDB devicesRepo
+	return nil
+}
 
-	jsonBuf, _ := os.ReadFile(db.options.Filename)
-	json.Unmarshal(jsonBuf, &loadedDB)
-
-	db.Nodes = make([]Node, 0)
-	if loadedDB.Nodes != nil && len(loadedDB.Nodes) > 0 {
-		db.Nodes = loadedDB.Nodes
+func (d *deviceDB) Close(ctx context.Context) error {
+	if err := d.db.Close(); err != nil {
+		return err
 	}
 
-	db.logger.Log("%v nodes are loaded from DB\n", len(db.Nodes))
+	return nil
 }

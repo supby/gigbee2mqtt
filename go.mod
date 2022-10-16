@@ -3,6 +3,7 @@ module github.com/supby/gigbee2mqtt
 go 1.16
 
 require (
+	github.com/cockroachdb/pebble v0.0.0-20221014163543-7e037ade079a
 	github.com/creack/goselect v0.1.2 // indirect
 	github.com/eclipse/paho.mqtt.golang v1.3.5
 	github.com/gorilla/websocket v1.5.0 // indirect
