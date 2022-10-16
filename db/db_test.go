@@ -2,12 +2,15 @@ package db
 
 import (
 	"context"
+	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 )
 
 func TestDeviceDB(t *testing.T) {
+	os.RemoveAll("testdb")
+
 	db, err := NewDeviceDB("testdb")
 	assert.NoError(t, err)
 
@@ -40,4 +43,12 @@ func TestDeviceDB(t *testing.T) {
 	assert.Equal(t, 2, len(devices))
 	assert.Equal(t, dev1.IEEEAddress, devices[0].IEEEAddress)
 	assert.Equal(t, dev2.IEEEAddress, devices[1].IEEEAddress)
+
+	err = db.DeleteDevice(ctx, dev1.IEEEAddress)
+	assert.NoError(t, err)
+
+	devices, err = db.GetDevices(ctx)
+	assert.NoError(t, err)
+
+	assert.Equal(t, 1, len(devices))
 }

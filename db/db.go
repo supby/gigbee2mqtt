@@ -6,7 +6,7 @@ import (
 	"encoding/binary"
 	"encoding/gob"
 
-	"github.com/cockroachdb/pebble"
+	badger "github.com/dgraph-io/badger/v3"
 )
 
 type DeviceDB interface {
@@ -17,7 +17,7 @@ type DeviceDB interface {
 }
 
 func NewDeviceDB(dirname string) (DeviceDB, error) {
-	db, err := pebble.Open(dirname, &pebble.Options{})
+	db, err := badger.Open(badger.DefaultOptions(dirname))
 	if err != nil {
 		return nil, err
 	}
@@ -28,26 +28,44 @@ func NewDeviceDB(dirname string) (DeviceDB, error) {
 }
 
 type deviceDB struct {
-	db *pebble.DB
+	db *badger.DB
 }
 
 func (d *deviceDB) GetDevices(ctx context.Context) ([]Device, error) {
-	iter := d.db.NewIter(nil)
-	defer iter.Close()
 
 	var ret []Device
-	for iter.First(); iter.Valid(); iter.Next() {
-		d := Device{
-			IEEEAddress: binary.LittleEndian.Uint64(iter.Key()),
+	err := d.db.View(func(txn *badger.Txn) error {
+		it := txn.NewIterator(badger.DefaultIteratorOptions)
+		defer it.Close()
+
+		for it.Rewind(); it.Valid(); it.Next() {
+			item := it.Item()
+			err := item.Value(func(v []byte) error {
+				d := Device{
+					IEEEAddress: binary.LittleEndian.Uint64(item.Key()),
+				}
+
+				dec := gob.NewDecoder(bytes.NewReader(v))
+				err := dec.Decode(&d)
+				if err != nil {
+					return err
+				}
+
+				ret = append(ret, d)
+
+				return nil
+			})
+
+			if err != nil {
+				return err
+			}
 		}
 
-		dec := gob.NewDecoder(bytes.NewReader(iter.Value()))
-		err := dec.Decode(&d)
-		if err != nil {
-			return nil, err
-		}
+		return nil
+	})
 
-		ret = append(ret, d)
+	if err != nil {
+		return nil, err
 	}
 
 	return ret, nil
@@ -64,7 +82,15 @@ func (d *deviceDB) SaveDevice(ctx context.Context, device Device) error {
 		return err
 	}
 
-	if err := d.db.Set(key, buf.Bytes(), pebble.Sync); err != nil {
+	err = d.db.Update(func(txn *badger.Txn) error {
+		if err := txn.Set(key, buf.Bytes()); err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	if err != nil {
 		return err
 	}
 
@@ -75,7 +101,14 @@ func (d *deviceDB) DeleteDevice(ctx context.Context, ieeeAddress uint64) error {
 	key := make([]byte, 8)
 	binary.LittleEndian.PutUint64(key, uint64(ieeeAddress))
 
-	err := d.db.Delete(key, &pebble.WriteOptions{})
+	err := d.db.Update(func(txn *badger.Txn) error {
+		if err := txn.Delete(key); err != nil {
+			return err
+		}
+
+		return nil
+	})
+
 	if err != nil {
 		return err
 	}
