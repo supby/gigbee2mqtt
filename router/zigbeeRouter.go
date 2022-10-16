@@ -2,10 +2,17 @@ package router
 
 import (
 	"context"
+	"log"
+	"os"
 	"time"
 
 	"github.com/shimmeringbee/zcl"
 	"github.com/shimmeringbee/zcl/commands/global"
+	"github.com/shimmeringbee/zcl/commands/local/color_control"
+	"github.com/shimmeringbee/zcl/commands/local/ias_warning_device"
+	"github.com/shimmeringbee/zcl/commands/local/ias_zone"
+	"github.com/shimmeringbee/zcl/commands/local/level"
+	"github.com/shimmeringbee/zcl/commands/local/onoff"
 	"github.com/shimmeringbee/zigbee"
 	"github.com/shimmeringbee/zstack"
 	"github.com/supby/gigbee2mqtt/configuration"
@@ -15,6 +22,7 @@ import (
 	"github.com/supby/gigbee2mqtt/types"
 	"github.com/supby/gigbee2mqtt/utils"
 	"github.com/supby/gigbee2mqtt/zcldef"
+	"go.bug.st/serial.v1"
 )
 
 type zigbeeRouter struct {
@@ -338,13 +346,19 @@ func (mh *zigbeeRouter) processDefaultResponse(msg zigbee.IncomingMessage, cmd *
 }
 
 func NewZigbeeRouter(
-	z *zstack.ZStack,
-	zclCommandRegistry *zcl.CommandRegistry,
 	zclDefService zcldef.ZCLDefService,
 	database db.DeviceDB,
 	cfg *configuration.Configuration) ZigbeeRouter {
+
+	zclCommandRegistry := zcl.NewCommandRegistry()
+	global.Register(zclCommandRegistry)
+	onoff.Register(zclCommandRegistry)
+	level.Register(zclCommandRegistry)
+	color_control.Register(zclCommandRegistry)
+	ias_warning_device.Register(zclCommandRegistry)
+	ias_zone.Register(zclCommandRegistry)
+
 	ret := zigbeeRouter{
-		zstack:             z,
 		configuration:      cfg,
 		zclCommandRegistry: zclCommandRegistry,
 		zclDefService:      zclDefService,
@@ -356,7 +370,101 @@ func NewZigbeeRouter(
 }
 
 func (mh *zigbeeRouter) StartAsync(ctx context.Context) {
+	z, err := mh.initZStack(ctx)
+	if err != nil {
+		mh.logger.Log("zstack initialization error: %v\n", err)
+		os.Exit(1)
+	}
+
+	mh.zstack = z
+
 	go mh.startEventLoop(ctx)
+}
+
+func (mh *zigbeeRouter) Stop() {
+	if mh.zstack == nil {
+		return
+	}
+
+	mh.zstack.Stop()
+}
+
+func (mh *zigbeeRouter) initZStack(ctx context.Context) (*zstack.ZStack, error) {
+	logger := logger.GetLogger("[init zstack]")
+
+	initCtx, cancel := context.WithTimeout(ctx, 2*time.Minute)
+	defer cancel()
+
+	mode := &serial.Mode{
+		BaudRate: int(mh.configuration.SerialConfiguration.BaudRate),
+	}
+
+	port, err := serial.Open(mh.configuration.SerialConfiguration.PortName, mode)
+	if err != nil {
+		return nil, err
+	}
+	port.SetRTS(true)
+
+	/* Construct node table, cache of network nodes. */
+	dbDevices, err := mh.database.GetDevices(initCtx)
+	if err != nil {
+		return nil, err
+	}
+	t := zstack.NewNodeTable()
+	znodes := make([]zigbee.Node, len(dbDevices))
+	for i, dbNode := range dbDevices {
+		znodes[i] = zigbee.Node{
+			IEEEAddress:    zigbee.IEEEAddress(dbNode.IEEEAddress),
+			NetworkAddress: zigbee.NetworkAddress(dbNode.NetworkAddress),
+			LogicalType:    zigbee.LogicalType(dbNode.LogicalType),
+			LQI:            dbNode.LQI,
+			Depth:          dbNode.Depth,
+			LastDiscovered: dbNode.LastDiscovered,
+			LastReceived:   dbNode.LastReceived,
+		}
+	}
+	t.Load(znodes)
+
+	/* Create a new ZStack struct. */
+	z := zstack.New(port, t)
+
+	netCfg := zigbee.NetworkConfiguration{
+		PANID:         zigbee.PANID(mh.configuration.ZNetworkConfiguration.PANID),
+		ExtendedPANID: zigbee.ExtendedPANID(mh.configuration.ZNetworkConfiguration.ExtendedPANID),
+		NetworkKey:    mh.configuration.ZNetworkConfiguration.NetworkKey,
+		Channel:       mh.configuration.ZNetworkConfiguration.Channel,
+	}
+
+	/* Initialise ZStack and CC253X */
+	err = z.Initialise(initCtx, netCfg)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	if mh.configuration.PermitJoin {
+		err = z.PermitJoin(initCtx, true)
+		if err != nil {
+			logger.Log("error permit join: %v\n", err)
+		}
+	} else {
+		err = z.DenyJoin(initCtx)
+		if err != nil {
+			logger.Log("error deny join: %v\n", err)
+		}
+	}
+
+	if err := z.RegisterAdapterEndpoint(
+		initCtx,
+		zigbee.Endpoint(0x01),
+		zigbee.ProfileHomeAutomation,
+		1,
+		1,
+		[]zigbee.ClusterID{},
+		[]zigbee.ClusterID{}); err != nil {
+		log.Fatal(err)
+	}
+
+	return z, nil
 }
 
 func (mh *zigbeeRouter) startEventLoop(ctx context.Context) {

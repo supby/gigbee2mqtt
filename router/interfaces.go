@@ -28,4 +28,5 @@ type ZigbeeRouter interface {
 	ProccessSetDeviceConfigMessage(ctx context.Context, devCmd types.DeviceConfigSetMessage)
 	ProccessGetDeviceDescriptionMessage(ctx context.Context, devCmd types.DeviceExploreMessage)
 	StartAsync(ctx context.Context)
+	Stop()
 }
