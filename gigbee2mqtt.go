@@ -53,7 +53,7 @@ func main() {
 	zRouter.StartAsync(ctx)
 	defer zRouter.Stop()
 
-	waitForSignal(cancel)
+	waitForInterruptSignal()
 
 	logger.Log("exiting app...")
 }
@@ -88,11 +88,10 @@ func setupSubscriptions(mqttRouter router.MQTTRouter, zRouter router.ZigbeeRoute
 	})
 }
 
-func waitForSignal(cancel context.CancelFunc) {
+func waitForInterruptSignal() {
 	sigchan := make(chan os.Signal, 1)
 	signal.Notify(sigchan, os.Interrupt)
 	defer func() {
-		cancel()
 		signal.Stop(sigchan)
 	}()
 	<-sigchan
