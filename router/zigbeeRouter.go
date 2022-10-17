@@ -274,6 +274,29 @@ func (mh *zigbeeRouter) processIncomingMessage(e zigbee.NodeIncomingMessageEvent
 		mh.processDefaultResponse(msg, cmd)
 	case *global.ReadAttributesResponse:
 		mh.processReadAttributesResponse(msg, cmd)
+	case *ias_zone.ZoneStatusChangeNotification:
+		mh.processZoneStatusChangeNotification(msg, cmd)
+	}
+}
+
+func (mh *zigbeeRouter) processZoneStatusChangeNotification(msg zigbee.IncomingMessage, cmd *ias_zone.ZoneStatusChangeNotification) {
+	clusterDef := mh.zclDefService.GetById(uint16(msg.ApplicationMessage.ClusterID))
+
+	mqttMessage := mqtt.DeviceMessage{
+		IEEEAddress: uint64(msg.SourceAddress.IEEEAddress),
+		LinkQuality: msg.LinkQuality,
+	}
+
+	deviceMessage := mqtt.DeviceAttributesReportMessage{
+		ClusterID:         clusterDef.ID,
+		ClusterName:       clusterDef.Name,
+		ClusterAttributes: cmd,
+	}
+
+	mqttMessage.Message = deviceMessage
+
+	if mh.onDeviceMessage != nil {
+		mh.onDeviceMessage(mqttMessage)
 	}
 }
 
