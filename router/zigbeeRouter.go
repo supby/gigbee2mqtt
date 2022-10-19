@@ -309,15 +309,17 @@ func (mh *zigbeeRouter) processReadAttributesResponse(msg zigbee.IncomingMessage
 	}
 
 	deviceMessage := mqtt.DeviceAttributesReportMessage{
-		ClusterID:         clusterDef.ID,
-		ClusterName:       clusterDef.Name,
-		ClusterAttributes: make(map[string]interface{}),
+		ClusterID:   clusterDef.ID,
+		ClusterName: clusterDef.Name,
 	}
 
+	clusterAttr := make(map[string]interface{})
 	for _, r := range cmd.Records {
 		attrDef := clusterDef.Attributes[uint16(r.Identifier)]
-		deviceMessage.ClusterAttributes[attrDef.Name] = r.DataTypeValue.Value
+		clusterAttr[attrDef.Name] = r.DataTypeValue.Value
 	}
+
+	deviceMessage.ClusterAttributes = clusterAttr
 
 	mqttMessage.Message = deviceMessage
 
@@ -335,15 +337,17 @@ func (mh *zigbeeRouter) processReportAttributes(msg zigbee.IncomingMessage, cmd 
 	}
 
 	deviceMessage := mqtt.DeviceAttributesReportMessage{
-		ClusterID:         clusterDef.ID,
-		ClusterName:       clusterDef.Name,
-		ClusterAttributes: make(map[string]interface{}),
+		ClusterID:   clusterDef.ID,
+		ClusterName: clusterDef.Name,
 	}
 
+	clusterAttr := make(map[string]interface{})
 	for _, r := range cmd.Records {
 		attrDef := clusterDef.Attributes[uint16(r.Identifier)]
-		deviceMessage.ClusterAttributes[attrDef.Name] = r.DataTypeValue.Value
+		clusterAttr[attrDef.Name] = r.DataTypeValue.Value
 	}
+
+	deviceMessage.ClusterAttributes = clusterAttr
 
 	mqttMessage.Message = deviceMessage
 
