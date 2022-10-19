@@ -168,7 +168,9 @@ func (mh *zigbeeRouter) ProccessGetMessageToDevice(ctx context.Context, devCmd t
 		return
 	}
 
-	mh.logger.Log("[ProccessMessageToDevice] Message (ClusterID: %v, Command: %v) is sent to %v device\n", message.ClusterID, message.CommandIdentifier, devCmd.IEEEAddress)
+	mh.logger.Log(
+		"[ProccessMessageToDevice] Message (ClusterID: %v, Command: %v) is sent to %v device\n",
+		message.ClusterID, message.CommandIdentifier, devCmd.IEEEAddress)
 }
 
 func (mh *zigbeeRouter) ProccessMessageToDevice(ctx context.Context, devCmd types.DeviceCommandMessage) {
@@ -215,7 +217,9 @@ func (mh *zigbeeRouter) ProccessMessageToDevice(ctx context.Context, devCmd type
 		return
 	}
 
-	mh.logger.Log("[ProccessMessageToDevice] Message (ClusterID: %v, Command: %v) is sent to %v device\n", message.ClusterID, message.CommandIdentifier, devCmd.IEEEAddress)
+	mh.logger.Log(
+		"[ProccessMessageToDevice] Message (ClusterID: %v, Command: %v) is sent to %v device\n",
+		message.ClusterID, message.CommandIdentifier, devCmd.IEEEAddress)
 }
 
 func saveNodeDB(znode zigbee.Node, dbObj db.DeviceDB) {
