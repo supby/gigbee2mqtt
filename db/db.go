@@ -1,12 +1,16 @@
 package db
 
 import (
-	"bytes"
 	"context"
-	"encoding/binary"
-	"encoding/gob"
+	"encoding/json"
+	"os"
+	"path/filepath"
+	"sync"
+	"time"
+)
 
-	badger "github.com/dgraph-io/badger/v3"
+const (
+	DeviceDBFilename = "devices.json"
 )
 
 type DeviceDB interface {
@@ -16,113 +20,128 @@ type DeviceDB interface {
 	Close(ctx context.Context) error
 }
 
-func NewDeviceDB(dirname string) (DeviceDB, error) {
-	opt := badger.DefaultOptions(dirname)
-	opt.ValueLogFileSize = 1024 * 1024 * 40
+func NewDeviceDB(dirname string, options DeviceDBOptions) (DeviceDB, error) {
+	tickerCtx, tickerCancel := context.WithCancel(context.Background())
 
-	db, err := badger.Open(opt)
+	ret := &deviceDB{
+		dirname:      dirname,
+		options:      options,
+		deviceMap:    map[uint64]Device{},
+		tickerCtx:    tickerCtx,
+		tickerCancel: tickerCancel,
+	}
+
+	devices, err := ret.loadFromFile()
 	if err != nil {
 		return nil, err
 	}
 
-	return &deviceDB{
-		db: db,
-	}, nil
+	for _, dev := range devices {
+		ret.deviceMap[dev.IEEEAddress] = dev
+	}
+
+	ret.startTicker()
+
+	return ret, nil
+}
+
+type DeviceDBOptions struct {
+	FlushPeriodInSeconds int
 }
 
 type deviceDB struct {
-	db *badger.DB
+	dirname      string
+	options      DeviceDBOptions
+	mtx          sync.Mutex
+	deviceMap    map[uint64]Device
+	tickerCtx    context.Context
+	tickerCancel context.CancelFunc
+}
+
+func (d *deviceDB) startTicker() error {
+	ticker := time.NewTicker(time.Duration(d.options.FlushPeriodInSeconds) * time.Second)
+	go func() {
+		for {
+			select {
+			case <-ticker.C:
+				d.flushToFile()
+			case <-d.tickerCtx.Done():
+				ticker.Stop()
+				return
+			}
+		}
+	}()
+
+	return nil
+}
+
+func (d *deviceDB) flushToFile() error {
+	d.mtx.Lock()
+	defer d.mtx.Unlock()
+
+	jsonData, err := json.Marshal(d.deviceMap)
+	if err != nil {
+		//d.logger.Log("Error Marshal DeviceMessage: %v\n", err)
+		return err
+	}
+
+	err = os.WriteFile(filepath.Join(d.dirname, DeviceDBFilename), jsonData, 0644)
+	if err != nil {
+		//d.logger.Log("Error Marshal DeviceMessage: %v\n", err)
+		return err
+	}
+
+	return nil
+}
+
+func (d *deviceDB) loadFromFile() ([]Device, error) {
+	d.mtx.Lock()
+	defer d.mtx.Unlock()
+
+	data, err := os.ReadFile(filepath.Join(d.dirname, DeviceDBFilename))
+	if err != nil {
+		return nil, err
+	}
+
+	var devices []Device
+	if err := json.Unmarshal(data, &devices); err != nil {
+		return nil, err
+	}
+
+	return devices, nil
 }
 
 func (d *deviceDB) GetDevices(ctx context.Context) ([]Device, error) {
+	d.mtx.Lock()
+	defer d.mtx.Unlock()
 
 	var ret []Device
-	err := d.db.View(func(txn *badger.Txn) error {
-		it := txn.NewIterator(badger.DefaultIteratorOptions)
-		defer it.Close()
-
-		for it.Rewind(); it.Valid(); it.Next() {
-			item := it.Item()
-			err := item.Value(func(v []byte) error {
-				d := Device{
-					IEEEAddress: binary.LittleEndian.Uint64(item.Key()),
-				}
-
-				dec := gob.NewDecoder(bytes.NewReader(v))
-				err := dec.Decode(&d)
-				if err != nil {
-					return err
-				}
-
-				ret = append(ret, d)
-
-				return nil
-			})
-
-			if err != nil {
-				return err
-			}
-		}
-
-		return nil
-	})
-
-	if err != nil {
-		return nil, err
+	for _, v := range d.deviceMap {
+		ret = append(ret, v)
 	}
 
 	return ret, nil
 }
 
 func (d *deviceDB) SaveDevice(ctx context.Context, device Device) error {
-	key := make([]byte, 8)
-	binary.LittleEndian.PutUint64(key, uint64(device.IEEEAddress))
+	d.mtx.Lock()
+	defer d.mtx.Unlock()
 
-	buf := bytes.Buffer{}
-	enc := gob.NewEncoder(&buf)
-	err := enc.Encode(device)
-	if err != nil {
-		return err
-	}
-
-	err = d.db.Update(func(txn *badger.Txn) error {
-		if err := txn.Set(key, buf.Bytes()); err != nil {
-			return err
-		}
-
-		return nil
-	})
-
-	if err != nil {
-		return err
-	}
+	d.deviceMap[device.IEEEAddress] = device
 
 	return nil
 }
 
 func (d *deviceDB) DeleteDevice(ctx context.Context, ieeeAddress uint64) error {
-	key := make([]byte, 8)
-	binary.LittleEndian.PutUint64(key, uint64(ieeeAddress))
+	d.mtx.Lock()
+	defer d.mtx.Unlock()
 
-	err := d.db.Update(func(txn *badger.Txn) error {
-		if err := txn.Delete(key); err != nil {
-			return err
-		}
-
-		return nil
-	})
-
-	if err != nil {
-		return err
-	}
+	delete(d.deviceMap, ieeeAddress)
 
 	return nil
 }
 
 func (d *deviceDB) Close(ctx context.Context) error {
-	if err := d.db.Close(); err != nil {
-		return err
-	}
 
 	return nil
 }
