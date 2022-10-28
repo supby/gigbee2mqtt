@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"os"
 	"path/filepath"
 	"sync"
@@ -94,16 +95,22 @@ func (d *deviceDB) flushToFile() error {
 	return nil
 }
 
-func (d *deviceDB) loadFromFile() ([]Device, error) {
+func (d *deviceDB) loadFromFile() (map[uint64]Device, error) {
 	d.mtx.Lock()
 	defer d.mtx.Unlock()
 
-	data, err := os.ReadFile(filepath.Join(d.dirname, DeviceDBFilename))
+	filePath := filepath.Join(d.dirname, DeviceDBFilename)
+
+	if _, err := os.Stat(filePath); errors.Is(err, os.ErrNotExist) {
+		return make(map[uint64]Device), nil
+	}
+
+	data, err := os.ReadFile(filePath)
 	if err != nil {
 		return nil, err
 	}
 
-	var devices []Device
+	var devices map[uint64]Device
 	if err := json.Unmarshal(data, &devices); err != nil {
 		return nil, err
 	}
@@ -142,6 +149,8 @@ func (d *deviceDB) DeleteDevice(ctx context.Context, ieeeAddress uint64) error {
 }
 
 func (d *deviceDB) Close(ctx context.Context) error {
+	d.tickerCancel()
+	d.flushToFile()
 
 	return nil
 }
