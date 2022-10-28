@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/supby/gigbee2mqtt/utils"
+	"github.com/supby/gigbee2mqtt/internal/utils"
 	"gopkg.in/yaml.v2"
 )
 

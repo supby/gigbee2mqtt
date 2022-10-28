@@ -4,8 +4,8 @@ import (
 	"context"
 
 	"github.com/shimmeringbee/zigbee"
-	"github.com/supby/gigbee2mqtt/mqtt"
-	"github.com/supby/gigbee2mqtt/types"
+	"github.com/supby/gigbee2mqtt/internal/mqtt"
+	"github.com/supby/gigbee2mqtt/internal/types"
 )
 
 type MQTTRouter interface {

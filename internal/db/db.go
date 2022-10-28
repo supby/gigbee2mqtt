@@ -11,6 +11,7 @@ import (
 
 type DeviceDB interface {
 	GetDevices(ctx context.Context) ([]Device, error)
+	GetDevice(ctx context.Context, ieeeAddress uint64) (Device, error)
 	SaveDevice(ctx context.Context, device Device) error
 	DeleteDevice(ctx context.Context, ieeeAddress uint64) error
 	Close(ctx context.Context) error
@@ -35,7 +36,6 @@ type deviceDB struct {
 }
 
 func (d *deviceDB) GetDevices(ctx context.Context) ([]Device, error) {
-
 	var ret []Device
 	err := d.db.View(func(txn *badger.Txn) error {
 		it := txn.NewIterator(badger.DefaultIteratorOptions)
@@ -117,6 +117,41 @@ func (d *deviceDB) DeleteDevice(ctx context.Context, ieeeAddress uint64) error {
 	}
 
 	return nil
+}
+
+func (d *deviceDB) GetDevice(ctx context.Context, ieeeAddress uint64) (Device, error) {
+	key := make([]byte, 8)
+	binary.LittleEndian.PutUint64(key, uint64(ieeeAddress))
+
+	var ret Device
+	err := d.db.View(func(txn *badger.Txn) error {
+		item, err := txn.Get(key)
+		if err != nil {
+			return err
+		}
+
+		err = item.Value(func(v []byte) error {
+			dec := gob.NewDecoder(bytes.NewReader(v))
+			err := dec.Decode(&ret)
+			if err != nil {
+				return err
+			}
+
+			return nil
+		})
+
+		if err != nil {
+			return err
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return Device{}, err
+	}
+
+	return ret, nil
 }
 
 func (d *deviceDB) Close(ctx context.Context) error {
