@@ -94,3 +94,62 @@ func TestDeviceDBFlush(t *testing.T) {
 	assert.Equal(t, dev1.IEEEAddress, devices[dev1.IEEEAddress].IEEEAddress)
 	assert.Equal(t, dev2.IEEEAddress, devices[dev2.IEEEAddress].IEEEAddress)
 }
+
+func TestGetDevice(t *testing.T) {
+	os.Remove(DeviceDBFilename)
+
+	db, err := NewDeviceDB("", DeviceDBOptions{
+		FlushPeriodInSeconds: 60,
+	})
+	assert.NoError(t, err)
+
+	ctx := context.Background()
+
+	dev1 := Device{
+		IEEEAddress:    12345,
+		NetworkAddress: 7890,
+		LogicalType:    67,
+		LQI:            33,
+		Depth:          1,
+	}
+	dev2 := Device{
+		IEEEAddress:    99999,
+		NetworkAddress: 8888,
+		LogicalType:    67,
+		LQI:            33,
+		Depth:          1,
+	}
+
+	err = db.SaveDevice(ctx, dev1)
+	assert.NoError(t, err)
+
+	err = db.SaveDevice(ctx, dev2)
+	assert.NoError(t, err)
+
+	device, err := db.GetDevice(ctx, dev2.IEEEAddress)
+	assert.NoError(t, err)
+
+	assert.Equal(t, dev2.IEEEAddress, device.IEEEAddress)
+}
+
+func TestGetDeviceNotExist(t *testing.T) {
+	os.Remove(DeviceDBFilename)
+
+	db, err := NewDeviceDB("", DeviceDBOptions{
+		FlushPeriodInSeconds: 60,
+	})
+	assert.NoError(t, err)
+
+	ctx := context.Background()
+
+	dev1 := Device{
+		IEEEAddress:    12345,
+		NetworkAddress: 7890,
+		LogicalType:    67,
+		LQI:            33,
+		Depth:          1,
+	}
+
+	_, err = db.GetDevice(ctx, dev1.IEEEAddress)
+	assert.Error(t, err)
+}

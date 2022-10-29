@@ -16,6 +16,7 @@ const (
 
 type DeviceDB interface {
 	GetDevices(ctx context.Context) ([]Device, error)
+	GetDevice(ctx context.Context, ieeeAddress uint64) (Device, error)
 	SaveDevice(ctx context.Context, device Device) error
 	DeleteDevice(ctx context.Context, ieeeAddress uint64) error
 	Close(ctx context.Context) error
@@ -146,6 +147,17 @@ func (d *deviceDB) DeleteDevice(ctx context.Context, ieeeAddress uint64) error {
 	delete(d.deviceMap, ieeeAddress)
 
 	return nil
+}
+
+func (d *deviceDB) GetDevice(ctx context.Context, ieeeAddress uint64) (Device, error) {
+	d.mtx.Lock()
+	defer d.mtx.Unlock()
+
+	if dev, ok := d.deviceMap[ieeeAddress]; ok {
+		return dev, nil
+	}
+
+	return Device{}, errors.New("device does not exist")
 }
 
 func (d *deviceDB) Close(ctx context.Context) error {

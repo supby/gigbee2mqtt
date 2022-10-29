@@ -6,8 +6,8 @@ import (
 	"time"
 
 	mqttlib "github.com/eclipse/paho.mqtt.golang"
-	"github.com/supby/gigbee2mqtt/configuration"
-	"github.com/supby/gigbee2mqtt/logger"
+	"github.com/supby/gigbee2mqtt/internal/configuration"
+	"github.com/supby/gigbee2mqtt/internal/logger"
 )
 
 func NewClient(config *configuration.Configuration) (MqttClient, func()) {

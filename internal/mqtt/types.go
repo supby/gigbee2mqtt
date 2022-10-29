@@ -4,7 +4,7 @@ type DeviceAttributesReportMessage struct {
 	ClusterID         uint16
 	ClusterName       string
 	ClusterType       string
-	ClusterAttributes map[string]interface{}
+	ClusterAttributes interface{}
 }
 
 type DeviceSetMessage struct {
