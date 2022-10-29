@@ -8,10 +8,20 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestDeviceDB(t *testing.T) {
-	os.RemoveAll("testdb")
+func sliceContainDevice(t *testing.T, devices []Device, pred func(d Device) bool) {
+	for _, d := range devices {
+		if pred(d) {
+			return
+		}
+	}
 
-	db, err := NewDeviceDB("testdb")
+	assert.Fail(t, "device is not found")
+}
+
+func TestDeviceDB(t *testing.T) {
+	dbIns, err := NewDeviceDB("", DeviceDBOptions{
+		FlushPeriodInSeconds: 60,
+	})
 	assert.NoError(t, err)
 
 	ctx := context.Background()
@@ -31,32 +41,81 @@ func TestDeviceDB(t *testing.T) {
 		Depth:          1,
 	}
 
-	err = db.SaveDevice(ctx, dev1)
+	err = dbIns.SaveDevice(ctx, dev1)
 	assert.NoError(t, err)
 
-	err = db.SaveDevice(ctx, dev2)
+	err = dbIns.SaveDevice(ctx, dev2)
 	assert.NoError(t, err)
 
-	devices, err := db.GetDevices(ctx)
+	devices, err := dbIns.GetDevices(ctx)
 	assert.NoError(t, err)
 
 	assert.Equal(t, 2, len(devices))
-	assert.Equal(t, dev1.IEEEAddress, devices[0].IEEEAddress)
-	assert.Equal(t, dev2.IEEEAddress, devices[1].IEEEAddress)
 
-	err = db.DeleteDevice(ctx, dev1.IEEEAddress)
+	sliceContainDevice(t, devices, func(d Device) bool {
+		return d.IEEEAddress == dev1.IEEEAddress
+	})
+	sliceContainDevice(t, devices, func(d Device) bool {
+		return d.IEEEAddress == dev2.IEEEAddress
+	})
+
+	err = dbIns.DeleteDevice(ctx, dev1.IEEEAddress)
 	assert.NoError(t, err)
 
-	devices, err = db.GetDevices(ctx)
+	devices, err = dbIns.GetDevices(ctx)
 	assert.NoError(t, err)
 
 	assert.Equal(t, 1, len(devices))
 }
 
-func TestGetDevice(t *testing.T) {
-	os.RemoveAll("testdb")
+func TestDeviceDBFlush(t *testing.T) {
+	os.Remove(DeviceDBFilename)
 
-	db, err := NewDeviceDB("testdb")
+	dbIns, err := NewDeviceDB("", DeviceDBOptions{
+		FlushPeriodInSeconds: 60,
+	})
+	assert.NoError(t, err)
+
+	ctx := context.Background()
+
+	dev1 := Device{
+		IEEEAddress:    12345,
+		NetworkAddress: 7890,
+		LogicalType:    67,
+		LQI:            33,
+		Depth:          1,
+	}
+	dev2 := Device{
+		IEEEAddress:    99999,
+		NetworkAddress: 8888,
+		LogicalType:    67,
+		LQI:            33,
+		Depth:          1,
+	}
+
+	err = dbIns.SaveDevice(ctx, dev1)
+	assert.NoError(t, err)
+
+	err = dbIns.SaveDevice(ctx, dev2)
+	assert.NoError(t, err)
+
+	err = dbIns.(*deviceDB).flushToFile()
+	assert.NoError(t, err)
+
+	devices, err := dbIns.(*deviceDB).loadFromFile()
+	assert.NoError(t, err)
+
+	assert.Equal(t, 2, len(devices))
+	assert.Equal(t, dev1.IEEEAddress, devices[dev1.IEEEAddress].IEEEAddress)
+	assert.Equal(t, dev2.IEEEAddress, devices[dev2.IEEEAddress].IEEEAddress)
+}
+
+func TestGetDevice(t *testing.T) {
+	os.Remove(DeviceDBFilename)
+
+	db, err := NewDeviceDB("", DeviceDBOptions{
+		FlushPeriodInSeconds: 60,
+	})
 	assert.NoError(t, err)
 
 	ctx := context.Background()
@@ -89,9 +148,11 @@ func TestGetDevice(t *testing.T) {
 }
 
 func TestGetDeviceNotExist(t *testing.T) {
-	os.RemoveAll("testdb")
+	os.Remove(DeviceDBFilename)
 
-	db, err := NewDeviceDB("testdb")
+	db, err := NewDeviceDB("", DeviceDBOptions{
+		FlushPeriodInSeconds: 60,
+	})
 	assert.NoError(t, err)
 
 	ctx := context.Background()

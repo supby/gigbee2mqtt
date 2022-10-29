@@ -18,3 +18,5 @@ bin/
 data/
 internal/db/testdb/
 .vscode/
+
+internal/db/devices.json

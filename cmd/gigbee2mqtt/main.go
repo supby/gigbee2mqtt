@@ -32,7 +32,9 @@ func main() {
 		os.Exit(1)
 	}
 
-	db1, err := db.NewDeviceDB("./data")
+	db1, err := db.NewDeviceDB("./data", db.DeviceDBOptions{
+		FlushPeriodInSeconds: 60,
+	})
 	if err != nil {
 		logger.Log("db initialization error: %v\n", err)
 		os.Exit(1)
