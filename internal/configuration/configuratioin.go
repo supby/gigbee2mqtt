@@ -59,6 +59,7 @@ func Init(filename string) (ConfigurationService, error) {
 			Port:      1883,
 			RootTopic: "gigbee2mqtt",
 		},
+		LogLevel: 3,
 	}
 
 	err = yaml.Unmarshal([]byte(data), &cfg)

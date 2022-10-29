@@ -13,7 +13,7 @@ import (
 func NewClient(config *configuration.Configuration) (MqttClient, func()) {
 	retClient := defaultMqttClient{
 		configuration: config,
-		logger:        logger.GetLogger("[MQTT Client]"),
+		logger:        logger.GetLogger("[MQTT Client]", config.LogLevel),
 	}
 
 	// TODO: introduce log level to config
@@ -30,10 +30,10 @@ func NewClient(config *configuration.Configuration) (MqttClient, func()) {
 	opts.SetPingTimeout(1 * time.Second)
 	opts.SetOrderMatters(false)
 	opts.OnConnect = func(client mqttlib.Client) {
-		retClient.logger.Log("Connected")
+		retClient.logger.Info("Connected")
 	}
 	opts.OnConnectionLost = func(client mqttlib.Client, err error) {
-		retClient.logger.Log("Connect lost: %v", err)
+		retClient.logger.Info("Connect lost: %v", err)
 	}
 
 	innerClient := mqttlib.NewClient(opts)
@@ -46,7 +46,7 @@ func NewClient(config *configuration.Configuration) (MqttClient, func()) {
 		log.Fatal(token.Error())
 	}
 
-	retClient.logger.Log("Connected to MQTT on '%v:%v'", config.MqttConfiguration.Address, config.MqttConfiguration.Port)
+	retClient.logger.Info("Connected to MQTT on '%v:%v'", config.MqttConfiguration.Address, config.MqttConfiguration.Port)
 	innerClient.Publish(fmt.Sprintf("%v/gateway/status", config.MqttConfiguration.RootTopic), 0, false, "Online")
 
 	retClient.innerClient = innerClient
@@ -69,7 +69,7 @@ type defaultMqttClient struct {
 }
 
 func (cl *defaultMqttClient) Dispose() {
-	cl.logger.Log("Disposing MQTT client")
+	cl.logger.Info("Disposing MQTT client")
 	cl.innerClient.Disconnect(0)
 }
 

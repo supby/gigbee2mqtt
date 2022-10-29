@@ -25,4 +25,5 @@ type Configuration struct {
 	MqttConfiguration     MqttConfiguration
 	SerialConfiguration   SerialConfiguration
 	PermitJoin            bool
+	LogLevel              int // info=0, warn=1, error=2, debug=3
 }
