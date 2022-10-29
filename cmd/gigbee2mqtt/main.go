@@ -8,13 +8,13 @@ import (
 
 	"github.com/shimmeringbee/zigbee"
 
-	"github.com/supby/gigbee2mqtt/configuration"
-	"github.com/supby/gigbee2mqtt/db"
-	"github.com/supby/gigbee2mqtt/logger"
-	"github.com/supby/gigbee2mqtt/mqtt"
-	"github.com/supby/gigbee2mqtt/router"
-	"github.com/supby/gigbee2mqtt/types"
-	"github.com/supby/gigbee2mqtt/zcldef"
+	"github.com/supby/gigbee2mqtt/internal/configuration"
+	"github.com/supby/gigbee2mqtt/internal/db"
+	"github.com/supby/gigbee2mqtt/internal/logger"
+	"github.com/supby/gigbee2mqtt/internal/mqtt"
+	"github.com/supby/gigbee2mqtt/internal/router"
+	"github.com/supby/gigbee2mqtt/internal/types"
+	"github.com/supby/gigbee2mqtt/internal/zcldef"
 )
 
 func main() {

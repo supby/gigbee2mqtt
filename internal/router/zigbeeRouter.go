@@ -15,13 +15,13 @@ import (
 	"github.com/shimmeringbee/zcl/commands/local/onoff"
 	"github.com/shimmeringbee/zigbee"
 	"github.com/shimmeringbee/zstack"
-	"github.com/supby/gigbee2mqtt/configuration"
-	"github.com/supby/gigbee2mqtt/db"
-	"github.com/supby/gigbee2mqtt/logger"
-	"github.com/supby/gigbee2mqtt/mqtt"
-	"github.com/supby/gigbee2mqtt/types"
-	"github.com/supby/gigbee2mqtt/utils"
-	"github.com/supby/gigbee2mqtt/zcldef"
+	"github.com/supby/gigbee2mqtt/internal/configuration"
+	"github.com/supby/gigbee2mqtt/internal/db"
+	"github.com/supby/gigbee2mqtt/internal/logger"
+	"github.com/supby/gigbee2mqtt/internal/mqtt"
+	"github.com/supby/gigbee2mqtt/internal/types"
+	"github.com/supby/gigbee2mqtt/internal/utils"
+	"github.com/supby/gigbee2mqtt/internal/zcldef"
 	"go.bug.st/serial.v1"
 )
 
@@ -81,6 +81,11 @@ func (mh *zigbeeRouter) ProccessSetDeviceConfigMessage(ctx context.Context, devC
 func (mh *zigbeeRouter) ProccessGetDeviceDescriptionMessage(ctx context.Context, devCmd types.DeviceExploreMessage) {
 	mh.logger.Log("Quering description of node 0x%x\n", devCmd.IEEEAddress)
 
+	if !mh.isDeviceRegistered(devCmd.IEEEAddress) {
+		mh.logger.Log("[ProccessGetDeviceDescriptionMessage] device %v does not registered\n", devCmd.IEEEAddress)
+		return
+	}
+
 	ret := mqtt.DeviceDescriptionMessage{
 		IEEEAddress: devCmd.IEEEAddress,
 		Endpoints:   make([]mqtt.EndpointDescription, 0),
@@ -136,6 +141,10 @@ func (mh *zigbeeRouter) ProccessGetDeviceDescriptionMessage(ctx context.Context,
 }
 
 func (mh *zigbeeRouter) ProccessGetMessageToDevice(ctx context.Context, devCmd types.DeviceGetMessage) {
+	if !mh.isDeviceRegistered(devCmd.IEEEAddress) {
+		mh.logger.Log("[ProccessGetMessageToDevice] device %v does not registered\n", devCmd.IEEEAddress)
+		return
+	}
 
 	attributeIds := make([]zcl.AttributeID, 0)
 	for _, attr := range devCmd.Attributes {
@@ -168,10 +177,17 @@ func (mh *zigbeeRouter) ProccessGetMessageToDevice(ctx context.Context, devCmd t
 		return
 	}
 
-	mh.logger.Log("[ProccessMessageToDevice] Message (ClusterID: %v, Command: %v) is sent to %v device\n", message.ClusterID, message.CommandIdentifier, devCmd.IEEEAddress)
+	mh.logger.Log(
+		"[ProccessMessageToDevice] Message (ClusterID: %v, Command: %v) is sent to %v device\n",
+		message.ClusterID, message.CommandIdentifier, devCmd.IEEEAddress)
 }
 
 func (mh *zigbeeRouter) ProccessMessageToDevice(ctx context.Context, devCmd types.DeviceCommandMessage) {
+
+	if !mh.isDeviceRegistered(devCmd.IEEEAddress) {
+		mh.logger.Log("[ProccessMessageToDevice] device %v does not registered\n", devCmd.IEEEAddress)
+		return
+	}
 
 	message := zcl.Message{
 		FrameType:           zcl.FrameLocal,
@@ -215,7 +231,9 @@ func (mh *zigbeeRouter) ProccessMessageToDevice(ctx context.Context, devCmd type
 		return
 	}
 
-	mh.logger.Log("[ProccessMessageToDevice] Message (ClusterID: %v, Command: %v) is sent to %v device\n", message.ClusterID, message.CommandIdentifier, devCmd.IEEEAddress)
+	mh.logger.Log(
+		"[ProccessMessageToDevice] Message (ClusterID: %v, Command: %v) is sent to %v device\n",
+		message.ClusterID, message.CommandIdentifier, devCmd.IEEEAddress)
 }
 
 func saveNodeDB(znode zigbee.Node, dbObj db.DeviceDB) {
@@ -230,6 +248,12 @@ func saveNodeDB(znode zigbee.Node, dbObj db.DeviceDB) {
 	}
 
 	dbObj.SaveDevice(context.Background(), newDevice)
+}
+
+func (mh *zigbeeRouter) isDeviceRegistered(IEEEAddress uint64) bool {
+	_, err := mh.database.GetDevice(context.Background(), IEEEAddress)
+
+	return err == nil
 }
 
 func (mh *zigbeeRouter) processNodeJoin(e zigbee.NodeJoinEvent) {
@@ -274,6 +298,29 @@ func (mh *zigbeeRouter) processIncomingMessage(e zigbee.NodeIncomingMessageEvent
 		mh.processDefaultResponse(msg, cmd)
 	case *global.ReadAttributesResponse:
 		mh.processReadAttributesResponse(msg, cmd)
+	case *ias_zone.ZoneStatusChangeNotification:
+		mh.processZoneStatusChangeNotification(msg, cmd)
+	}
+}
+
+func (mh *zigbeeRouter) processZoneStatusChangeNotification(msg zigbee.IncomingMessage, cmd *ias_zone.ZoneStatusChangeNotification) {
+	clusterDef := mh.zclDefService.GetById(uint16(msg.ApplicationMessage.ClusterID))
+
+	mqttMessage := mqtt.DeviceMessage{
+		IEEEAddress: uint64(msg.SourceAddress.IEEEAddress),
+		LinkQuality: msg.LinkQuality,
+	}
+
+	deviceMessage := mqtt.DeviceAttributesReportMessage{
+		ClusterID:         clusterDef.ID,
+		ClusterName:       clusterDef.Name,
+		ClusterAttributes: cmd,
+	}
+
+	mqttMessage.Message = deviceMessage
+
+	if mh.onDeviceMessage != nil {
+		mh.onDeviceMessage(mqttMessage)
 	}
 }
 
@@ -286,15 +333,17 @@ func (mh *zigbeeRouter) processReadAttributesResponse(msg zigbee.IncomingMessage
 	}
 
 	deviceMessage := mqtt.DeviceAttributesReportMessage{
-		ClusterID:         clusterDef.ID,
-		ClusterName:       clusterDef.Name,
-		ClusterAttributes: make(map[string]interface{}),
+		ClusterID:   clusterDef.ID,
+		ClusterName: clusterDef.Name,
 	}
 
+	clusterAttr := make(map[string]interface{})
 	for _, r := range cmd.Records {
 		attrDef := clusterDef.Attributes[uint16(r.Identifier)]
-		deviceMessage.ClusterAttributes[attrDef.Name] = r.DataTypeValue.Value
+		clusterAttr[attrDef.Name] = r.DataTypeValue.Value
 	}
+
+	deviceMessage.ClusterAttributes = clusterAttr
 
 	mqttMessage.Message = deviceMessage
 
@@ -312,15 +361,17 @@ func (mh *zigbeeRouter) processReportAttributes(msg zigbee.IncomingMessage, cmd 
 	}
 
 	deviceMessage := mqtt.DeviceAttributesReportMessage{
-		ClusterID:         clusterDef.ID,
-		ClusterName:       clusterDef.Name,
-		ClusterAttributes: make(map[string]interface{}),
+		ClusterID:   clusterDef.ID,
+		ClusterName: clusterDef.Name,
 	}
 
+	clusterAttr := make(map[string]interface{})
 	for _, r := range cmd.Records {
 		attrDef := clusterDef.Attributes[uint16(r.Identifier)]
-		deviceMessage.ClusterAttributes[attrDef.Name] = r.DataTypeValue.Value
+		clusterAttr[attrDef.Name] = r.DataTypeValue.Value
 	}
+
+	deviceMessage.ClusterAttributes = clusterAttr
 
 	mqttMessage.Message = deviceMessage
 
