@@ -67,22 +67,22 @@ func (mh *zigbeeRouter) ProccessSetDeviceConfigMessage(ctx context.Context, devC
 	if devCmd.PermitJoin {
 		err := mh.zstack.PermitJoin(ctx, true)
 		if err != nil {
-			mh.logger.Log("Error PermitJoin, %v\n", err)
+			mh.logger.Error("Error PermitJoin, %v\n", err)
 		}
 	} else {
 		err := mh.zstack.DenyJoin(ctx)
 		if err != nil {
-			mh.logger.Log("Error DenyJoin to true, %v\n", err)
+			mh.logger.Error("Error DenyJoin to true, %v\n", err)
 		}
 
 	}
 }
 
 func (mh *zigbeeRouter) ProccessGetDeviceDescriptionMessage(ctx context.Context, devCmd types.DeviceExploreMessage) {
-	mh.logger.Log("Quering description of node 0x%x\n", devCmd.IEEEAddress)
+	mh.logger.Info("Quering description of node 0x%x\n", devCmd.IEEEAddress)
 
 	if !mh.isDeviceRegistered(devCmd.IEEEAddress) {
-		mh.logger.Log("[ProccessGetDeviceDescriptionMessage] device %v does not registered\n", devCmd.IEEEAddress)
+		mh.logger.Warn("[ProccessGetDeviceDescriptionMessage] device %v does not registered\n", devCmd.IEEEAddress)
 		return
 	}
 
@@ -96,7 +96,7 @@ func (mh *zigbeeRouter) ProccessGetDeviceDescriptionMessage(ctx context.Context,
 
 	descriptor, err := mh.zstack.QueryNodeDescription(ctx, zigbee.IEEEAddress(devCmd.IEEEAddress))
 	if err != nil {
-		mh.logger.Log("Failed to get node descriptor: %v\n", err)
+		mh.logger.Error("Failed to get node descriptor: %v\n", err)
 		return
 	}
 
@@ -105,7 +105,7 @@ func (mh *zigbeeRouter) ProccessGetDeviceDescriptionMessage(ctx context.Context,
 
 	endpoints, err := mh.zstack.QueryNodeEndpoints(ctx, zigbee.IEEEAddress(devCmd.IEEEAddress))
 	if err != nil {
-		mh.logger.Log("Failed to get node endpoints: %v\n", err)
+		mh.logger.Error("Failed to get node endpoints: %v\n", err)
 		return
 	}
 
@@ -113,7 +113,7 @@ func (mh *zigbeeRouter) ProccessGetDeviceDescriptionMessage(ctx context.Context,
 		endpointDes, err := mh.zstack.QueryNodeEndpointDescription(ctx, zigbee.IEEEAddress(devCmd.IEEEAddress), endpoint)
 
 		if err != nil {
-			mh.logger.Log("Failed to get node endpoint description: %v / %d\n", err, endpoint)
+			mh.logger.Error("Failed to get node endpoint description: %v / %d\n", err, endpoint)
 			continue
 		}
 
@@ -142,7 +142,7 @@ func (mh *zigbeeRouter) ProccessGetDeviceDescriptionMessage(ctx context.Context,
 
 func (mh *zigbeeRouter) ProccessGetMessageToDevice(ctx context.Context, devCmd types.DeviceGetMessage) {
 	if !mh.isDeviceRegistered(devCmd.IEEEAddress) {
-		mh.logger.Log("[ProccessGetMessageToDevice] device %v does not registered\n", devCmd.IEEEAddress)
+		mh.logger.Warn("[ProccessGetMessageToDevice] device %v does not registered\n", devCmd.IEEEAddress)
 		return
 	}
 
@@ -167,17 +167,17 @@ func (mh *zigbeeRouter) ProccessGetMessageToDevice(ctx context.Context, devCmd t
 
 	appMsg, err := mh.zclCommandRegistry.Marshal(message)
 	if err != nil {
-		mh.logger.Log("[ProccessGetMessageToDevice] Error Marshal zcl message: %v\n", err)
+		mh.logger.Error("[ProccessGetMessageToDevice] Error Marshal zcl message: %v\n", err)
 		return
 	}
 
 	err = mh.zstack.SendApplicationMessageToNode(ctx, zigbee.IEEEAddress(devCmd.IEEEAddress), appMsg, false)
 	if err != nil {
-		mh.logger.Log("[ProccessGetMessageToDevice] Error sending message: %v\n", err)
+		mh.logger.Error("[ProccessGetMessageToDevice] Error sending message: %v\n", err)
 		return
 	}
 
-	mh.logger.Log(
+	mh.logger.Info(
 		"[ProccessMessageToDevice] Message (ClusterID: %v, Command: %v) is sent to %v device\n",
 		message.ClusterID, message.CommandIdentifier, devCmd.IEEEAddress)
 }
@@ -185,7 +185,7 @@ func (mh *zigbeeRouter) ProccessGetMessageToDevice(ctx context.Context, devCmd t
 func (mh *zigbeeRouter) ProccessMessageToDevice(ctx context.Context, devCmd types.DeviceCommandMessage) {
 
 	if !mh.isDeviceRegistered(devCmd.IEEEAddress) {
-		mh.logger.Log("[ProccessMessageToDevice] device %v does not registered\n", devCmd.IEEEAddress)
+		mh.logger.Warn("[ProccessMessageToDevice] device %v does not registered\n", devCmd.IEEEAddress)
 		return
 	}
 
@@ -202,7 +202,7 @@ func (mh *zigbeeRouter) ProccessMessageToDevice(ctx context.Context, devCmd type
 
 	command, err := mh.zclCommandRegistry.GetLocalCommand(message.ClusterID, message.Manufacturer, message.Direction, message.CommandIdentifier)
 	if err != nil {
-		mh.logger.Log("[ProccessMessageToDevice] Error Local command for ClusterID: %v, Manufacturer: %v, Direction: %v, CommandIdentifier: %v. Error: %v \n",
+		mh.logger.Error("[ProccessMessageToDevice] Error Local command for ClusterID: %v, Manufacturer: %v, Direction: %v, CommandIdentifier: %v. Error: %v \n",
 			message.ClusterID,
 			message.Manufacturer,
 			message.Direction,
@@ -217,7 +217,7 @@ func (mh *zigbeeRouter) ProccessMessageToDevice(ctx context.Context, devCmd type
 
 	appMsg, err := mh.zclCommandRegistry.Marshal(message)
 	if err != nil {
-		mh.logger.Log("[ProccessMessageToDevice] Error Marshal zcl message: %v\n", err)
+		mh.logger.Error("[ProccessMessageToDevice] Error Marshal zcl message: %v\n", err)
 		return
 	}
 
@@ -227,11 +227,11 @@ func (mh *zigbeeRouter) ProccessMessageToDevice(ctx context.Context, devCmd type
 	//err = mh.zstack.SendApplicationMessageToNode(timeoutCtx, zigbee.IEEEAddress(devCmd.IEEEAddress), appMsg, true)
 	err = mh.zstack.SendApplicationMessageToNode(ctx, zigbee.IEEEAddress(devCmd.IEEEAddress), appMsg, false)
 	if err != nil {
-		mh.logger.Log("[ProccessMessageToDevice] Error sending message: %v\n", err)
+		mh.logger.Error("[ProccessMessageToDevice] Error sending message: %v\n", err)
 		return
 	}
 
-	mh.logger.Log(
+	mh.logger.Info(
 		"[ProccessMessageToDevice] Message (ClusterID: %v, Command: %v) is sent to %v device\n",
 		message.ClusterID, message.CommandIdentifier, devCmd.IEEEAddress)
 }
@@ -284,11 +284,11 @@ func (mh *zigbeeRouter) processIncomingMessage(e zigbee.NodeIncomingMessageEvent
 	msg := e.IncomingMessage
 	message, err := mh.zclCommandRegistry.Unmarshal(msg.ApplicationMessage)
 	if err != nil {
-		mh.logger.Log("[ProcessIncomingMessage] Error parse incomming message: %v\n", err)
+		mh.logger.Error("[ProcessIncomingMessage] Error parse incomming message: %v\n", err)
 		return
 	}
 
-	mh.logger.Log("[ProcessIncomingMessage] Incomming command of type (%T) is received. ClusterId=%v, SourceEndpoint=%v\n",
+	mh.logger.Info("[ProcessIncomingMessage] Incomming command of type (%T) is received. ClusterId=%v, SourceEndpoint=%v\n",
 		message.Command, message.ClusterID, message.SourceEndpoint)
 
 	switch cmd := message.Command.(type) {
@@ -414,7 +414,7 @@ func NewZigbeeRouter(
 		zclCommandRegistry: zclCommandRegistry,
 		zclDefService:      zclDefService,
 		database:           database,
-		logger:             logger.GetLogger("[Zigbee Router]"),
+		logger:             logger.GetLogger("[Zigbee Router]", cfg.LogLevel),
 	}
 
 	return &ret
@@ -423,7 +423,7 @@ func NewZigbeeRouter(
 func (mh *zigbeeRouter) StartAsync(ctx context.Context) {
 	z, err := mh.initZStack(ctx)
 	if err != nil {
-		mh.logger.Log("zstack initialization error: %v\n", err)
+		mh.logger.Error("zstack initialization error: %v\n", err)
 		os.Exit(1)
 	}
 
@@ -441,8 +441,6 @@ func (mh *zigbeeRouter) Stop() {
 }
 
 func (mh *zigbeeRouter) initZStack(ctx context.Context) (*zstack.ZStack, error) {
-	logger := logger.GetLogger("[init zstack]")
-
 	initCtx, cancel := context.WithTimeout(ctx, 2*time.Minute)
 	defer cancel()
 
@@ -495,12 +493,12 @@ func (mh *zigbeeRouter) initZStack(ctx context.Context) (*zstack.ZStack, error) 
 	if mh.configuration.PermitJoin {
 		err = z.PermitJoin(initCtx, true)
 		if err != nil {
-			logger.Log("error permit join: %v\n", err)
+			mh.logger.Error("error permit join: %v\n", err)
 		}
 	} else {
 		err = z.DenyJoin(initCtx)
 		if err != nil {
-			logger.Log("error deny join: %v\n", err)
+			mh.logger.Error("error deny join: %v\n", err)
 		}
 	}
 
@@ -519,7 +517,7 @@ func (mh *zigbeeRouter) initZStack(ctx context.Context) (*zstack.ZStack, error) 
 }
 
 func (mh *zigbeeRouter) startEventLoop(ctx context.Context) {
-	mh.logger.Log("[Event loop] Start event")
+	mh.logger.Info("[Event loop] Start event")
 	for {
 		select {
 		case <-ctx.Done():
@@ -529,21 +527,21 @@ func (mh *zigbeeRouter) startEventLoop(ctx context.Context) {
 
 		event, err := mh.zstack.ReadEvent(ctx)
 		if err != nil {
-			mh.logger.Log("[Event loop] Error read event: %v\n", err)
+			mh.logger.Error("[Event loop] Error read event: %v\n", err)
 		}
 
 		switch e := event.(type) {
 		case zigbee.NodeJoinEvent:
-			mh.logger.Log("[Event loop] Node join: %v\n", e)
+			mh.logger.Info("[Event loop] Node join: %v\n", e)
 			go mh.processNodeJoin(e)
 		case zigbee.NodeLeaveEvent:
-			mh.logger.Log("[Event loop] Node leave: %v\n", e)
+			mh.logger.Info("[Event loop] Node leave: %v\n", e)
 			go mh.processNodeLeave(e)
 		case zigbee.NodeUpdateEvent:
-			mh.logger.Log("[Event loop] Node update: %v\n", e)
+			mh.logger.Debug("[Event loop] Node update: %v\n", e)
 			go mh.processNodeUpdate(e)
 		case zigbee.NodeIncomingMessageEvent:
-			mh.logger.Log("[Event loop] Node message: %v\n", e)
+			mh.logger.Debug("[Event loop] Node message: %v\n", e)
 			go mh.processIncomingMessage(e)
 		}
 	}

@@ -21,14 +21,14 @@ func main() {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	logger := logger.GetLogger("[main]")
+	logger := logger.GetLogger("[main]", logger.LogLevelError)
 
 	var configFile = flag.String("c", "./configuration.yaml", "path to config file name")
 	flag.Parse()
 
 	configService, err := configuration.Init(*configFile)
 	if err != nil {
-		logger.Log("Configuration initialization error: %v\n", err)
+		logger.Error("Configuration initialization error: %v\n", err)
 		os.Exit(1)
 	}
 
@@ -36,7 +36,7 @@ func main() {
 		FlushPeriodInSeconds: 60,
 	})
 	if err != nil {
-		logger.Log("db initialization error: %v\n", err)
+		logger.Error("db initialization error: %v\n", err)
 		os.Exit(1)
 	}
 	defer db1.Close(ctx)
@@ -58,7 +58,7 @@ func main() {
 
 	waitForInterruptSignal()
 
-	logger.Log("exiting app...")
+	logger.Info("exiting app...")
 }
 
 func setupSubscriptions(mqttRouter router.MQTTRouter, zRouter router.ZigbeeRouter, ctx context.Context) {
