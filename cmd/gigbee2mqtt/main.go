@@ -74,6 +74,9 @@ func setupSubscriptions(mqttRouter router.MQTTRouter, zRouter router.ZigbeeRoute
 	mqttRouter.SubscribeOnSetDeviceConfigMessage(func(devCmd types.DeviceConfigSetMessage) {
 		zRouter.ProccessSetDeviceConfigMessage(ctx, devCmd)
 	})
+	zRouter.SubscribeOnAdapterInitialized(func(e zigbee.Node) {
+		mqttRouter.PublishGatewayMessage(e, "")
+	})
 	zRouter.SubscribeOnDeviceMessage(func(devMsg mqtt.DeviceMessage) {
 		mqttRouter.PublishDeviceMessage(devMsg.IEEEAddress, devMsg, "")
 	})

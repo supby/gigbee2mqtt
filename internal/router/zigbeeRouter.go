@@ -36,7 +36,12 @@ type zigbeeRouter struct {
 	onDeviceJoin               func(e zigbee.NodeJoinEvent)
 	onDeviceLeave              func(e zigbee.NodeLeaveEvent)
 	onDeviceUpdate             func(e zigbee.NodeUpdateEvent)
+	onZStackInitialized        func(e zigbee.Node)
 	logger                     logger.Logger
+}
+
+func (mh *zigbeeRouter) SubscribeOnAdapterInitialized(callback func(e zigbee.Node)) {
+	mh.onZStackInitialized = callback
 }
 
 func (mh *zigbeeRouter) SubscribeOnDeviceMessage(callback func(devMsg mqtt.DeviceMessage)) {
@@ -428,6 +433,10 @@ func (mh *zigbeeRouter) StartAsync(ctx context.Context) {
 	}
 
 	mh.zstack = z
+
+	if mh.onZStackInitialized != nil {
+		mh.onZStackInitialized(mh.zstack.AdapterNode())
+	}
 
 	go mh.startEventLoop(ctx)
 }

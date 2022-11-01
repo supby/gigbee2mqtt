@@ -10,6 +10,7 @@ import (
 
 type MQTTRouter interface {
 	PublishDeviceMessage(ieeeAddress uint64, msg interface{}, subtopic string)
+	PublishGatewayMessage(msg interface{}, subtopic string)
 
 	SubscribeOnSetMessage(callback func(devCmd types.DeviceCommandMessage))
 	SubscribeOnGetMessage(callback func(devCmd types.DeviceGetMessage))
@@ -18,6 +19,7 @@ type MQTTRouter interface {
 }
 
 type ZigbeeRouter interface {
+	SubscribeOnAdapterInitialized(callback func(e zigbee.Node))
 	SubscribeOnDeviceMessage(callback func(devMsg mqtt.DeviceMessage))
 	SubscribeOnDeviceDescription(callback func(devMsg mqtt.DeviceDescriptionMessage))
 	SubscribeOnDeviceJoin(cb func(e zigbee.NodeJoinEvent))

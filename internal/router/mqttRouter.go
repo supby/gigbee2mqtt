@@ -53,6 +53,21 @@ func NewMQTTRouter(
 	return &ret
 }
 
+func (h *mqttRouter) PublishGatewayMessage(msg interface{}, subtopic string) {
+	jsonData, err := json.Marshal(msg)
+	if err != nil {
+		h.logger.Error("Error Marshal Gateway Message: %v\n", err)
+		return
+	}
+
+	topic := MQTT_GATEWAY
+	if subtopic != "" {
+		topic = fmt.Sprintf("%v/%v", topic, subtopic)
+	}
+
+	h.mqttClient.Publish(topic, jsonData)
+}
+
 func (h *mqttRouter) PublishDeviceMessage(ieeeAddress uint64, msg interface{}, subtopic string) {
 	jsonData, err := json.Marshal(msg)
 	if err != nil {
