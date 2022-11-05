@@ -7,7 +7,7 @@ type DeviceAttributesReportMessage struct {
 	ClusterAttributes interface{}
 }
 
-type DeviceSetMessage struct {
+type DeviceCommandMessage struct {
 	ClusterID         uint16
 	Endpoint          uint8
 	CommandIdentifier uint8
@@ -18,6 +18,18 @@ type DeviceGetMessage struct {
 	ClusterID  uint16
 	Endpoint   uint8
 	Attributes []uint16
+}
+
+type DeviceSetMessage struct {
+	ClusterID  uint16
+	Endpoint   uint8
+	Attributes []AttributeRecord
+}
+
+type AttributeRecord struct {
+	Id    uint16
+	Type  string
+	Value interface{}
 }
 
 type DeviceDefaultResponseMessage struct {

@@ -62,8 +62,11 @@ func main() {
 }
 
 func setupSubscriptions(mqttRouter router.MQTTRouter, zRouter router.ZigbeeRouter, ctx context.Context) {
-	mqttRouter.SubscribeOnSetMessage(func(devCmd types.DeviceCommandMessage) {
-		zRouter.ProccessMessageToDevice(ctx, devCmd)
+	mqttRouter.SubscribeOnCommandMessage(func(devCmd types.DeviceCommandMessage) {
+		zRouter.ProccessCommandMessageToDevice(ctx, devCmd)
+	})
+	mqttRouter.SubscribeOnSetMessage(func(devCmd types.DeviceSetMessage) {
+		zRouter.ProccessSetMessageToDevice(ctx, devCmd)
 	})
 	mqttRouter.SubscribeOnGetMessage(func(devCmd types.DeviceGetMessage) {
 		zRouter.ProccessGetMessageToDevice(ctx, devCmd)

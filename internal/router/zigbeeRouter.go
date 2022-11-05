@@ -25,6 +25,63 @@ import (
 	"go.bug.st/serial.v1"
 )
 
+// var type2zbtype = map[reflect.Kind]byte{
+// 	reflect.Bool: byte(zcl.TypeBoolean),
+
+// 	reflect.Int8:  byte(zcl.TypeSignedInt8),
+// 	reflect.Int16: byte(zcl.TypeSignedInt16),
+// 	reflect.Int:   byte(zcl.TypeSignedInt32),
+// 	reflect.Int32: byte(zcl.TypeSignedInt32),
+// 	reflect.Int64: byte(zcl.TypeSignedInt64),
+
+// 	reflect.Uint8:  byte(zcl.TypeUnsignedInt8),
+// 	reflect.Uint16: byte(zcl.TypeUnsignedInt16),
+// 	reflect.Uint:   byte(zcl.TypeUnsignedInt32),
+// 	reflect.Uint32: byte(zcl.TypeUnsignedInt32),
+// 	reflect.Uint64: byte(zcl.TypeUnsignedInt64),
+
+// 	reflect.Float32: byte(zcl.TypeFloatSingle),
+// 	reflect.Float64: byte(zcl.TypeFloatDouble),
+// }
+
+var type2zbtype = map[string]byte{
+	"boolean": byte(zcl.TypeBoolean),
+
+	"int8":  byte(zcl.TypeSignedInt8),
+	"int16": byte(zcl.TypeSignedInt16),
+	"int24": byte(zcl.TypeSignedInt24),
+	"int32": byte(zcl.TypeSignedInt32),
+	"int48": byte(zcl.TypeSignedInt48),
+	"int64": byte(zcl.TypeSignedInt64),
+
+	"uint8":  byte(zcl.TypeUnsignedInt8),
+	"uint16": byte(zcl.TypeUnsignedInt16),
+	"uint24": byte(zcl.TypeUnsignedInt24),
+	"uint32": byte(zcl.TypeUnsignedInt32),
+	"uint48": byte(zcl.TypeUnsignedInt48),
+	"uint64": byte(zcl.TypeUnsignedInt64),
+
+	"float32": byte(zcl.TypeFloatSingle),
+	"float64": byte(zcl.TypeFloatDouble),
+
+	"enum8":  byte(zcl.TypeEnum8),
+	"enum16": byte(zcl.TypeEnum16),
+
+	"map8":  byte(zcl.TypeBitmap8),
+	"map16": byte(zcl.TypeBitmap16),
+	"map24": byte(zcl.TypeBitmap24),
+	"map32": byte(zcl.TypeBitmap32),
+	"map40": byte(zcl.TypeBitmap40),
+	"map48": byte(zcl.TypeBitmap48),
+	"map56": byte(zcl.TypeBitmap56),
+	"map64": byte(zcl.TypeBitmap64),
+
+	"ieeeAddr": byte(zcl.TypeIEEEAddress),
+
+	"octstr": byte(zcl.TypeStringOctet8),
+	"string": byte(zcl.TypeStringCharacter8),
+}
+
 type zigbeeRouter struct {
 	zstack                     *zstack.ZStack
 	configuration              *configuration.Configuration
@@ -183,14 +240,81 @@ func (mh *zigbeeRouter) ProccessGetMessageToDevice(ctx context.Context, devCmd t
 	}
 
 	mh.logger.Info(
-		"[ProccessMessageToDevice] Message (ClusterID: %v, Command: %v) is sent to %v device\n",
+		"[ProccessGetMessageToDevice] Message (ClusterID: %v, Command: %v) is sent to %v device\n",
 		message.ClusterID, message.CommandIdentifier, devCmd.IEEEAddress)
 }
 
-func (mh *zigbeeRouter) ProccessMessageToDevice(ctx context.Context, devCmd types.DeviceCommandMessage) {
+//
+
+func (mh *zigbeeRouter) ProccessSetMessageToDevice(ctx context.Context, devCmd types.DeviceSetMessage) {
+	if !mh.isDeviceRegistered(devCmd.IEEEAddress) {
+		mh.logger.Warn("[ProccessSetMessageToDevice] device %v does not registered\n", devCmd.IEEEAddress)
+		return
+	}
+
+	attributeRecords := make([]global.WriteAttributesRecord, 0)
+	for _, attrRec := range devCmd.Attributes {
+		zclDataType := zcl.TypeNull
+		if val, ok := type2zbtype[attrRec.Type]; ok {
+			zclDataType = zcl.AttributeDataType(val)
+		}
+
+		if zclDataType == zcl.TypeNull {
+			mh.logger.Warn(
+				"[ProccessSetMessageToDevice] ZCL type for attrbute record: { id: %v, type: %v, val: %v } is not found",
+				attrRec.Id,
+				attrRec.Type,
+				attrRec.Value,
+			)
+			return
+		}
+
+		attributeRecords = append(attributeRecords, global.WriteAttributesRecord{
+			Identifier: zcl.AttributeID(attrRec.Id),
+			DataTypeValue: &zcl.AttributeDataTypeValue{
+				DataType: zclDataType,
+				Value:    attrRec.Value,
+			},
+		})
+	}
+
+	message := zcl.Message{
+		FrameType:           zcl.FrameGlobal,
+		Direction:           zcl.ClientToServer,
+		TransactionSequence: 1, // TODO: do something with this
+		Manufacturer:        zigbee.NoManufacturer,
+		ClusterID:           zigbee.ClusterID(devCmd.ClusterID),
+		SourceEndpoint:      zigbee.Endpoint(0x01),
+		DestinationEndpoint: zigbee.Endpoint(devCmd.Endpoint),
+		CommandIdentifier:   global.ReadAttributesID,
+		Command: &global.WriteAttributes{
+			Records: attributeRecords,
+		},
+	}
+
+	appMsg, err := mh.zclCommandRegistry.Marshal(message)
+	if err != nil {
+		mh.logger.Error("[ProccessSetMessageToDevice] Error Marshal zcl message: %v\n", err)
+		return
+	}
+
+	err = mh.zstack.SendApplicationMessageToNode(ctx, zigbee.IEEEAddress(devCmd.IEEEAddress), appMsg, false)
+	if err != nil {
+		mh.logger.Error("[ProccessSetMessageToDevice] Error sending message: %v\n", err)
+		return
+	}
+
+	mh.logger.Info(
+		"[ProccessSetMessageToDevice] Message (ClusterID: %v, Command: %v) is sent to %v device\n",
+		message.ClusterID, message.CommandIdentifier, devCmd.IEEEAddress)
+}
+
+//
+
+func (mh *zigbeeRouter) ProccessCommandMessageToDevice(ctx context.Context, devCmd types.DeviceCommandMessage) {
 
 	if !mh.isDeviceRegistered(devCmd.IEEEAddress) {
-		mh.logger.Warn("[ProccessMessageToDevice] device %v does not registered\n", devCmd.IEEEAddress)
+		mh.logger.Warn("[ProccessCommandMessageToDevice] device %v does not registered\n", devCmd.IEEEAddress)
 		return
 	}
 
@@ -207,7 +331,7 @@ func (mh *zigbeeRouter) ProccessMessageToDevice(ctx context.Context, devCmd type
 
 	command, err := mh.zclCommandRegistry.GetLocalCommand(message.ClusterID, message.Manufacturer, message.Direction, message.CommandIdentifier)
 	if err != nil {
-		mh.logger.Error("[ProccessMessageToDevice] Error Local command for ClusterID: %v, Manufacturer: %v, Direction: %v, CommandIdentifier: %v. Error: %v \n",
+		mh.logger.Error("[ProccessCommandMessageToDevice] Error Local command for ClusterID: %v, Manufacturer: %v, Direction: %v, CommandIdentifier: %v. Error: %v \n",
 			message.ClusterID,
 			message.Manufacturer,
 			message.Direction,
@@ -222,7 +346,7 @@ func (mh *zigbeeRouter) ProccessMessageToDevice(ctx context.Context, devCmd type
 
 	appMsg, err := mh.zclCommandRegistry.Marshal(message)
 	if err != nil {
-		mh.logger.Error("[ProccessMessageToDevice] Error Marshal zcl message: %v\n", err)
+		mh.logger.Error("[ProccessCommandMessageToDevice] Error Marshal zcl message: %v\n", err)
 		return
 	}
 
@@ -232,12 +356,12 @@ func (mh *zigbeeRouter) ProccessMessageToDevice(ctx context.Context, devCmd type
 	//err = mh.zstack.SendApplicationMessageToNode(timeoutCtx, zigbee.IEEEAddress(devCmd.IEEEAddress), appMsg, true)
 	err = mh.zstack.SendApplicationMessageToNode(ctx, zigbee.IEEEAddress(devCmd.IEEEAddress), appMsg, false)
 	if err != nil {
-		mh.logger.Error("[ProccessMessageToDevice] Error sending message: %v\n", err)
+		mh.logger.Error("[ProccessCommandMessageToDevice] Error sending message: %v\n", err)
 		return
 	}
 
 	mh.logger.Info(
-		"[ProccessMessageToDevice] Message (ClusterID: %v, Command: %v) is sent to %v device\n",
+		"[ProccessCommandMessageToDevice] Message (ClusterID: %v, Command: %v) is sent to %v device\n",
 		message.ClusterID, message.CommandIdentifier, devCmd.IEEEAddress)
 }
 

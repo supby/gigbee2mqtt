@@ -12,8 +12,9 @@ type MQTTRouter interface {
 	PublishDeviceMessage(ieeeAddress uint64, msg interface{}, subtopic string)
 	PublishGatewayMessage(msg interface{}, subtopic string)
 
-	SubscribeOnSetMessage(callback func(devCmd types.DeviceCommandMessage))
+	SubscribeOnCommandMessage(callback func(devCmd types.DeviceCommandMessage))
 	SubscribeOnGetMessage(callback func(devCmd types.DeviceGetMessage))
+	SubscribeOnSetMessage(callback func(devCmd types.DeviceSetMessage))
 	SubscribeOnExploreMessage(callback func(devCmd types.DeviceExploreMessage))
 	SubscribeOnSetDeviceConfigMessage(callback func(devCmd types.DeviceConfigSetMessage))
 }
@@ -25,8 +26,9 @@ type ZigbeeRouter interface {
 	SubscribeOnDeviceJoin(cb func(e zigbee.NodeJoinEvent))
 	SubscribeOnDeviceLeave(cb func(e zigbee.NodeLeaveEvent))
 	SubscribeOnDeviceUpdate(cb func(e zigbee.NodeUpdateEvent))
-	ProccessMessageToDevice(ctx context.Context, devCmd types.DeviceCommandMessage)
+	ProccessCommandMessageToDevice(ctx context.Context, devCmd types.DeviceCommandMessage)
 	ProccessGetMessageToDevice(ctx context.Context, devCmd types.DeviceGetMessage)
+	ProccessSetMessageToDevice(ctx context.Context, devCmd types.DeviceSetMessage)
 	ProccessSetDeviceConfigMessage(ctx context.Context, devCmd types.DeviceConfigSetMessage)
 	ProccessGetDeviceDescriptionMessage(ctx context.Context, devCmd types.DeviceExploreMessage)
 	StartAsync(ctx context.Context)

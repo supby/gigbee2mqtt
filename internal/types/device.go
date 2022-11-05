@@ -15,6 +15,19 @@ type DeviceGetMessage struct {
 	Attributes  []uint16
 }
 
+type DeviceSetMessage struct {
+	IEEEAddress uint64
+	ClusterID   uint16
+	Endpoint    uint8
+	Attributes  []AttributeRecord
+}
+
+type AttributeRecord struct {
+	Id    uint16
+	Type  string
+	Value interface{}
+}
+
 type DeviceExploreMessage struct {
 	IEEEAddress uint64
 }

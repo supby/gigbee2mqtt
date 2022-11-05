@@ -28,9 +28,9 @@ gigbee2mqtt/0x00124b00217301e4
 }
 ```
 
-**Device state get**
+**Device attribute get**
 
-In order to retreive device state following message should be sent on topic `gigbee2mqtt/<device addr>/get`:
+In order to retreive device attributes following message should be sent on topic `gigbee2mqtt/<device addr>/get`:
 ```
 {
   "ClusterID": <zcl cluster id>,
@@ -46,13 +46,48 @@ gigbee2mqtt/0x842e14fffe05b879/get
 {
   "ClusterID": 6,
   "Endpoint": 1,
-  "Attributes": [0]
+  "Attributes": [0, 16]
 }
 ```
 
-**Device state set**
+**Device attribute set**
 
-In order to set device state, following message should be sent on topic `gigbee2mqtt/<device addr>/set`:
+In order to set device attributes following message should be sent on topic `gigbee2mqtt/<device addr>/set`:
+```
+{
+  "ClusterID": <zcl cluster id>,
+  "Endpoint": <device endpoint>,
+  "Attributes": [<list of attribute records>]
+}
+```
+Where attribute record:
+```
+{
+	  	"Id": <id of attribute>,
+	  	"Type": <type>, // ex. "int32", "uint16", ... See ZCL specification
+	  	"Value": <value>
+} 
+```
+
+Example:
+```
+gigbee2mqtt/0x124b002513da31/set
+{
+  "ClusterID": 1280,
+  "Endpoint": 1,
+  "Attributes": [
+	  {
+	  	"Id": 16,
+	  	"Type": "ieeeAddr",
+	  	"Value": 5149013569599309
+	  } 
+  ]
+}
+```
+
+**Device state command**
+
+In order to send a ZCL command to device, following message should be sent on topic `gigbee2mqtt/<device addr>/command`:
 ```
 {
   "ClusterID": <zcl cluster id>,
@@ -71,7 +106,7 @@ gigbee2mqtt/0x00124b00217301e4/set
   "Endpoint": 6,
 	"CommandIdentifier": 4,
 	"CommandData": {
-        "Level": 108,
+    "Level": 108,
 	 	"TransitionTime": 1
   }
 }
