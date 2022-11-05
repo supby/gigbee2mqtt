@@ -273,7 +273,7 @@ func (mh *zigbeeRouter) ProccessSetMessageToDevice(ctx context.Context, devCmd t
 			Identifier: zcl.AttributeID(attrRec.Id),
 			DataTypeValue: &zcl.AttributeDataTypeValue{
 				DataType: zclDataType,
-				Value:    attrRec.Value,
+				Value:    uint(attrRec.Value.(float64)),
 			},
 		})
 	}
