@@ -286,7 +286,7 @@ func (mh *zigbeeRouter) ProccessSetMessageToDevice(ctx context.Context, devCmd t
 		ClusterID:           zigbee.ClusterID(devCmd.ClusterID),
 		SourceEndpoint:      zigbee.Endpoint(0x01),
 		DestinationEndpoint: zigbee.Endpoint(devCmd.Endpoint),
-		CommandIdentifier:   global.ReadAttributesID,
+		CommandIdentifier:   global.WriteAttributesID,
 		Command: &global.WriteAttributes{
 			Records: attributeRecords,
 		},
