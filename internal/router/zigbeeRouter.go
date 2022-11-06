@@ -321,11 +321,22 @@ func (mh *zigbeeRouter) ProccessSetMessageToDevice(ctx context.Context, devCmd t
 			return
 		}
 
+		value := reflector.ConvertType(attrRec.Value, dstKind)
+		if value == nil {
+			mh.logger.Warn("[ProccessSetMessageToDevice] converted attribute value is NIL")
+			return
+		}
+
+		if zclDataType == zcl.TypeIEEEAddress {
+			mh.logger.Info("[ProccessSetMessageToDevice] convert uint64 to zigbee.IEEEAddress")
+			value = zigbee.IEEEAddress(value.(uint64))
+		}
+
 		attributeRecords = append(attributeRecords, global.WriteAttributesRecord{
 			Identifier: zcl.AttributeID(attrRec.Id),
 			DataTypeValue: &zcl.AttributeDataTypeValue{
 				DataType: zclDataType,
-				Value:    reflector.ConvertType(attrRec.Value, dstKind),
+				Value:    value,
 			},
 		})
 	}
@@ -357,7 +368,7 @@ func (mh *zigbeeRouter) ProccessSetMessageToDevice(ctx context.Context, devCmd t
 	}
 
 	mh.logger.Info(
-		"[ProccessSetMessageToDevice] Message (ClusterID: %v, Command: %v) is sent to %v device\n",
+		"[ProccessSetMessageToDevice] Message ClusterID: %v, Command: %v is sent to %v device\n",
 		message.ClusterID, message.CommandIdentifier, devCmd.IEEEAddress)
 }
 

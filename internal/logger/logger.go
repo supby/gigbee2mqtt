@@ -29,7 +29,7 @@ func GetLogger(prefix string, level int) Logger {
 }
 
 func (l *logger) Info(message string, v ...interface{}) {
-	l.log(fmt.Sprintf("[INFO] %v", message), v)
+	l.log(fmt.Sprintf("[INFO] %v", message), v...)
 }
 
 func (l *logger) Warn(message string, v ...interface{}) {
@@ -37,7 +37,7 @@ func (l *logger) Warn(message string, v ...interface{}) {
 		return
 	}
 
-	l.log(fmt.Sprintf("[WARN] %v", message), v)
+	l.log(fmt.Sprintf("[WARN] %v", message), v...)
 }
 
 func (l *logger) Error(message string, v ...interface{}) {
@@ -45,7 +45,7 @@ func (l *logger) Error(message string, v ...interface{}) {
 		return
 	}
 
-	l.log(fmt.Sprintf("[ERROR] %v", message), v)
+	l.log(fmt.Sprintf("[ERROR] %v", message), v...)
 }
 
 func (l *logger) Debug(message string, v ...interface{}) {
@@ -53,7 +53,7 @@ func (l *logger) Debug(message string, v ...interface{}) {
 		return
 	}
 
-	l.log(fmt.Sprintf("[DEBUG] %v", message), v)
+	l.log(fmt.Sprintf("[DEBUG] %v", message), v...)
 }
 
 func (l *logger) log(message string, v ...interface{}) {
