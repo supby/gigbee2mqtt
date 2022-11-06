@@ -1,4 +1,4 @@
-package utils
+package reflector
 
 import (
 	"math"
@@ -104,48 +104,52 @@ func setString(f *reflect.Value, value interface{}) {
 	}
 }
 
-func setStructPropertyByNamne(name string, value interface{}, dst interface{}) {
+func setStructPropertyByName(name string, value interface{}, dst interface{}) {
 	dstValue := reflect.ValueOf(dst)
 	s := dstValue.Elem()
 	if s.Kind() == reflect.Struct {
 		f := s.FieldByName(name)
-		if f.IsValid() && f.CanSet() {
-			switch f.Kind() {
-			case reflect.Uint:
-				setUint(&f, value)
-			case reflect.Uint8:
-				setUint(&f, value)
-			case reflect.Uint16:
-				setUint(&f, value)
-			case reflect.Uint32:
-				setUint(&f, value)
-			case reflect.Uint64:
-				setUint(&f, value)
-			case reflect.Int:
-				setInt(&f, value)
-			case reflect.Int8:
-				setInt(&f, value)
-			case reflect.Int16:
-				setInt(&f, value)
-			case reflect.Int32:
-				setInt(&f, value)
-			case reflect.Int64:
-				setInt(&f, value)
-			case reflect.Float32:
-				setFloat(&f, value)
-			case reflect.Float64:
-				setFloat(&f, value)
-			case reflect.Bool:
-				setBool(&f, value)
-			case reflect.String:
-				setString(&f, value)
-			}
+		setValue(f, value)
+	}
+}
+
+func setValue(f reflect.Value, value interface{}) {
+	if f.IsValid() && f.CanSet() {
+		switch f.Kind() {
+		case reflect.Uint:
+			setUint(&f, value)
+		case reflect.Uint8:
+			setUint(&f, value)
+		case reflect.Uint16:
+			setUint(&f, value)
+		case reflect.Uint32:
+			setUint(&f, value)
+		case reflect.Uint64:
+			setUint(&f, value)
+		case reflect.Int:
+			setInt(&f, value)
+		case reflect.Int8:
+			setInt(&f, value)
+		case reflect.Int16:
+			setInt(&f, value)
+		case reflect.Int32:
+			setInt(&f, value)
+		case reflect.Int64:
+			setInt(&f, value)
+		case reflect.Float32:
+			setFloat(&f, value)
+		case reflect.Float64:
+			setFloat(&f, value)
+		case reflect.Bool:
+			setBool(&f, value)
+		case reflect.String:
+			setString(&f, value)
 		}
 	}
 }
 
 func SetStructProperties(srcMap map[string]interface{}, dst interface{}) {
 	for key, value := range srcMap {
-		setStructPropertyByNamne(key, value, dst)
+		setStructPropertyByName(key, value, dst)
 	}
 }

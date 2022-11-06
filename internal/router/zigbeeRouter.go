@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"os"
+	"reflect"
 	"time"
 
 	"github.com/shimmeringbee/zcl"
@@ -20,7 +21,7 @@ import (
 	"github.com/supby/gigbee2mqtt/internal/logger"
 	"github.com/supby/gigbee2mqtt/internal/mqtt"
 	"github.com/supby/gigbee2mqtt/internal/types"
-	"github.com/supby/gigbee2mqtt/internal/utils"
+	"github.com/supby/gigbee2mqtt/internal/utils/reflector"
 	"github.com/supby/gigbee2mqtt/internal/zcldef"
 	"go.bug.st/serial.v1"
 )
@@ -80,6 +81,44 @@ var type2zbtype = map[string]byte{
 
 	"octstr": byte(zcl.TypeStringOctet8),
 	"string": byte(zcl.TypeStringCharacter8),
+}
+
+var type2gtype = map[string]reflect.Kind{
+	"boolean": reflect.Bool,
+
+	"int8":  reflect.Int8,
+	"int16": reflect.Int16,
+	"int24": reflect.Int32,
+	"int32": reflect.Int32,
+	"int48": reflect.Int64,
+	"int64": reflect.Int64,
+
+	"uint8":  reflect.Uint8,
+	"uint16": reflect.Uint16,
+	"uint24": reflect.Uint32,
+	"uint32": reflect.Uint32,
+	"uint48": reflect.Uint64,
+	"uint64": reflect.Uint64,
+
+	"float32": reflect.Float32,
+	"float64": reflect.Float64,
+
+	"enum8":  reflect.Uint8,
+	"enum16": reflect.Uint16,
+
+	"map8":  reflect.Uint8,
+	"map16": reflect.Uint16,
+	"map24": reflect.Uint32,
+	"map32": reflect.Uint32,
+	"map40": reflect.Uint64,
+	"map48": reflect.Uint64,
+	"map56": reflect.Uint64,
+	"map64": reflect.Uint64,
+
+	"ieeeAddr": reflect.Uint64,
+
+	"octstr": reflect.String,
+	"string": reflect.String,
 }
 
 type zigbeeRouter struct {
@@ -269,11 +308,24 @@ func (mh *zigbeeRouter) ProccessSetMessageToDevice(ctx context.Context, devCmd t
 			return
 		}
 
+		dstKind := reflect.Invalid
+		if val, ok := type2gtype[attrRec.Type]; ok {
+			dstKind = val
+		}
+
+		if dstKind == reflect.Invalid {
+			mh.logger.Warn(
+				"[ProccessSetMessageToDevice] attribute destination type: %v is not found",
+				attrRec.Type,
+			)
+			return
+		}
+
 		attributeRecords = append(attributeRecords, global.WriteAttributesRecord{
 			Identifier: zcl.AttributeID(attrRec.Id),
 			DataTypeValue: &zcl.AttributeDataTypeValue{
 				DataType: zclDataType,
-				Value:    uint(attrRec.Value.(float64)),
+				Value:    reflector.ConvertType(attrRec.Value, dstKind),
 			},
 		})
 	}
@@ -340,7 +392,7 @@ func (mh *zigbeeRouter) ProccessCommandMessageToDevice(ctx context.Context, devC
 		return
 	}
 
-	utils.SetStructProperties(devCmd.CommandData, command)
+	reflector.SetStructProperties(devCmd.CommandData, command)
 
 	message.Command = command
 
